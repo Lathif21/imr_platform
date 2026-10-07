@@ -1,6 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import type { PostgrestError } from '@supabase/supabase-js';
-import { OPERATIONAL_SYNC_TOKEN } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import {
   POS_BELUM_DIPETAKAN,
   fetchJenisPengeluaran,
@@ -113,10 +113,10 @@ export const load: PageServerLoad = async ({ locals, url }) => {
    */
   let fetchError: string | null = null;
   let recorded: { sumber: SumberBiaya; jenis: string; baris: number; terakhir: string | null }[] = [];
-  if (OPERATIONAL_SYNC_TOKEN === '') {
+  if (!env.OPERATIONAL_SYNC_TOKEN) {
     fetchError = 'Token integrasi belum dipasang di portal keuangan, jadi daftar jenis tidak dapat diambil.';
   } else {
-    const hasil = await fetchJenisPengeluaran(configResult.data!.base_url, OPERATIONAL_SYNC_TOKEN);
+    const hasil = await fetchJenisPengeluaran(configResult.data!.base_url, env.OPERATIONAL_SYNC_TOKEN);
     if (hasil.ok) recorded = hasil.jenis;
     else fetchError = hasil.message;
   }

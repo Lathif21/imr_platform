@@ -1,6 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
-import { OPERATIONAL_SYNC_TOKEN } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import type { LineSection, Numeric, PeriodStatus } from '$lib/domain';
 import { AMOUNT_LIMIT, MONTH_PATTERN, formatAmount, parseAmountInput } from '$lib/format';
 import { canEnterReports } from '$lib/roles';
@@ -363,12 +363,12 @@ export const actions: Actions = {
     }
 
     /**
-     * Token dari `$env/static/private`, tidak pernah dari database dan tidak
+     * Token dari `$env/dynamic/private`, tidak pernah dari database dan tidak
      * pernah dari klien — sejalan dengan cara service role key ditangani di
      * /admin/users. SvelteKit menolak menyertakan modul ini ke bundel klien,
      * dan itu lapisan pengaman terakhirnya, bukan yang pertama.
      */
-    if (OPERATIONAL_SYNC_TOKEN === '') {
+    if (!env.OPERATIONAL_SYNC_TOKEN) {
       console.error('[tarik operasional] OPERATIONAL_SYNC_TOKEN belum diisi');
       return fail(500, {
         message: 'Token integrasi belum dipasang di portal keuangan. Hubungi direksi.'
@@ -377,7 +377,7 @@ export const actions: Actions = {
 
     const hasil = await fetchRekapOperasional(
       config.base_url,
-      OPERATIONAL_SYNC_TOKEN,
+      env.OPERATIONAL_SYNC_TOKEN,
       params.period
     );
     if (!hasil.ok) return fail(hasil.status, { message: hasil.message });
