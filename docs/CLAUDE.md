@@ -1,0 +1,176 @@
+# Financial Reporting Portal
+
+Multi-entity financial reporting and consolidation portal for a holding group
+of four separate Indonesian legal entities (PT), each with its own NPWP.
+
+Read `CONTEXT.md` before writing code — the domain vocabulary is Indonesian
+and mixing it up produces subtly wrong reports.
+Read `ASSUMPTIONS.md` before changing anything about how amounts are
+calculated — several accounting policies are still undecided.
+
+## Platform terpadu
+
+This copy also hosts ILJ's operational system, ported from Laravel module by
+module. Read `PENGGABUNGAN.md` before touching anything operational. The
+invariants below apply to the operational tables as well — in particular
+invariant 1: every operational table is listed in the loop at the end of
+`20250108000000_operasional.sql`, and `tests/operasional-rls.test.ts` fails
+when a table is missing from it.
+
+Feedback UX follows the operational system (decided 7 Oktober 2026): the
+outcome of an action is a modal — `notify('success' | 'error', …)`, with
+`details` listing every failed field — not a toast. Destructive confirmations
+state what else goes with them in `consequence`. Toasts are only for things
+nobody asked for, such as someone else's change.
+
+## What this is NOT
+
+Not an ERP. Not an accounting system. There is no general ledger, no
+double-entry journal, no chart of accounts, no balance sheet.
+
+Entities submit an already-prepared profit & loss statement. This system
+stores it, validates the workflow around it, and consolidates across
+entities. Correctness of the numbers is each entity's responsibility.
+
+If a task starts to look like "build the ledger", stop and ask.
+
+## Stack
+
+- SvelteKit (SSR) + TypeScript
+- Supabase: Postgres, Auth, RLS
+- Tailwind + shadcn-svelte
+- `supabase-js` directly — no ORM
+
+## Non-negotiable invariants
+
+Violating any of these produces wrong financial reports. They are not
+style preferences.
+
+1. **Authorization lives in RLS, not in application code.** App-layer checks
+   are UX, not security. Never add a table without an RLS policy.
+
+2. **Never store subtotals.** Gross profit, operating profit and net profit
+   are computed in `v_period_pnl`. Adding a `gross_profit` column to
+   `report_lines` "for performance" reintroduces the exact class of bug this
+   design exists to prevent.
+
+3. **Amounts are `numeric(18,2)` and stored in full Rupiah.** Never `float`.
+   Never store "in millions". Formatting to juta/miliar happens in the view
+   layer only.
+
+4. **The audit trail is written by database triggers.** Never write to
+   `audit_log` from application code. Never add a code path that bypasses it.
+
+5. **`report_lines` is only mutable while its period is `draft`.** Enforced by
+   trigger. Don't work around it — route the user through reject-to-draft.
+
+6. **A submitter cannot approve their own submission.** Enforced by trigger.
+
+7. **Report templates are data, not code.** Adding a line means inserting a
+   row into `report_template_lines`, not editing a TypeScript constant.
+
+8. **Never invent an accounting policy.** If a calculation depends on an
+   undecided policy (see `ASSUMPTIONS.md`), surface the gap in the UI instead
+   of picking a default.
+
+## Working agreement
+
+- The schema in `supabase/migrations/` is the source of truth. Read it before
+  writing queries.
+- Migrations are forward-only. Never edit an applied migration.
+- Don't add a dependency without saying why in the PR description. Check
+  what's installed first.
+- Don't add abstraction layers, repository patterns, or service wrappers
+  around `supabase-js`. Call it directly.
+- This is a solo project at ~20h/week. Prefer the boring version.
+
+## Design
+
+Source: Figma Make — "Financial Reporting Portal". Tokens are ported to
+`src/app.css`. **Use the tokens, never raw hex.** The Figma export hardcodes
+`bg-[#18181B]` on every element; that is an export artifact.
+
+Dark-only. No light theme exists and none is planned.
+
+Five screens in the export, four of them real:
+
+| Screen | Route | Notes |
+|---|---|---|
+| Dasbor Eksekutif | `/` | KPI cards, contribution bars, alert panel |
+| Laporan P&L | `/entities/[id]/periods/[period]` | Read-only statement, MoM comparison |
+| Input Laporan | `/entry/[period]` | Editable rows, locked subtotals, sticky totals footer |
+| Persetujuan | `/approval` | Queue with expandable review panel |
+| ~~Tampilan Mobile~~ | — | Prototype device-frame preview. Not a route. The real app is responsive down to 360px — verified, not assumed; see `TESTING.md` Part 7. |
+
+Four admin screens exist beyond the Figma export, all behind
+`/admin/+layout.server.ts` which redirects anyone who is not `direksi`:
+
+| Screen | Route | Notes |
+|---|---|---|
+| Entitas | `/admin/entities` | Create and edit entities; reporting basis is set through an RPC, never a column write |
+| Template | `/admin/templates` | Versioned; a template used by a non-draft period is frozen and must be duplicated |
+| Pengguna | `/admin/users` | The only screen holding the service role key |
+| Pemetaan Biaya | `/admin/pemetaan-biaya` | Maps operational expense types to report lines; unmapped types land in `OPEX_LAIN` and are named on the entry screen |
+
+Two rules worth carrying in your head before touching them:
+
+- **`entities.reporting_basis` cannot be written directly.** A trigger refuses
+  it. `set_entity_reporting_basis()` writes the decision to
+  `accounting_policies` and the value to `entities` in one transaction, so the
+  reason and the figure can never drift apart.
+- **A template in use is immutable.** `v_period_pnl` resolves a figure's
+  section by joining to `report_template_lines`, so editing a line's section
+  moves historical amounts between buckets across every period that ever used
+  the template — locked ones included, silently. Duplicating to a new version
+  is the only way forward; old periods keep pointing at the old `template_id`.
+
+The export is React; this project is SvelteKit. Port screen by screen —
+do not vendor the `src/app/components/ui` directory. It ships 48 shadcn
+components plus MUI, react-slick, react-dnd and canvas-confetti; the four
+real screens use none of them. Add each component only when a screen needs it.
+
+Layout conventions worth preserving: 48px header bars, and a sticky footer on
+the entry screen carrying live totals. Numbers are always right-aligned and
+tabular.
+
+The sidebar has three states, and `md` (768px) is the line between them:
+
+| Viewport | Sidebar | How it is dismissed |
+|---|---|---|
+| `md` and up, expanded | 214px, labels | "Ciutkan" button at its foot |
+| `md` and up, collapsed | 60px, icons only | same button, now "Lebarkan" |
+| below `md` | 260px drawer over the page | backdrop, ✕, Escape, or following a link |
+
+The expanded/collapsed choice is a cookie (`sidebar=rail|full`) read in
+`+layout.server.ts`, not localStorage: the server has to render the rail at
+the chosen width or it visibly jumps on every full page load.
+
+Below `md` the drawer is `visibility: hidden` when shut, not merely translated
+off-screen — a sidebar parked at -100% is still in the tab order, and tabbing
+through a phone screen would walk into links nobody can see. `inert` cannot do
+this job: it is an attribute, so it takes no responsive variant, and `open` is
+always false on desktop.
+
+## Anti-patterns seen in the original prototype
+
+These were real bugs. Don't reintroduce them.
+
+- Labelling month-over-month comparison as "YoY"
+- Storing a React component inside a data object (`icon: Truck`) — icons are
+  string keys
+- `width: ${margin}%` without clamping to 0–100
+- Showing consolidated totals without a banner when entities haven't reported
+- Calling a hardcoded if/else "AI Executive Advisor"
+- Credentials in source code, displayed on the login screen
+- Role checks performed client-side
+
+## Skills
+
+Installed separately, not vendored here:
+
+- `ponytail` — laziness ladder before writing code
+- `mattpocock/skills` — `/grill-with-docs`, `/tdd`, `/code-review`,
+  `/domain-modeling`
+
+Use `/grill-with-docs` before any non-trivial feature. Use `/code-review`
+before committing.

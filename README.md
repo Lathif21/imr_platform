@@ -1,0 +1,178 @@
+# IMR Platform
+
+One platform for the holding group's financial reporting **and** ILJ's
+operational system: the IMR_keu reporting portal, extended with the modules
+of the Laravel operational system (LaporanKeuangan) as they are ported.
+
+**Start with [docs/PENGGABUNGAN.md](docs/PENGGABUNGAN.md)** — what was merged,
+the decisions behind it, the port order, the data migration plan, and the
+questions still open. Everything below describes the reporting portal this
+platform was copied from, and still holds for it.
+
+Local Supabase runs on ports **553xx** (`project_id = IMR_platform`), so it can
+run beside IMR_keu's stack on 543xx. A fifth seed account,
+`admin.ilj@example.test` (`admin_operasional`, ILJ only), exercises the
+operational module.
+
+Read these before writing code:
+
+| File | Why |
+|---|---|
+| [docs/PENGGABUNGAN.md](docs/PENGGABUNGAN.md) | The merge: decisions, port plan, data migration, open questions. |
+| [docs/CLAUDE.md](docs/CLAUDE.md) | Non-negotiable invariants. Violating one produces wrong reports. |
+| [docs/CONTEXT.md](docs/CONTEXT.md) | Indonesian domain vocabulary. Mixing terms up has already produced wrong numbers once. |
+| [docs/ASSUMPTIONS.md](docs/ASSUMPTIONS.md) | Accounting policies that are still undecided. The system surfaces them; it never picks a default. |
+| [docs/TESTING.md](docs/TESTING.md) | What is still checked by hand, after `npm test`: session handling and the dashboard. |
+| [docs/TESTING-WORKFLOW.md](docs/TESTING-WORKFLOW.md) | The two write screens, walked end to end. |
+| [docs/TESTING-PHASE2.md](docs/TESTING-PHASE2.md) | Fase 2 on screen: the P&L report, entity isolation, and the ILJ import. |
+| [docs/TESTING-INTEGRASI.md](docs/TESTING-INTEGRASI.md) | The operational system → portal pull, tested end to end on screen with Playwright. |
+| [docs/DATABASE.md](docs/DATABASE.md) | Inspecting the schema in DBeaver: tables, relations, triggers, and why RLS looks absent there. |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | What exists, what does not, and what comes next. |
+
+## Stack
+
+SvelteKit (SSR) + TypeScript · Neon (Postgres, Neon Auth, Data API, RLS) ·
+Tailwind v4. `supabase-js` is called directly against the Neon Data API, which
+speaks PostgREST — no ORM, no repository layer. Only its query half is used;
+login and account administration go through `src/lib/server/neon-auth.ts`.
+
+Production runs on the `imr_keu` database of the Neon project `IMR`. Neon Auth
+keeps users in `neon_auth."user"`, and `auth.uid()` reads the JWT's `sub`
+exactly as on Supabase, so the migrations and every RLS policy are shared by
+both. Apply them to Neon with:
+
+```sh
+NEON_DATABASE_URL=postgres://... npx tsx scripts/neon-migrate.ts --bootstrap
+```
+
+The script rewrites the one Supabase-only reference (`auth.users`) on the fly
+and records what it applied; `--bootstrap` adds the four entities and the
+operational sync link from `supabase/neon-bootstrap.sql`.
+
+## Running it locally
+
+`npm run dev` talks to Neon, using `NEON_AUTH_BASE_URL` and
+`NEON_DATA_API_URL` from `.env` (Neon Auth accepts `localhost` origins).
+
+The test suite and the seeded accounts below still use a local Supabase stack,
+which needs Node 20+, Docker Desktop, and the Supabase CLI.
+
+```sh
+npm install
+cp .env.example .env      # fill in the keys `supabase start` prints
+supabase start            # Postgres, Auth, Studio on 127.0.0.1
+npm run db:reset          # apply migrations, then supabase/seed.sql
+npm run dev
+```
+
+`supabase/seed.sql` creates four local accounts, one per role, all with the
+password `devpassword`:
+
+| Email | Role | Sees |
+|---|---|---|
+| `direksi@example.test` | direksi | everything; can unlock a locked period |
+| `manajer@example.test` | manajer_keuangan | everything; approves and locks |
+| `staf.ilj@example.test` | staf_entitas | ILJ only |
+| `auditor@example.test` | auditor | everything, read-only |
+
+These exist only in a local database. They are not printed anywhere in the UI.
+
+## Security notes
+
+Deliberate limitations, not oversights. Each is a decision that can be revisited
+when the group is bigger than ten people.
+
+**Accounts are created by a director, password and all.** There is no SMTP
+configured, so `/admin/users` calls `createUser` with `email_confirm: true` —
+without it the account could never log in. The consequences, in full:
+
+- There is **no email verification**. An address is whatever the director typed.
+- There is **no self-service password reset**. A forgotten password means asking
+  a director to set a new one.
+- The director **knows every initial password**. The screen offers a random
+  generator and shows the result once, so nobody has to invent one, but the
+  password still passes through a human.
+
+Passwords are never written to a log, never stored in `audit_log`, never put in
+an error message, and never sent back to the browser after being set. Minimum
+length is checked on the server, not only in the form.
+
+**Email cannot be changed** once an account exists. `auth.admin.updateUserById`
+could do it, but changing someone's address without verification is how an
+account gets taken over. Deactivate and create a new one instead.
+
+**Nobody is ever deleted.** `audit_log.actor_id` points at profiles, and a
+history whose actors have vanished is not a history. Deactivating is the way
+out, and `current_user_role()` filters `is_active`, so a deactivated account
+loses everything immediately — even with a session still in flight.
+
+**There is no service key.** `/admin/users` calls Neon Auth's admin API with
+the director's own session, and Neon Auth accepts it only from users whose auth
+role is `admin`. That role is kept in step with `profiles.role`: only directors
+hold it, a role change updates it, and deactivating an account bans it in Neon
+Auth, which also ends its sessions. Without that, a demoted or deactivated
+director could still reset other people's passwords by calling the auth API
+directly — RLS never sees that call.
+
+Public sign-up is disabled in Neon Auth (`disable_sign_up`), and the portal's
+domain must be a trusted domain there, or every auth call fails with
+`INVALID_ORIGIN`.
+
+## Scripts
+
+| Command | Does |
+|---|---|
+| `npm run dev` | dev server |
+| `npm run build` | production build |
+| `npm test` | the regression suite — RLS, workflow triggers, guards, view arithmetic, formatting |
+| `npm run test:watch` | the same, in watch mode |
+| `npm run check` | `svelte-check` over the whole project |
+| `npm run db:reset` | drop, re-migrate and re-seed the local database |
+| `npm run db:types` | regenerate `src/lib/server/database.types.ts` from the local schema |
+
+`npm test` runs against the local Supabase stack — start it first. It resets
+its own fixture by truncating and replaying `supabase/seed.sql`, which takes
+about 100ms, but it does **not** re-apply migrations: run `npm run db:reset`
+once after changing the schema.
+
+There is one more script, run by hand rather than by npm:
+
+```sh
+npx tsx scripts/import-ilj.ts <path-to-xlsx>
+```
+
+It parses ILJ's historical workbook into `supabase/seed-ilj.sql` for review. It
+never writes to a database — see [docs/task/03-import-ilj.md](docs/task/03-import-ilj.md).
+
+## Layout
+
+```
+supabase/migrations/   Schema. The source of truth. Forward-only.
+supabase/seed.sql      Local development data. Never run against production.
+src/lib/domain.ts      Enums and view row shapes, hand-written
+src/lib/format.ts      The only layer allowed to shorten Rupiah to juta/miliar
+src/lib/roles.ts       Mirror of the SQL role predicates — for UI shaping only
+src/routes/(app)/      Screens behind a session
+scripts/import-ilj.ts  Excel → reviewable SQL. Writes a file, never a database.
+tests/                 Seven files, found by name. See docs/task/05-regression-tests.md
+docs/                  Invariants, vocabulary, open decisions, roadmap
+design/figma-export/   The original Figma Make React export. Reference only.
+```
+
+## Status
+
+| Screen | Route | State |
+|---|---|---|
+| Dasbor Eksekutif | `/` | built |
+| Laporan P&L | `/entities` → `/entities/[id]/periods/[period]` | built |
+| Input Laporan | `/entry/[period]` | built |
+| Persetujuan | `/approval` | built |
+
+All four screens exist and the sidebar has no disabled item. What is missing is
+data rather than code: ILJ's nine real months are still an unrun parser, since
+the source workbook is not in the repo. See
+[docs/ROADMAP.md](docs/ROADMAP.md).
+
+No deployment target is chosen yet, so `@sveltejs/adapter-auto` cannot detect
+a platform and `npm run build` says so. Swap in a real adapter when that is
+decided.

@@ -1,0 +1,22 @@
+node_modules/
+/.svelte-kit/
+/build/
+/dist/
+
+# Secrets. .env.example is committed; nothing else is.
+.env
+.env.*
+!.env.example
+
+# Catatan kredensial pribadi (lihat docs/TEST-CASE-INTEGRASI.md bagian 2)
+*.local.md
+
+# Supabase CLI local state
+/supabase/.temp/
+/supabase/.branches/
+
+.DS_Store
+Thumbs.db
+
+# Tangkapan layar dan hasil tes integrasi lewat layar
+tests/e2e/hasil/
