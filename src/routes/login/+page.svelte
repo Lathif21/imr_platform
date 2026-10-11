@@ -4,6 +4,7 @@
   import Eye from 'lucide-svelte/icons/eye';
   import EyeOff from 'lucide-svelte/icons/eye-off';
   import LoaderCircle from 'lucide-svelte/icons/loader-circle';
+  import CircleCheck from 'lucide-svelte/icons/circle-check';
   import { enhance } from '$app/forms';
   import { page } from '$app/state';
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
@@ -58,7 +59,10 @@
       </div>
 
       <div class="space-y-1.5">
-        <label for="password" class="block text-[12px] font-medium text-muted-foreground">Kata sandi</label>
+        <div class="flex items-center justify-between">
+          <label for="password" class="block text-[12px] font-medium text-muted-foreground">Kata sandi</label>
+          <a href="/login/lupa-password" class="text-[12px] text-primary hover:underline">Lupa kata sandi?</a>
+        </div>
         <div class="relative">
           <input
             id="password"
@@ -86,6 +90,13 @@
           </button>
         </div>
       </div>
+
+      {#if page.url.searchParams.has('reset') && !form?.message}
+        <p class="flex items-start gap-2 text-[12px] text-primary" role="status">
+          <CircleCheck size={13} class="shrink-0 mt-px" />
+          Kata sandi berhasil diganti. Silakan masuk dengan kata sandi baru.
+        </p>
+      {/if}
 
       {#if form?.message}
         <p class="flex items-start gap-2 text-[12px] text-destructive" role="alert">

@@ -95,6 +95,25 @@ export async function signIn(origin: string, email: string, password: string): P
   return sessionFrom(response);
 }
 
+/**
+ * Asks Neon Auth to issue a reset token. Neon never reveals whether the
+ * address has an account, and neither do we: the caller shows the same
+ * message either way. The token itself reaches us through the
+ * `send.magic_link` webhook (/auth/webhook), which mails it via Brevo.
+ */
+export async function requestPasswordReset(origin: string, email: string, redirectTo: string): Promise<void> {
+  const response = await call('request-password-reset', { origin, body: { email, redirectTo } });
+  if (!response.ok) await fail('request-password-reset', response);
+}
+
+/** Returns false for an invalid or expired token. */
+export async function resetPassword(origin: string, token: string, newPassword: string): Promise<boolean> {
+  const response = await call('reset-password', { origin, body: { token, newPassword } });
+  if (response.status === 400 || response.status === 401 || response.status === 404) return false;
+  if (!response.ok) await fail('reset-password', response);
+  return true;
+}
+
 export async function signOut(origin: string, session: string): Promise<void> {
   await call('sign-out', { origin, session, body: {} }).catch(() => undefined);
 }
