@@ -80,22 +80,32 @@ export function canEnterReports(role: UserRole | null): boolean {
 /**
  * SQL: can_read_reports()
  *
- * Periods and report lines. An explicit list since admin_operasional joined
- * the enum: that role holds entity assignments too, and `has_entity_access()`
- * alone would have handed it the P&L of every entity it operates.
+ * Periods and report lines, read only. An explicit list since
+ * admin_operasional joined the enum; it reads the P&L of its assigned
+ * entities (decided 7 Oktober 2026) but never writes one — see
+ * `canEnterReports()`.
  */
 export function canReadReports(role: UserRole | null): boolean {
   return (
     role === 'direksi' ||
     role === 'manajer_keuangan' ||
     role === 'staf_entitas' ||
-    role === 'auditor'
+    role === 'auditor' ||
+    role === 'admin_operasional'
   );
 }
 
-/** SQL: can_read_operational() — scope still comes from entity assignment. */
+/**
+ * SQL: can_read_operational() — scope still comes from entity assignment.
+ * Manajer and auditor read too, to trace a P&L figure back to its source.
+ */
 export function canReadOperational(role: UserRole | null): boolean {
-  return role === 'direksi' || role === 'admin_operasional';
+  return (
+    role === 'direksi' ||
+    role === 'admin_operasional' ||
+    role === 'manajer_keuangan' ||
+    role === 'auditor'
+  );
 }
 
 /**

@@ -173,16 +173,33 @@ describe('admin operasional', () => {
     expect(rows.map((r) => r.actor_id)).toContain(self);
   });
 
-  it('tidak membaca laporan laba rugi', async () => {
-    const { data: periods } = await admin.from('periods').select('id');
-    expect(periods).toEqual([]);
+  it('membaca laporan laba rugi entitasnya saja', async () => {
+    const { data: periods } = await admin.from('periods').select('entity_id');
+    expect(periods?.length).toBeGreaterThan(0);
+    expect([...new Set(periods?.map((r) => r.entity_id))]).toEqual([iljId]);
 
-    const { data: lines } = await admin.from('report_lines').select('id');
-    expect(lines).toEqual([]);
+    const { data: pnl } = await admin.from('v_period_pnl').select('entity_code');
+    expect([...new Set(pnl?.map((r) => r.entity_code))]).toEqual(['ILJ']);
+  });
 
-    // The rows are really there — a refusal, not an empty table.
-    const actual = await sql('select 1 from periods where entity_id = $1', [iljId]);
-    expect(actual.length).toBeGreaterThan(0);
+  it('tidak dapat mengubah baris laporan, bahkan pada periode draft', async () => {
+    const [draft] = await sql<{ id: string }>(
+      "select id from periods where entity_id = $1 and status = 'draft' limit 1",
+      [iljId]
+    );
+    const period =
+      draft?.id ??
+      (
+        await sql<{ id: string }>(
+          "insert into periods (entity_id, period, template_id) values ($1, '2026-07-01', $2) returning id",
+          [iljId, await templateId()]
+        )
+      )[0].id;
+
+    const { error } = await admin
+      .from('report_lines')
+      .insert({ period_id: period, line_code: 'REV_TAGIHAN', amount: 1 });
+    expect(error?.code).toBe('42501');
   });
 
   it('tidak dapat membuat periode laporan meski ditugaskan ke entitasnya', async () => {
@@ -204,6 +221,41 @@ describe('admin operasional', () => {
   });
 });
 
+describe('referensi antar-entitas', () => {
+  it('baris entitas A tidak dapat menunjuk baris entitas B', async () => {
+    // As postgres, so RLS is out of the way and only the constraint can refuse.
+    const [{ id: pemilikAmdk }] = await sql<{ id: number }>(
+      "insert into pemilik (entity_id, nama_pemilik) values ($1, 'Pemilik AMDK') returning id::int as id",
+      [amdkId]
+    );
+    await expect(
+      sql("insert into kendaraan (entity_id, nopol, pemilik_id) values ($1, 'L 1 XX', $2)", [
+        iljId,
+        pemilikAmdk
+      ])
+    ).rejects.toMatchObject({ code: '23503' });
+  });
+
+  it('menghapus induk melepas rujukan SET NULL tanpa menyentuh entity_id', async () => {
+    const [{ id: telly }] = await sql<{ id: number }>(
+      "insert into karyawan (entity_id, nama) values ($1, 'Telly Uji') returning id::int as id",
+      [iljId]
+    );
+    const [{ id: rekap }] = await sql<{ id: number }>(
+      'insert into operasional_rekap (entity_id, bulan, tahun, kapal_id, telly_id) values ($1, 8, 2026, $2, $3) returning id::int as id',
+      [iljId, iljKapal, telly]
+    );
+
+    await sql('delete from karyawan where id = $1', [telly]);
+
+    const [row] = await sql<{ telly_id: number | null; entity_id: string }>(
+      'select telly_id, entity_id from operasional_rekap where id = $1',
+      [rekap]
+    );
+    expect(row).toEqual({ telly_id: null, entity_id: iljId });
+  });
+});
+
 describe('direksi', () => {
   it('membaca data operasional seluruh entitas', async () => {
     const { data } = await direksi.from('kapal').select('id').order('id');
@@ -219,13 +271,22 @@ describe('direksi', () => {
 });
 
 describe('peran laporan', () => {
+  it('staf entitas tidak melihat data operasional', async () => {
+    const { data } = await staff.from('kapal').select('id');
+    expect(data).toEqual([]);
+  });
+
   it.each([
-    ['staf entitas', () => staff],
     ['manajer keuangan', () => manager],
     ['auditor', () => auditor]
-  ])('%s tidak melihat data operasional', async (_, client) => {
-    const { data } = await client().from('kapal').select('id');
-    expect(data).toEqual([]);
+  ])('%s membaca data operasional tetapi tidak menulisnya', async (_, client) => {
+    const { data } = await client().from('kapal').select('id').order('id');
+    expect(data?.map((r) => r.id)).toEqual([iljKapal, amdkKapal]);
+
+    const { error } = await client()
+      .from('pemilik')
+      .insert({ entity_id: iljId, nama_pemilik: 'Ditulis Peran Laporan' });
+    expect(error?.code).toBe('42501');
   });
 
   it('staf entitas tetap dapat membuat periode laporan', async () => {
