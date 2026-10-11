@@ -1,6 +1,9 @@
 <script lang="ts">
   import ChartColumn from 'lucide-svelte/icons/chart-column';
   import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
+  import Eye from 'lucide-svelte/icons/eye';
+  import EyeOff from 'lucide-svelte/icons/eye-off';
+  import LoaderCircle from 'lucide-svelte/icons/loader-circle';
   import { enhance } from '$app/forms';
   import { page } from '$app/state';
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
@@ -8,6 +11,8 @@
   import type { ActionData } from './$types';
 
   let { form }: { form: ActionData } = $props();
+  let showPassword = $state(false);
+  let submitting = $state(false);
 </script>
 
 <svelte:head><title>Masuk · Portal Keuangan</title></svelte:head>
@@ -27,7 +32,17 @@
       <ThemeToggle theme={parseTheme(page.data.theme)} variant="icon" />
     </div>
 
-    <form method="POST" use:enhance class="bg-card border border-border rounded-lg p-5 space-y-4">
+    <form
+      method="POST"
+      use:enhance={() => {
+        submitting = true;
+        return async ({ update }) => {
+          // Covers the success redirect too: update() resolves after navigating.
+          await update();
+          submitting = false;
+        };
+      }}
+      class="bg-card border border-border rounded-lg p-5 space-y-4">
       <div class="space-y-1.5">
         <label for="email" class="block text-[12px] font-medium text-muted-foreground">Email</label>
         <input
@@ -44,15 +59,32 @@
 
       <div class="space-y-1.5">
         <label for="password" class="block text-[12px] font-medium text-muted-foreground">Kata sandi</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autocomplete="current-password"
-          required
-          class="w-full h-9 px-3 rounded-md bg-background border border-border text-[13px] text-foreground
-                 focus:outline-none focus:border-primary"
-        />
+        <div class="relative">
+          <input
+            id="password"
+            name="password"
+            type={showPassword ? 'text' : 'password'}
+            autocomplete="current-password"
+            required
+            class="w-full h-9 pl-3 pr-9 rounded-md bg-background border border-border text-[13px] text-foreground
+                   focus:outline-none focus:border-primary"
+          />
+          <button
+            type="button"
+            onclick={() => (showPassword = !showPassword)}
+            aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+            aria-pressed={showPassword}
+            aria-controls="password"
+            class="absolute inset-y-0 right-0 w-9 flex items-center justify-center rounded-r-md
+                   text-muted-foreground hover:text-foreground focus:outline-none focus-visible:text-foreground"
+          >
+            {#if showPassword}
+              <EyeOff size={15} />
+            {:else}
+              <Eye size={15} />
+            {/if}
+          </button>
+        </div>
       </div>
 
       {#if form?.message}
@@ -64,10 +96,18 @@
 
       <button
         type="submit"
+        disabled={submitting}
+        aria-busy={submitting}
         class="w-full h-9 rounded-md bg-primary text-primary-foreground text-[13px] font-medium
-               hover:bg-accent transition-colors"
+               flex items-center justify-center gap-2 hover:bg-accent transition-colors
+               disabled:opacity-80 disabled:cursor-wait disabled:hover:bg-primary"
       >
-        Masuk
+        {#if submitting}
+          <LoaderCircle size={15} class="animate-spin" />
+          Memproses…
+        {:else}
+          Masuk
+        {/if}
       </button>
     </form>
 
