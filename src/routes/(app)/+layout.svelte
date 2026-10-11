@@ -56,7 +56,7 @@
       >
         <Menu size={18} />
       </button>
-      <p class="text-[12px] font-semibold text-foreground truncate">Portal Keuangan</p>
+      <p class="text-[12px] font-semibold text-foreground truncate">IMR Platform</p>
     </div>
 
     <!-- `min-h-0` matters: the pages inside are `h-full` with their own

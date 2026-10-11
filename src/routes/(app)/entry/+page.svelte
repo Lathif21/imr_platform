@@ -75,7 +75,7 @@
   }
 </script>
 
-<svelte:head><title>Input Laporan · Portal Keuangan</title></svelte:head>
+<svelte:head><title>Input Laporan · IMR Platform</title></svelte:head>
 
 {#if data.wrongRole}
   <div class="flex flex-col h-full">

@@ -139,7 +139,7 @@
   }
 </script>
 
-<svelte:head><title>Persetujuan Laporan · Portal Keuangan</title></svelte:head>
+<svelte:head><title>Persetujuan Laporan · IMR Platform</title></svelte:head>
 
 <div class="flex flex-col h-full overflow-hidden">
   <!-- header · 48px -->

@@ -39,7 +39,7 @@
   }
 </script>
 
-<svelte:head><title>Entitas · Administrasi · Portal Keuangan</title></svelte:head>
+<svelte:head><title>Entitas · Administrasi · IMR Platform</title></svelte:head>
 
 <div class="p-4 sm:p-5 space-y-4">
   {#if form?.message}

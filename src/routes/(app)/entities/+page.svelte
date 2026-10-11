@@ -13,7 +13,7 @@
   let { data }: { data: PageData } = $props();
 </script>
 
-<svelte:head><title>Laporan P&L · Portal Keuangan</title></svelte:head>
+<svelte:head><title>Laporan P&L · IMR Platform</title></svelte:head>
 
 <div class="flex flex-col h-full overflow-hidden">
   <div class="h-12 flex items-center justify-between px-5 border-b border-border shrink-0 gap-4">
