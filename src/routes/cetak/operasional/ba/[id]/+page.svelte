@@ -18,9 +18,14 @@
 
   <article>
     <header class="kop">
-      <div>
-        <h2>{data.entity.legal_name.toUpperCase()}</h2>
-        <p>Jasa Pengangkutan, Logistik, &amp; Pemuatan Pupuk Pelabuhan</p>
+      <div class="identitas-kop">
+        <div class="logo">IMR</div>
+        <div>
+          <h2>{data.entity.legal_name.toUpperCase()}</h2>
+          <p>Jasa Pengangkutan, Logistik, &amp; Pemuatan Pupuk Pelabuhan</p>
+          <!-- Sama persis dengan Laravel (keputusan pemilik sistem, 12 Okt 2026). -->
+          <p class="alamat">Jl. Raya Pelabuhan Utama No. 88 • Email: operational@indomodaraya.co.id</p>
+        </div>
       </div>
       <div class="kanan">
         <span class="lencana">DOKUMEN RESMI PENAGIHAN</span>
@@ -164,6 +169,20 @@
   }
   .kop h2 { margin: 0; font-size: 20px; font-weight: 900; }
   .kop p { margin: 2px 0 0; font-size: 11px; }
+  .identitas-kop { display: flex; align-items: center; gap: 14px; }
+  .logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    background: black;
+    color: white;
+    font-weight: 900;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .alamat { color: #888; font-size: 10px !important; }
   .kanan { text-align: right; }
   .lencana { display: inline-block; border: 1px solid #999; padding: 3px 8px; font-size: 9px; font-weight: bold; letter-spacing: 1px; }
   .judul { text-align: center; margin: 20px 0; }

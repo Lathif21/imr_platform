@@ -96,8 +96,8 @@ Blade + controller di Laravel, sebagai gambaran besar pekerjaan.
 | 2 ✓ | Rekap operasional (Detail Kegiatan, Lengkapi Data, Pembayaran Truk) | `OperasionalController` | `/operasional/kegiatan`, `/kegiatan/[id]` | ~2.100 |
 | 3 ✓ | Pengeluaran | `PengeluaranController` | `/operasional/pengeluaran` | ~500 |
 | 3 ✓ | Pencairan + approval Jetty → Gudang → Accounting | `PencairanController` | `/operasional/pencairan` | ~1.000 |
-| 4 | Laporan: partner, telly/gaji, paguyuban, karyawan, **pendapatan ✓ (4a)**, kumpulan, keuangan | `LaporanController` (2.131 baris) | `/operasional/laporan/*` | ~6.000 |
-| 4 | Cetak (BA, pendapatan, kumpulan, gaji, pengeluaran, operasional) | `*_cetak.blade.php` | halaman cetak + CSS `@media print` | ~1.200 |
+| 4 ✓ | Laporan: partner, telly/gaji, paguyuban, karyawan, pendapatan (4a), kumpulan, keuangan (4b) | `LaporanController` (2.131 baris) | `/operasional/laporan/*` | ~6.000 |
+| 4 ✓ | Cetak (BA, pendapatan, kumpulan, gaji, pengeluaran, operasional) | `*_cetak.blade.php` | halaman cetak + CSS `@media print` | ~1.200 |
 | 5 | Dasbor operasional (3 bagian: pendapatan bersih, pengeluaran kotor, pencairan) | `DashboardController` | `/operasional` | ~400 |
 | 5 | Notifikasi kolaborasi dari `audit_log` | `layouts/app.blade.php` polling 5 dtk | toast `info` | kecil |
 
@@ -257,17 +257,57 @@ pendapatan → pencairan: nominal = total, pajak = pajak.
 | Tarif pajak 0% | dikembalikan ke 0,5% saat tonase berubah | dipertahankan |
 | Kegiatan dipindah bulan | baris pendapatan tertinggal di bulan lama | ikut pindah, nomor urut berikutnya di bulan baru |
 | "Belum terbayar" di cetak | hanya `payment_date` kosong (layar juga mengecualikan LUNAS) | aturan yang sama di layar dan cetak: tanpa tanggal bayar dan bukan LUNAS/PAID |
-| Kop BA | nama PT, alamat, dan email tertulis tetap | nama legal entitas; alamat/email contoh dihapus (isi bila ada yang resmi) |
+| Kop BA | nama PT, alamat, dan email tertulis tetap | nama legal entitas; alamat, email, dan logo "IMR" sama seperti Laravel (keputusan pemilik sistem, 12 Okt 2026) |
 | Generate pertama di bulan kosong | nomor mulai 101 (`100 + count + 1`), lalu dinomori ulang saat halaman dibuka | mulai 1 |
 
-Pertanyaan untuk pemilik sistem: label "TOTAL KESELURUHAN PIUTANG" di cetak
-menjumlah **semua** invoice semua periode, termasuk yang sudah lunas — angka
-dan labelnya dipertahankan seperti Laravel. Awalan invoice `PT.IMR` dan
-`BA/IMR` juga tetap untuk semua entitas.
+"TOTAL KESELURUHAN PIUTANG" di cetak menjumlah **semua** invoice semua
+periode, termasuk yang sudah lunas — dikonfirmasi pemilik sistem (12 Okt
+2026) bahwa memang begitu maksudnya. Awalan invoice `PT.IMR` dan `BA/IMR`
+tetap untuk semua entitas.
 
-Sisa: Fase 4b — Kumpulan (laba-rugi operasional) + cetak, Telly/Gaji,
-Paguyuban, Karyawan + cetak, Partner, Operasional + cetak, Cetak Pengeluaran,
-Keuangan.
+### Fase 4b — laporan lainnya, selesai 12 Oktober 2026
+
+Tab **Laporan** (`/operasional/laporan`) memuat daftar laporan seperti
+`laporan/index` Laravel, tanpa empat angka ringkasannya (salah satunya
+"pendapatan" yang sebenarnya beban rekanan).
+
+| Laporan | Rute | Cetak |
+|---|---|---|
+| Kumpulan Laporan Operasional & Laba Rugi (edit, simpan, reset) | `/operasional/laporan/kumpulan` | `/cetak/operasional/kumpulan` |
+| Gaji Karyawan (honor telly, gaji admin bulanan) | `/operasional/laporan/gaji` | `/cetak/operasional/gaji` (slip) |
+| Partner (pembayaran per pemilik truk) | `/operasional/laporan/partner` | `/cetak/operasional/partner` |
+| Paguyuban | `/operasional/laporan/paguyuban` | — |
+| Operasional (per kapal + per kegiatan) | `/operasional/laporan/operasional` | `/cetak/operasional/kegiatan` (juga dari Detail Kegiatan) |
+| Keuangan (rincian truk + pengeluaran) | `/operasional/laporan/keuangan` | — |
+| Catatan Karyawan | `/operasional/laporan/karyawan` | `/cetak/operasional/karyawan` |
+| Pengeluaran | (layar Pengeluaran) | `/cetak/operasional/pengeluaran` |
+
+Migrasi `20250116000000_laporan_gaji.sql` (`simpan_gaji_telly`,
+`simpan_gaji_admin`); tes `tests/operasional-gaji.test.ts`,
+`tests/kumpulan-helpers.test.ts`. Perbaikan PR #5 Laravel ikut: gaji admin
+satu baris per bulan, dibuat saat disimpan, bulan dari `created_at`; bulan
+tanpa gaji admin = nol.
+
+Rumus Kumpulan apa adanya: hanya invoice lunas; kartu per kapal (pelayaran
+kapal yang sama digabung); rekanan = saku supir kegiatan; terpal 50%; PBM 0;
+pendapatan kartu = tagihan − pajak − rekanan − PBM − terpal 50% −
+operasional; pengeluaran menurut kata di jenis (gaji / sewa / PPh sewa /
+atensi-jalan / sisanya beban kantor).
+
+| Hal | Laravel | Di sini |
+|---|---|---|
+| Gaji karyawan di Kumpulan | `max(telly+admin, pengeluaran gaji)`, lalu diganti `a + b` bila keduanya > 0 | `a + b` — hasilnya sama dalam semua kasus; `max()` tidak dipindah (aturan port) |
+| Invoice ↔ kegiatan di Kumpulan | substring nama kapal, lalu urutan baris sebagai cadangan | tautan id; invoice tanpa tautan biayanya 0 dan disebut di layar |
+| Ritase kosong di Kumpulan | ditaksir `ceil(muatan ÷ 30)` | 0 |
+| Telly default kartu baru | "Pak Taufik" | kosong |
+| Versi Kumpulan tersimpan | dihapus diam-diam setiap ada kegiatan bulan itu disimpan | bertahan sampai "Reset"; layar menyebut kapan disimpan |
+| Membuka Laporan Gaji | membuat/menimpa baris honor dan tonase kegiatan | hanya membaca (barisnya dijaga `hitung_ulang_kegiatan`) |
+| Ubah tonase dari form gaji | menimpa tonase kegiatan | tidak tersedia; tonase dari daftar truk |
+| Paguyuban | hanya kapal yang punya `nama_paguyuban` — padahal tidak ada layar yang menyimpannya | grup "(Tanpa nama paguyuban)" supaya total cocok dengan iuran yang ditagih |
+| Laporan Operasional | kolom "Pendapatan" dan "Laba" (beban dikurangi beban) | "Beban Rekanan" di antara biaya, tanpa kolom laba; honor telly dari baris per kegiatan |
+| Laporan Keuangan | label "Bagian Rekanan" sudah benar | sama, ditambah kapal/nopol |
+
+Belum ada: Fase 5 — dasbor operasional dan notifikasi kolaborasi.
 
 Aturan untuk setiap port:
 

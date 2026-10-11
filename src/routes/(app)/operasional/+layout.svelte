@@ -2,6 +2,7 @@
   import ClipboardList from 'lucide-svelte/icons/clipboard-list';
   import Database from 'lucide-svelte/icons/database';
   import Eye from 'lucide-svelte/icons/eye';
+  import FileChartColumn from 'lucide-svelte/icons/file-chart-column';
   import HandCoins from 'lucide-svelte/icons/hand-coins';
   import Receipt from 'lucide-svelte/icons/receipt';
   import IdCard from 'lucide-svelte/icons/id-card';
@@ -15,14 +16,15 @@
 
   let { data, children }: { data: LayoutData; children: import('svelte').Snippet } = $props();
 
-  // Port order: docs/PENGGABUNGAN.md. The reports and the dashboard
-  // join this list as they are ported — never as disabled tabs.
+  // Port order: docs/PENGGABUNGAN.md. The dashboard (Fase 5)
+  // joins this list as they are ported — never as disabled tabs.
   const tabs = [
     { href: '/operasional/general', label: 'Database General', icon: Database },
     { href: '/operasional/kegiatan', label: 'Detail Kegiatan Kapal', icon: ClipboardList },
     { href: '/operasional/pengeluaran', label: 'Pengeluaran', icon: Receipt },
     { href: '/operasional/pencairan', label: 'Pencairan', icon: HandCoins },
     { href: '/operasional/pendapatan', label: 'Pendapatan', icon: Landmark },
+    { href: '/operasional/laporan', label: 'Laporan', icon: FileChartColumn },
     { href: '/operasional/pemilik', label: 'Pemilik', icon: UserRound },
     { href: '/operasional/kendaraan', label: 'Kendaraan', icon: Truck },
     { href: '/operasional/kapal', label: 'Kapal', icon: Ship },
