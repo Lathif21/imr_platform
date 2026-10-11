@@ -20,9 +20,9 @@ import {
  *
  * Laravel's index() also SYNCED on every GET: it created a pencairan for
  * each revenue invoice (kapal guessed by name, else the first kapal) and
- * DELETED every pencairan whose invoice was not in Laporan Pendapatan. That
- * is not ported. Pulling invoices from Laporan Pendapatan belongs with that
- * screen (Fase 4), as an explicit action.
+ * DELETED every pencairan whose invoice was not in Laporan Pendapatan. Here
+ * that is the explicit "Tarik dari Laporan Pendapatan" action, which only
+ * adds (tarik_pencairan, migration 20250115).
  */
 
 export interface PencairanRow {
@@ -39,6 +39,7 @@ export interface PencairanRow {
   approvals: Approval[];
   /** Matching Laporan Pendapatan row, for the BA preview in the approval form. */
   laporan: {
+    id: number;
     kegiatan: string;
     party_kg: number;
     lokasi: string | null;
@@ -91,7 +92,7 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
       .returns<(Approval & { pencairan_id: number })[]>(),
     db
       .from('laporan_pendapatan')
-      .select('no_invoice, kegiatan, party_kg, lokasi, no_faktur_pajak, no_sto_spo, tarif_pajak, pajak, total, net_tagihan, status_entry, created_at')
+      .select('id, no_invoice, kegiatan, party_kg, lokasi, no_faktur_pajak, no_sto_spo, tarif_pajak, pajak, total, net_tagihan, status_entry, created_at')
       .eq('entity_id', opEntity.id)
       .in('no_invoice', invoices)
       .returns<Record<string, string | null>[]>()
@@ -122,6 +123,7 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
         ),
         laporan: l
           ? {
+              id: Number(l.id),
               kegiatan: l.kegiatan ?? '',
               party_kg: Number(l.party_kg ?? 0),
               lokasi: l.lokasi,
@@ -216,6 +218,27 @@ export const actions: Actions = {
         data === 'Approved'
           ? 'Ketiga departemen telah menyetujui. Invoice masuk Proses Payment di Pendapatan Bulanan.'
           : `Persetujuan ${departemen} berhasil diperbarui. Status invoice: ${data}.`
+    };
+  },
+
+  tarik: async ({ locals, request }) => {
+    const form = await request.formData();
+    const { data, error } = await locals.supabase.rpc('tarik_pencairan', {
+      p_entity_id: requiredText(form, 'entity_id'),
+      p_bulan: Number(form.get('bulan')),
+      p_tahun: Number(form.get('tahun'))
+    });
+    if (error) return refuse(explainDbError('tarik_pencairan', error, { fallback: 'Invoice gagal ditarik dari Laporan Pendapatan.' }));
+    const hasil = data as { dibuat: number; dilewati: string[] };
+    if (hasil.dilewati.length) {
+      return refuse(
+        `${hasil.dibuat} invoice ditarik. ${hasil.dilewati.length} invoice dilewati karena kapalnya tidak dikenali — tautkan lewat kegiatan kapal, atau buat invoicenya dengan "Buat Invoice".`,
+        hasil.dilewati
+      );
+    }
+    return {
+      title: 'Berhasil',
+      message: hasil.dibuat > 0 ? `${hasil.dibuat} invoice ditarik dari Laporan Pendapatan.` : 'Semua invoice Laporan Pendapatan bulan ini sudah punya pencairan.'
     };
   },
 

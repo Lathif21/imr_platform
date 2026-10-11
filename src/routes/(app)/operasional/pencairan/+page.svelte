@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Download from 'lucide-svelte/icons/download';
   import FileText from 'lucide-svelte/icons/file-text';
   import Pencil from 'lucide-svelte/icons/pencil';
   import Plus from 'lucide-svelte/icons/plus';
@@ -79,6 +80,10 @@
     approvalOpen = true;
   }
 
+  const entityQuery = $derived(data.opEntity ? `entitas=${encodeURIComponent(data.opEntity.code)}` : '');
+
+  const tarik = withFeedback({ failTitle: 'Tarik invoice dari Laporan Pendapatan', onPending: (p) => (saving = p) });
+
   const saveInvoice = withFeedback({
     failTitle: 'Invoice gagal disimpan',
     onSuccess: () => (invoiceOpen = false),
@@ -129,6 +134,14 @@
         <input bind:value={query} type="search" placeholder="Cari nomor invoice…" aria-label="Cari invoice" class="{FIELD} pl-8 w-[190px]" />
       </div>
       {#if data.canWrite}
+        <form method="POST" action="?/tarik" use:enhance={tarik}>
+          <input type="hidden" name="entity_id" value={data.opEntity?.id} />
+          <input type="hidden" name="bulan" value={data.periode.bulan} />
+          <input type="hidden" name="tahun" value={data.periode.tahun} />
+          <button type="submit" disabled={saving} class={BTN_SOFT} title="Buat pencairan untuk setiap invoice Laporan Pendapatan bulan ini yang belum punya">
+            <Download size={14} /> Tarik dari Laporan Pendapatan
+          </button>
+        </form>
         <button type="button" onclick={openCreate} class={BTN_PRIMARY}><Plus size={14} /> Buat Invoice</button>
       {/if}
     </div>
@@ -193,7 +206,13 @@
               </td>
               <td class="py-2.5 px-3 text-center">
                 {#if row.status === 'Approved'}
-                  <span class="inline-block px-2 py-0.5 rounded-full bg-positive/10 text-positive text-[11px] font-medium">Approved · Proses Payment</span>
+                  <a
+                    href="/operasional/pendapatan?{entityQuery}&bulan={row.bulan}&tahun={row.tahun}&status=PROSES%20PAYMENT"
+                    class="inline-block px-2 py-0.5 rounded-full bg-positive/10 text-positive text-[11px] font-medium hover:bg-positive/20"
+                    title="Buka Laporan Pendapatan, posisi Proses Payment"
+                  >
+                    Approved · Proses Payment →
+                  </a>
                 {:else if row.status === 'Rejected'}
                   <span class="inline-block px-2 py-0.5 rounded-full bg-destructive/10 text-destructive text-[11px] font-medium">Rejected</span>
                 {:else}
@@ -285,6 +304,11 @@
     <div class="rounded-lg border border-border bg-muted/30 p-3 mb-4 space-y-2">
       <div class="flex items-center gap-2 text-[12px] font-semibold text-foreground">
         <FileText size={14} class="text-muted-foreground" /> Preview Berita Acara · {approvalRow.nomor_invoice}
+        {#if l}
+          <a href="/cetak/operasional/ba/{l.id}?{entityQuery}" target="_blank" rel="noopener" class="ml-auto text-[11px] font-medium text-primary hover:underline">
+            Lihat / cetak BA →
+          </a>
+        {/if}
       </div>
       {#if l}
         <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5 text-[12px]">

@@ -5,6 +5,7 @@
   import HandCoins from 'lucide-svelte/icons/hand-coins';
   import Receipt from 'lucide-svelte/icons/receipt';
   import IdCard from 'lucide-svelte/icons/id-card';
+  import Landmark from 'lucide-svelte/icons/landmark';
   import Ship from 'lucide-svelte/icons/ship';
   import Truck from 'lucide-svelte/icons/truck';
   import UserRound from 'lucide-svelte/icons/user-round';
@@ -21,6 +22,7 @@
     { href: '/operasional/kegiatan', label: 'Detail Kegiatan Kapal', icon: ClipboardList },
     { href: '/operasional/pengeluaran', label: 'Pengeluaran', icon: Receipt },
     { href: '/operasional/pencairan', label: 'Pencairan', icon: HandCoins },
+    { href: '/operasional/pendapatan', label: 'Pendapatan', icon: Landmark },
     { href: '/operasional/pemilik', label: 'Pemilik', icon: UserRound },
     { href: '/operasional/kendaraan', label: 'Kendaraan', icon: Truck },
     { href: '/operasional/kapal', label: 'Kapal', icon: Ship },
