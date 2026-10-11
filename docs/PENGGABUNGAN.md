@@ -98,8 +98,8 @@ Blade + controller di Laravel, sebagai gambaran besar pekerjaan.
 | 3 ✓ | Pencairan + approval Jetty → Gudang → Accounting | `PencairanController` | `/operasional/pencairan` | ~1.000 |
 | 4 ✓ | Laporan: partner, telly/gaji, paguyuban, karyawan, pendapatan (4a), kumpulan, keuangan (4b) | `LaporanController` (2.131 baris) | `/operasional/laporan/*` | ~6.000 |
 | 4 ✓ | Cetak (BA, pendapatan, kumpulan, gaji, pengeluaran, operasional) | `*_cetak.blade.php` | halaman cetak + CSS `@media print` | ~1.200 |
-| 5 | Dasbor operasional (3 bagian: pendapatan bersih, pengeluaran kotor, pencairan) | `DashboardController` | `/operasional` | ~400 |
-| 5 | Notifikasi kolaborasi dari `audit_log` | `layouts/app.blade.php` polling 5 dtk | toast `info` | kecil |
+| 5 ✓ | Dasbor operasional (3 bagian: pendapatan bersih, pengeluaran kotor, pencairan) | `DashboardController` | `/operasional` | ~400 |
+| 5 ✓ | Notifikasi kolaborasi dari `audit_log` | `layouts/app.blade.php` polling 5 dtk | toast `info` | kecil |
 
 Tiap modul dikerjakan di branch sendiri dan di-review sebelum modul berikutnya.
 
@@ -307,7 +307,47 @@ atensi-jalan / sisanya beban kantor).
 | Laporan Operasional | kolom "Pendapatan" dan "Laba" (beban dikurangi beban) | "Beban Rekanan" di antara biaya, tanpa kolom laba; honor telly dari baris per kegiatan |
 | Laporan Keuangan | label "Bagian Rekanan" sudah benar | sama, ditambah kapal/nopol |
 
-Belum ada: Fase 5 — dasbor operasional dan notifikasi kolaborasi.
+### Fase 5 — dasbor dan notifikasi, selesai 12 Oktober 2026
+
+**Dasbor** `/operasional` (tab pertama; dulu mengalihkan ke Database General).
+Tiga bagian sesuai rencana, masing-masing menautkan ke laporannya:
+
+- **Pendapatan**: tagihan bruto, pajak, net, sudah/belum dibayar — dari
+  Laporan Pendapatan.
+- **Pengeluaran kotor**: beban rekanan, saku, terpal, biaya operasional
+  kegiatan, paguyuban, honor telly, gaji admin, pengeluaran manual.
+- **Pencairan**: jumlah dan nominal invoice, disetujui/pending/ditolak.
+
+Ditambah kegiatan/truk/ritase/tonase, kapal-partner-telly teratas, dan
+jumlah master data.
+
+| Hal | Laravel | Di sini |
+|---|---|---|
+| "Pendapatan" | `sum(transaksi.pendapatan)` — pembayaran ke pemilik truk | tagihan dari Laporan Pendapatan; pembayaran truk masuk pengeluaran sebagai Beban Rekanan |
+| "Laba Bersih" | pendapatan (beban) − biaya — beban dikurangi beban | "Selisih perkiraan: tagihan bruto − pajak − pengeluaran kotor", disebut perkiraan; laba rugi resmi di Laporan P&L |
+| Honor telly | hanya baris per truk (tidak ada lagi yang membuatnya) | baris per kegiatan |
+| Pencairan | difilter bulan saja | bulan dan tahun |
+
+**Notifikasi kolaborasi**: layout Operasional menanyakan setiap 15 detik
+(Laravel: 5 detik) apa yang diubah pengguna lain di entitas itu sejak halaman
+dibuka, dan menampilkannya sebagai toast "Nama menambahkan/mengubah/menghapus
+…". Sumbernya `audit_log` lewat `aktivitas_operasional()`
+(`20250117000000_aktivitas_operasional.sql`): security definer, hanya
+ringkasan (tanpa nilai lama/baru), hanya entitas yang boleh dibaca pemanggil,
+tanpa aksi sendiri, 24 jam terakhir; satu simpanan (banyak baris dalam satu
+transaksi) = satu notifikasi. Tes: `tests/operasional-aktivitas.test.ts`.
+Halaman tidak dimuat ulang otomatis (isian yang belum disimpan bisa hilang);
+toast menyarankan muat ulang. Laravel juga mewarnai baris yang baru diubah
+orang lain di Database General — tidak dipindah.
+
+**Catatan operasional.** Dua kali, uji pertama tepat setelah migrasi
+diterapkan ke Neon menampilkan sebagian data kosong (sebagian query
+mengembalikan nol baris tanpa galat), lalu normal pada muatan berikutnya.
+Penyebabnya belum dipastikan; tidak tereproduksi di luar momen itu (diuji
+berulang tepat setelah perubahan data). Bila setelah deploy migrasi sebuah
+laporan tampak kosong, muat ulang sekali.
+
+Seluruh fase penggabungan selesai.
 
 Aturan untuk setiap port:
 
