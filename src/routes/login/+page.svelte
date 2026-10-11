@@ -16,7 +16,7 @@
   let submitting = $state(false);
 </script>
 
-<svelte:head><title>Masuk · Portal Keuangan</title></svelte:head>
+<svelte:head><title>Masuk · IMR Platform</title></svelte:head>
 
 <main class="min-h-screen flex items-center justify-center bg-background px-4">
   <div class="w-full max-w-[360px]">
@@ -25,8 +25,8 @@
         <ChartColumn size={17} class="text-primary-foreground" />
       </div>
       <div class="flex-1 min-w-0">
-        <p class="text-[14px] font-semibold text-foreground leading-tight">Portal Keuangan</p>
-        <p class="text-[11px] text-muted-foreground">Grup Holding</p>
+        <p class="text-[14px] font-semibold text-foreground leading-tight">IMR Platform</p>
+        <p class="text-[11px] text-muted-foreground">Keuangan &amp; Operasional</p>
       </div>
       <!-- The one screen every user meets before there is a sidebar to put
            this in; without it the preference is unreachable until you log in. -->

@@ -19,7 +19,7 @@ import {
   type RangeCompleteness,
   type RangeConsolidated
 } from '$lib/period-range';
-import { canEnterReports, canReadAllEntities } from '$lib/roles';
+import { canEnterReports, canReadAllEntities, canWriteOperational } from '$lib/roles';
 import type { PageServerLoad } from './$types';
 
 interface EntityRow {
@@ -92,7 +92,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       scoped: true,
       scopedNext: canEnterReports(locals.role)
         ? { href: '/entry', label: 'Input Laporan' }
-        : { href: '/entities', label: 'Laporan P&L' }
+        : canWriteOperational(locals.role)
+          ? { href: '/operasional', label: 'Data Operasional' }
+          : { href: '/entities', label: 'Laporan P&L' }
     };
   }
 

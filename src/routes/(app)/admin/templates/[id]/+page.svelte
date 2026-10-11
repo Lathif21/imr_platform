@@ -42,7 +42,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.template.code} · Template · Portal Keuangan</title>
+  <title>{data.template.code} · Template · IMR Platform</title>
 </svelte:head>
 
 <div class="p-4 sm:p-5 space-y-4">

@@ -166,7 +166,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.entity.code} · {formatPeriod(data.period)} · Portal Keuangan</title>
+  <title>{data.entity.code} · {formatPeriod(data.period)} · IMR Platform</title>
 </svelte:head>
 
 <div class="flex flex-col h-full overflow-hidden">

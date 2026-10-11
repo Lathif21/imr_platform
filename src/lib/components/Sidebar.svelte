@@ -8,6 +8,7 @@
   import LayoutDashboard from 'lucide-svelte/icons/layout-dashboard';
   import LogOut from 'lucide-svelte/icons/log-out';
   import Settings from 'lucide-svelte/icons/settings';
+  import Ship from 'lucide-svelte/icons/ship';
   import X from 'lucide-svelte/icons/x';
   import { page } from '$app/state';
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
@@ -17,6 +18,7 @@
     canApprove,
     canEnterReports,
     canReadAllEntities,
+    canReadOperational,
     canReadReports,
     isDirector
   } from '$lib/roles';
@@ -73,6 +75,15 @@
     { label: 'Laporan P&L', icon: FileText, href: '/entities', visible: canReadReports(role) },
     { label: 'Input Laporan', icon: ClipboardList, href: '/entry', visible: canEnterReports(role) },
     { label: 'Persetujuan', icon: CircleCheckBig, href: '/approval', visible: canApprove(role) },
+    // The ported operational system (docs/PENGGABUNGAN.md). One item; its
+    // screens are tabs inside /operasional, like Administrasi.
+    {
+      label: 'Operasional',
+      icon: Ship,
+      href: '/operasional',
+      match: '/operasional',
+      visible: canReadOperational(role)
+    },
     // One item for three admin screens; the tabs inside /admin do the rest.
     {
       label: 'Administrasi',
@@ -139,9 +150,9 @@
     </div>
     <div class="min-w-0 flex-1 {collapsed ? 'md:hidden' : ''}">
       <p class="text-[12px] font-semibold text-foreground leading-tight truncate">
-        Portal Keuangan
+        IMR Platform
       </p>
-      <p class="text-[10px] text-muted-foreground truncate">Grup Holding</p>
+      <p class="text-[10px] text-muted-foreground truncate">Keuangan &amp; Operasional</p>
     </div>
 
     <!-- Mobile: close. Desktop: nothing — the rail toggle lives at the foot. -->

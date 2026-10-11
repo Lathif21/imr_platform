@@ -68,10 +68,10 @@ keduanya.
 | | Data operasional | Laporan P&L | Admin |
 |---|---|---|---|
 | `direksi` (termasuk akun HRD, P-6) | baca semua entitas | penuh | ya |
-| `admin_operasional` | baca + tulis entitas yang ditugaskan | **tidak** | tidak |
-| `manajer_keuangan` | **tidak** | seperti sekarang | tidak |
+| `admin_operasional` | baca + tulis entitas yang ditugaskan | baca saja, entitas yang ditugaskan | tidak |
+| `manajer_keuangan` | baca entitas yang ditugaskan | seperti sekarang | tidak |
 | `staf_entitas` | **tidak** | seperti sekarang | tidak |
-| `auditor` | **tidak** | seperti sekarang | tidak |
+| `auditor` | baca entitas yang ditugaskan | seperti sekarang | tidak |
 
 Sel yang dicetak tebal adalah **default tertutup**, belum keputusan — lihat
 "Pertanyaan terbuka". Semuanya cukup diubah di satu fungsi SQL.
@@ -102,6 +102,25 @@ Blade + controller di Laravel, sebagai gambaran besar pekerjaan.
 | 5 | Notifikasi kolaborasi dari `audit_log` | `layouts/app.blade.php` polling 5 dtk | toast `info` | kecil |
 
 Tiap modul dikerjakan di branch sendiri dan di-review sebelum modul berikutnya.
+
+### Fase 1a — selesai 7 Oktober 2026
+
+`/operasional/pemilik`, `/operasional/kendaraan`, `/operasional/karyawan`
+(+ catatan kinerja/SP). Angka ringkasan dari view
+`v_pemilik_ringkasan`, `v_kendaraan_ringkasan`, `v_karyawan_ringkasan`
+(`20250111000000`); tes di `tests/operasional-master.test.ts`.
+
+Yang **sengaja berbeda** dari Laravel — tinjau bila tidak setuju:
+
+| Hal | Laravel | Di sini | Alasan |
+|---|---|---|---|
+| Hapus kendaraan | ditolak bila ada transaksi | ditolak bila ada transaksi **atau rincian muatan kapal** | FK muatan `ON DELETE CASCADE`: rinciannya akan ikut terhapus diam-diam |
+| Nopol saat diubah | huruf besar hanya saat dibuat | huruf besar + spasi dirapikan saat dibuat **dan** diubah | perubahan bisa menyelipkan duplikat huruf kecil melewati indeks unik |
+| Daftar | paginasi 10 baris | semua baris + kotak cari | master data satu entitas berukuran puluhan–ratusan baris |
+| Detail pemilik | halaman `pemilik/show` | tautan "n unit" → Kendaraan terfilter pemilik itu | isinya sama: daftar kendaraan pemilik |
+| Label kolom pemilik | "Pendapatan Bruto" | "Pendapatan Bruto Rekanan" | angkanya uang yang DIBAYAR ke rekanan, bukan pendapatan entitas |
+
+Sisa Fase 1: **1b — Kapal** (rute, rincian muatan truk), lalu Fase 2.
 
 Aturan untuk setiap port:
 
@@ -185,11 +204,11 @@ Sampai dijawab, sistem memakai default tertutup yang disebut.
 
 | # | Pertanyaan | Default sekarang |
 |---|---|---|
-| Q-1 | Apakah `admin_operasional` boleh **membaca** Laporan P&L entitasnya? | tidak |
-| Q-2 | Apakah `direksi` boleh **menulis** data operasional? (Ingat P-6: HRD ikut) | tidak |
-| Q-3 | Apakah `manajer_keuangan` / `auditor` boleh membaca data operasional? | tidak |
-| Q-4 | Neon project baru: dibuat oleh siapa, nama dan region? Koneksi MCP Neon di sesi ini terbatas ke satu project dan tidak bisa membuat project. | belum ada |
-| Q-5 | Nama aplikasi di sidebar dan judul tab (sekarang "Portal Keuangan") | tidak diubah |
-| Q-6 | Referensi lintas entitas (mis. transaksi entitas A menunjuk kapal entitas B) belum dicegah di database. Ditambah composite FK sebelum entitas kedua memakai modul operasional? | belum dicegah — hanya ILJ yang memakai |
+| ~~Q-1~~ | ~~Apakah `admin_operasional` boleh membaca Laporan P&L?~~ **Dijawab 7 Okt: ya, baca saja** — `20250109000000_admin_operasional_baca_laporan.sql` | — |
+| ~~Q-2~~ | ~~Apakah `direksi` boleh menulis data operasional?~~ **Dijawab 7 Okt: tidak** (P-6 dikonfirmasi: HRD = direksi, jadi direksi baca saja) | — |
+| ~~Q-3~~ | ~~Manajer/auditor membaca data operasional?~~ **Dijawab 7 Okt: ya, baca saja** — `20250110000000_operasional_baca_dan_kunci_entitas.sql` | — |
+| ~~Q-4~~ | ~~Neon project baru~~ **Selesai 7 Okt:** `neondb`, ap-southeast-1; Neon Auth + Data API aktif, migrasi diterapkan, 6 akun uji dibuat. Sisa: **matikan sign-up publik** di Console | — |
+| ~~Q-5~~ | ~~Nama aplikasi~~ **Dijawab 7 Okt: "IMR Platform"** | — |
+| ~~Q-6~~ | ~~Cegah referensi lintas entitas?~~ **Dijawab 7 Okt: ya, sekarang** — composite FK di migrasi yang sama | — |
 | Q-7 | `transaksi_operasional.pendapatan` dan `kapal_muatan_detail.pendapatan_rekanan` menyimpan hasil hitung. Dihitung di view saja setelah port? | disimpan, seperti Laravel |
 | Q-8 | Kapan cutover, dan apakah ada masa paralel (kedua sistem diisi) sebelumnya? | belum ditentukan |

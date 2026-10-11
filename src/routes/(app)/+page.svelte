@@ -212,7 +212,7 @@
   });
 </script>
 
-<svelte:head><title>Dasbor Eksekutif · Portal Keuangan</title></svelte:head>
+<svelte:head><title>Dasbor Eksekutif · IMR Platform</title></svelte:head>
 
 {#if data.scoped}
   <div class="flex flex-col h-full">

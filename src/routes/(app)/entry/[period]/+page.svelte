@@ -395,7 +395,7 @@
 </script>
 
 <svelte:head>
-  <title>Input Laporan {formatPeriod(data.period.period)} · Portal Keuangan</title>
+  <title>Input Laporan {formatPeriod(data.period.period)} · IMR Platform</title>
 </svelte:head>
 
 <div class="flex flex-col h-full overflow-hidden">
