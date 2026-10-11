@@ -1,13 +1,14 @@
 <script lang="ts">
   import ClipboardList from 'lucide-svelte/icons/clipboard-list';
   import Plus from 'lucide-svelte/icons/plus';
+  import Printer from 'lucide-svelte/icons/printer';
   import Ship from 'lucide-svelte/icons/ship';
   import Wallet from 'lucide-svelte/icons/wallet';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import PilihPeriode from '$lib/operasional/PilihPeriode.svelte';
   import { NAMA_BULAN, rentangTanggal, ton } from '$lib/operasional/kegiatan';
-  import { BTN_PRIMARY, rupiah } from '$lib/operasional/ui';
+  import { BTN_PRIMARY, BTN_SOFT, rupiah } from '$lib/operasional/ui';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -66,6 +67,14 @@
         <option value="">Semua kapal</option>
         {#each data.kapalBulanIni as k (k.id)}<option value={k.id}>{k.nama}</option>{/each}
       </select>
+      <a
+        href="/cetak/operasional/kegiatan?{entityQuery}&bulan={data.periode.bulan}&tahun={data.periode.tahun}{data.kapalFilter ? `&kapal=${data.kapalFilter}` : ''}"
+        target="_blank"
+        rel="noopener"
+        class={BTN_SOFT}
+      >
+        <Printer size={14} /> Cetak
+      </a>
       {#if data.canWrite}
         <a href={tambahHref} class={BTN_PRIMARY}><Plus size={14} /> Tambah Kegiatan</a>
       {/if}

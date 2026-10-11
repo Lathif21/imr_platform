@@ -1,6 +1,7 @@
 <script lang="ts">
   import Pencil from 'lucide-svelte/icons/pencil';
   import Plus from 'lucide-svelte/icons/plus';
+  import Printer from 'lucide-svelte/icons/printer';
   import Search from 'lucide-svelte/icons/search';
   import Trash2 from 'lucide-svelte/icons/trash-2';
   import { enhance } from '$app/forms';
@@ -88,6 +89,14 @@
         <Search size={13} class="absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
         <input bind:value={query} type="search" placeholder="Cari jenis, nama, penerima…" aria-label="Cari pengeluaran" class="{FIELD} pl-8 w-[220px]" />
       </div>
+      <a
+        href="/cetak/operasional/pengeluaran?entitas={encodeURIComponent(data.opEntity?.code ?? '')}&bulan={data.periode.bulan}&tahun={data.periode.tahun}"
+        target="_blank"
+        rel="noopener"
+        class={BTN_SOFT}
+      >
+        <Printer size={14} /> Cetak
+      </a>
       {#if data.canWrite}
         <button type="button" onclick={openCreate} class={BTN_PRIMARY}><Plus size={14} /> Tambah Pengeluaran</button>
       {/if}
