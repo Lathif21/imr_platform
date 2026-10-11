@@ -92,10 +92,10 @@ Blade + controller di Laravel, sebagai gambaran besar pekerjaan.
 |---|---|---|---|---|
 | 1 | Master data: pemilik, kendaraan, karyawan (+ catatan SP) | `PemilikController`, `KendaraanController`, `KaryawanController` | `/operasional/pemilik`, `/kendaraan`, `/karyawan` | ~1.500 |
 | 1 | Kapal + rute + rincian muatan truk | `KapalController` | `/operasional/kapal`, `/kapal/[id]` | ~700 |
-| 2 | Transaksi operasional (Database General) | `TransaksiOperasionalController` | `/operasional/general` | ~2.500 |
-| 2 | Rekap operasional (Detail Kegiatan, Lengkapi Data, Pembayaran Truk) | `OperasionalController` | `/operasional/kegiatan`, `/kegiatan/[id]` | ~2.100 |
-| 3 | Pengeluaran | `PengeluaranController` | `/operasional/pengeluaran` | ~500 |
-| 3 | Pencairan + approval Jetty → Gudang → Accounting | `PencairanController` | `/operasional/pencairan` | ~1.000 |
+| 2 ✓ | Transaksi operasional (Database General) | `TransaksiOperasionalController` | `/operasional/general` | ~2.500 |
+| 2 ✓ | Rekap operasional (Detail Kegiatan, Lengkapi Data, Pembayaran Truk) | `OperasionalController` | `/operasional/kegiatan`, `/kegiatan/[id]` | ~2.100 |
+| 3 ✓ | Pengeluaran | `PengeluaranController` | `/operasional/pengeluaran` | ~500 |
+| 3 ✓ | Pencairan + approval Jetty → Gudang → Accounting | `PencairanController` | `/operasional/pencairan` | ~1.000 |
 | 4 | Laporan: partner, telly/gaji, paguyuban, karyawan, pendapatan, kumpulan, keuangan | `LaporanController` (2.131 baris) | `/operasional/laporan/*` | ~6.000 |
 | 4 | Cetak (BA, pendapatan, kumpulan, gaji, pengeluaran, operasional) | `*_cetak.blade.php` | halaman cetak + CSS `@media print` | ~1.200 |
 | 5 | Dasbor operasional (3 bagian: pendapatan bersih, pengeluaran kotor, pencairan) | `DashboardController` | `/operasional` | ~400 |
@@ -201,7 +201,39 @@ platform; hanya bisa datang dari migrasi data Laravel. Database General
 menghitung dan memberitahukannya, tidak menyembunyikannya. Skrip migrasi data
 sebaiknya menautkannya ke kegiatan dengan (kapal, rute, bulan) yang sama.
 
-Sisa: Fase 3 — Pengeluaran dan Pencairan.
+### Fase 3 — selesai 12 Oktober 2026
+
+- **Pengeluaran** `/operasional/pengeluaran`: daftar per bulan + total,
+  tambah, ubah, hapus. Tabel biasa, tanpa fungsi. Jenis dipilih dari ejaan
+  yang sudah ada (pengeluaran + `operational_expense_mapping`), jenis baru
+  hanya lewat pilihan "+ Jenis pengeluaran baru" dan diberi tahu bahwa ia
+  masuk "Pengeluaran lain-lain" sampai dipetakan. Pemetaan dicocokkan persis,
+  jadi salah ketik berarti salah pos. Cetak: Fase 4.
+- **Pencairan** `/operasional/pencairan`: invoice per kapal, persetujuan
+  Jetty/Gudang/Accounting dengan preview BA, status final. Fungsi
+  `simpan_pencairan`, `setujui_pencairan`, `hapus_pencairan`
+  (`20250114000000_pencairan.sql`). Tes: `tests/operasional-pencairan.test.ts`.
+
+Alur Laravel dipertahankan: invoice baru → tiga persetujuan Pending + baris
+Laporan Pendapatan `PENDING` (total = nominal, net = nominal − pajak, tarif
+pajak 0,5); ketiganya Approved → pencairan Approved + pendapatan
+`PROSES PAYMENT`; ada yang Rejected → Rejected + `PENDING`; tanggal tanda
+tangan kosong = hari ini; hapus ikut menghapus pendapatan invoice itu yang
+belum dibayar.
+
+| Hal | Laravel | Di sini |
+|---|---|---|
+| Membuka halaman Pencairan | GET membuat pencairan untuk setiap invoice pendapatan (kapal ditebak dari nama, gagal → kapal pertama) dan **menghapus** pencairan yang invoicenya tidak ada di pendapatan | halaman hanya membaca; tarik invoice dari pendapatan menunggu layar pendapatan (Fase 4) sebagai aksi eksplisit |
+| Tahun | pencairan tanpa tahun; sinkron ke pendapatan memakai tahun jam server | kolom `pencairan.tahun` (data lama diisi dari `created_at`) |
+| Status pencairan | bisa ditimpa di form Ubah dan tombol Proses Payment | hanya diturunkan dari ketiga persetujuan |
+| Tombol "Lanjut ke Proses Payment" | menyetel Approved lalu membuka Pendapatan Bulanan | status "Approved · Proses Payment"; pendapatan sudah `PROSES PAYMENT` saat persetujuan ketiga. Tautan ke pendapatan menyusul Fase 4 |
+| Ubah invoice yang pendapatannya LUNAS | angka pendapatan ditimpa | pendapatan LUNAS / sudah ada tanggal bayar tidak disentuh |
+| Nominal dari pendapatan | sinkron GET memakai net tagihan sebagai nominal, lalu sinkron balik menulisnya sebagai total — total menyusut sebesar pajak setiap putaran | nominal selalu bruto (= total pendapatan) |
+| Pencarian pendapatan per invoice | seluruh tabel, lintas entitas | per entitas |
+
+Sisa: Fase 4 — Laporan + Cetak (partner, telly/gaji, paguyuban, karyawan,
+pendapatan, kumpulan, keuangan), termasuk dua hal yang ditunda dari Fase 2–3
+di atas.
 
 Aturan untuk setiap port:
 
