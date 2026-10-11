@@ -8,6 +8,7 @@
   import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
   import { fade } from 'svelte/transition';
   import { enhance } from '$app/forms';
+  import ExcelLaporan from './ExcelLaporan.svelte';
   import { confirmDialog, notify } from '$lib/feedback.svelte';
   import {
     LINE_SECTION_LABEL,
@@ -419,6 +420,10 @@
       </div>
     </div>
 
+    <!-- Excel dan tarik data dikelompokkan di kanan kepala layar. -->
+    <div class="flex items-center gap-2 shrink-0">
+    <ExcelLaporan month={data.month} entity={data.selected.code} {editable} />
+
     <!-- Form tersendiri, di luar form input di bawah. Form tidak boleh
          bersarang, dan menumpangkannya sebagai formaction ketiga akan membuat
          Enter di kolom nominal punya satu kandidat tambahan untuk dipilih. -->
@@ -450,6 +455,7 @@
         </button>
       </form>
     {/if}
+    </div>
   </div>
 
   {#if !editable}
