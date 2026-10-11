@@ -96,7 +96,7 @@ Blade + controller di Laravel, sebagai gambaran besar pekerjaan.
 | 2 ✓ | Rekap operasional (Detail Kegiatan, Lengkapi Data, Pembayaran Truk) | `OperasionalController` | `/operasional/kegiatan`, `/kegiatan/[id]` | ~2.100 |
 | 3 ✓ | Pengeluaran | `PengeluaranController` | `/operasional/pengeluaran` | ~500 |
 | 3 ✓ | Pencairan + approval Jetty → Gudang → Accounting | `PencairanController` | `/operasional/pencairan` | ~1.000 |
-| 4 | Laporan: partner, telly/gaji, paguyuban, karyawan, pendapatan, kumpulan, keuangan | `LaporanController` (2.131 baris) | `/operasional/laporan/*` | ~6.000 |
+| 4 | Laporan: partner, telly/gaji, paguyuban, karyawan, **pendapatan ✓ (4a)**, kumpulan, keuangan | `LaporanController` (2.131 baris) | `/operasional/laporan/*` | ~6.000 |
 | 4 | Cetak (BA, pendapatan, kumpulan, gaji, pengeluaran, operasional) | `*_cetak.blade.php` | halaman cetak + CSS `@media print` | ~1.200 |
 | 5 | Dasbor operasional (3 bagian: pendapatan bersih, pengeluaran kotor, pencairan) | `DashboardController` | `/operasional` | ~400 |
 | 5 | Notifikasi kolaborasi dari `audit_log` | `layouts/app.blade.php` polling 5 dtk | toast `info` | kecil |
@@ -186,15 +186,12 @@ Yang **sengaja berbeda** — semuanya kasus yang merusak data di Laravel:
 | Hitung ulang setelah Rincian Pembayaran | dicari lewat (kapal, rute, bulan) — dua kegiatan serupa tercampur | per kegiatan |
 | Ganti petugas telly | tarif petugas lama tetap dipakai | tarif petugas baru |
 | Biaya operasional kosong di Detail Kegiatan | ditampilkan tonase × 1.000 dan ikut total, padahal laporan keuangan membaca 0 | "Belum diisi" (perkiraan di tooltip), total = angka tersimpan |
-| Hapus kegiatan | ikut menghapus baris Laporan Pendapatan yang namanya mirip nama kapal | pendapatan tidak disentuh |
+| Hapus kegiatan | ikut menghapus baris Laporan Pendapatan yang namanya mirip nama kapal | hanya baris pendapatan **kegiatan itu** (tautan id, Fase 4a), dan hanya bila belum dibayar dan belum punya pencairan |
 | Satu truk dua kali di satu kegiatan | saling menimpa | ditolak (`unique (operasional_rekap_id, kendaraan_id)`) |
 | FK `gaji_telly.operasional_rekap_id` | — | `ON DELETE CASCADE` (dulu SET NULL → tersisa sebagai gaji admin) |
 
-**Belum di-port, menunggu Fase 4:** `syncMissingShipsToPendapatan` (Laravel
-membuat/menghapus baris Laporan Pendapatan dari kegiatan setiap kali Lengkapi
-Data disimpan, dengan pencocokan nama) dan penghapusan snapshot
-`laporan_kumpulan`. Keduanya bagian dari layar laporan, dan pencocokan nama
-harus diganti tautan id di sana.
+`syncMissingShipsToPendapatan` di-port di Fase 4a (trigger, tautan id).
+Penghapusan snapshot `laporan_kumpulan` menyusul bersama layar Kumpulan (4b).
 
 **Truk tanpa kegiatan** (`operasional_rekap_id` null) tidak dibuat oleh
 platform; hanya bisa datang dari migrasi data Laravel. Database General
@@ -223,17 +220,54 @@ belum dibayar.
 
 | Hal | Laravel | Di sini |
 |---|---|---|
-| Membuka halaman Pencairan | GET membuat pencairan untuk setiap invoice pendapatan (kapal ditebak dari nama, gagal → kapal pertama) dan **menghapus** pencairan yang invoicenya tidak ada di pendapatan | halaman hanya membaca; tarik invoice dari pendapatan menunggu layar pendapatan (Fase 4) sebagai aksi eksplisit |
+| Membuka halaman Pencairan | GET membuat pencairan untuk setiap invoice pendapatan (kapal ditebak dari nama, gagal → kapal pertama) dan **menghapus** pencairan yang invoicenya tidak ada di pendapatan | halaman hanya membaca; tombol "Tarik dari Laporan Pendapatan" (Fase 4a) hanya menambah |
 | Tahun | pencairan tanpa tahun; sinkron ke pendapatan memakai tahun jam server | kolom `pencairan.tahun` (data lama diisi dari `created_at`) |
 | Status pencairan | bisa ditimpa di form Ubah dan tombol Proses Payment | hanya diturunkan dari ketiga persetujuan |
-| Tombol "Lanjut ke Proses Payment" | menyetel Approved lalu membuka Pendapatan Bulanan | status "Approved · Proses Payment"; pendapatan sudah `PROSES PAYMENT` saat persetujuan ketiga. Tautan ke pendapatan menyusul Fase 4 |
+| Tombol "Lanjut ke Proses Payment" | menyetel Approved lalu membuka Pendapatan Bulanan | status "Approved · Proses Payment"; pendapatan sudah `PROSES PAYMENT` saat persetujuan ketiga; statusnya menautkan ke Laporan Pendapatan posisi Proses Payment |
 | Ubah invoice yang pendapatannya LUNAS | angka pendapatan ditimpa | pendapatan LUNAS / sudah ada tanggal bayar tidak disentuh |
 | Nominal dari pendapatan | sinkron GET memakai net tagihan sebagai nominal, lalu sinkron balik menulisnya sebagai total — total menyusut sebesar pajak setiap putaran | nominal selalu bruto (= total pendapatan) |
 | Pencarian pendapatan per invoice | seluruh tabel, lintas entitas | per entitas |
 
-Sisa: Fase 4 — Laporan + Cetak (partner, telly/gaji, paguyuban, karyawan,
-pendapatan, kumpulan, keuangan), termasuk dua hal yang ditunda dari Fase 2–3
-di atas.
+### Fase 4a — Laporan Pendapatan, selesai 12 Oktober 2026
+
+- `/operasional/pendapatan`: kartu ringkasan (total bulan, belum/sudah
+  dibayar, total keseluruhan), filter posisi piutang, tabel yang diedit
+  langsung + "Simpan Semua", Tambah Baris, Generate dari Kegiatan, Rapikan
+  Nomor, hapus.
+- Cetak tanpa bingkai aplikasi: `/cetak/operasional/pendapatan` (REKAP INCOME,
+  A4 lanskap) dan `/cetak/operasional/ba/[id]` (Berita Acara).
+- Pencairan: tombol "Tarik dari Laporan Pendapatan", status Approved menautkan
+  ke posisi Proses Payment, preview BA menautkan ke cetak BA.
+- Migrasi `20250115000000_laporan_pendapatan.sql`; tes
+  `tests/operasional-pendapatan.test.ts`, `tests/pendapatan-helpers.test.ts`.
+
+Rumus apa adanya: party = tonase × 1.000; total = party ÷ 1.000 × harga
+(default 34.500); pajak = total × tarif% (0,5 / 2 / 0); net = total − pajak;
+invoice `n/PT.IMR-<romawi>/<tahun>`; nomor BA `BA/IMR/<tahun>/<bulan>/<urut>`;
+pendapatan → pencairan: nominal = total, pajak = pajak.
+
+| Hal | Laravel | Di sini |
+|---|---|---|
+| Kaitan pendapatan ↔ kegiatan | nama kapal sebagai substring ("KM Sinar" cocok dengan "KM Sinar Jaya") | kolom `operasional_rekap_id`, unik; baris lama tanpa tautan diambil alih hanya bila namanya sama persis |
+| Kapan sinkron berjalan | setiap kali halaman Pendapatan dibuka, dan saat Lengkapi Data disimpan | trigger saat kegiatan disimpan; tombol "Generate dari Kegiatan" untuk mengulang |
+| Membuka halaman Pendapatan | menghapus baris yang dianggap duplikat (nama + tanggal) dan menomori ulang invoice | hanya membaca; penomoran ulang = tombol "Rapikan Nomor"; tidak ada hapus duplikat (tautan unik membuatnya tidak perlu) |
+| Penomoran ulang | semua baris, termasuk yang sudah dibayar | invoice manual dan yang sudah dibayar tidak diganti |
+| Ganti nomor invoice | pencairan dicari dengan nomor baru → pencairan lama terputus | nomor di pencairan ikut diganti |
+| Sinkron kegiatan pada baris LUNAS | party dan total ditimpa | tidak disentuh |
+| Tarif pajak 0% | dikembalikan ke 0,5% saat tonase berubah | dipertahankan |
+| Kegiatan dipindah bulan | baris pendapatan tertinggal di bulan lama | ikut pindah, nomor urut berikutnya di bulan baru |
+| "Belum terbayar" di cetak | hanya `payment_date` kosong (layar juga mengecualikan LUNAS) | aturan yang sama di layar dan cetak: tanpa tanggal bayar dan bukan LUNAS/PAID |
+| Kop BA | nama PT, alamat, dan email tertulis tetap | nama legal entitas; alamat/email contoh dihapus (isi bila ada yang resmi) |
+| Generate pertama di bulan kosong | nomor mulai 101 (`100 + count + 1`), lalu dinomori ulang saat halaman dibuka | mulai 1 |
+
+Pertanyaan untuk pemilik sistem: label "TOTAL KESELURUHAN PIUTANG" di cetak
+menjumlah **semua** invoice semua periode, termasuk yang sudah lunas — angka
+dan labelnya dipertahankan seperti Laravel. Awalan invoice `PT.IMR` dan
+`BA/IMR` juga tetap untuk semua entitas.
+
+Sisa: Fase 4b — Kumpulan (laba-rugi operasional) + cetak, Telly/Gaji,
+Paguyuban, Karyawan + cetak, Partner, Operasional + cetak, Cetak Pengeluaran,
+Keuangan.
 
 Aturan untuk setiap port:
 
