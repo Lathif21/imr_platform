@@ -115,6 +115,21 @@ Aturan untuk setiap port:
 - Bug yang sudah tercatat di sisi Laravel (`docs/task/10-integrasi-operasional.md`)
   tidak ikut di-port: label `pendapatan` di laporan keuangan yang sebenarnya
   beban, dan `max()` gaji.
+- Perbaikan yang sudah dibuat di Laravel sesudah platform ini disalin
+  (Lathif21/imr-operasional#5, Oktober 2026) **ikut di-port**, bukan logika
+  lamanya. Port dari kode Laravel versi `main` *sesudah* PR itu di-merge:
+
+  | Modul (fase) | Perilaku yang harus ada | Perilaku lama yang salah |
+  |---|---|---|
+  | Rekap / Pembayaran Truk (2, 4) | Iuran paguyuban = tonase × tarif (default 500) dihitung saat rincian truk disimpan; tarif tersimpan dipertahankan | hanya dihitung di form transaksi yang menyembunyikan tonase → selalu 0 |
+  | Rekap: tambah/edit kegiatan (2) | Bulan Pengiriman mengikuti Tanggal Kegiatan | diam di bulan halaman → kegiatan bulan lalu tersimpan di bulan berjalan |
+  | Laporan Gaji, admin (4) | satu baris gaji admin per bulan, difilter per bulan | satu baris untuk semua bulan |
+  | Laporan keuangan (4) | bulan tanpa gaji admin = nol | fallback "jumlahkan seluruh riwayat" |
+  | Pembayaran Truk / Detail Kegiatan (2, 4) | ada jalan ke form tambah kegiatan dari halaman yang menyuruh menambahnya | pesan menunjuk halaman tanpa tombol tambah |
+
+  Pengujiannya ada di `tests/Feature/RincianTrukTest.php`,
+  `GajiAdminTest.php`, dan `TambahKegiatanKapalTest.php` repo Laravel;
+  bawa kasusnya ke tes platform.
 
 ---
 
