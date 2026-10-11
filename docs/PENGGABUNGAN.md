@@ -92,8 +92,8 @@ Blade + controller di Laravel, sebagai gambaran besar pekerjaan.
 |---|---|---|---|---|
 | 1 | Master data: pemilik, kendaraan, karyawan (+ catatan SP) | `PemilikController`, `KendaraanController`, `KaryawanController` | `/operasional/pemilik`, `/kendaraan`, `/karyawan` | ~1.500 |
 | 1 | Kapal + rute + rincian muatan truk | `KapalController` | `/operasional/kapal`, `/kapal/[id]` | ~700 |
-| 2 | Transaksi operasional | `TransaksiOperasionalController` | `/operasional/transaksi` | ~2.500 |
-| 2 | Rekap operasional (input massal, edit kegiatan) | `OperasionalController` | `/operasional/rekap` | ~2.100 |
+| 2 | Transaksi operasional (Database General) | `TransaksiOperasionalController` | `/operasional/general` | ~2.500 |
+| 2 | Rekap operasional (Detail Kegiatan, Lengkapi Data, Pembayaran Truk) | `OperasionalController` | `/operasional/kegiatan`, `/kegiatan/[id]` | ~2.100 |
 | 3 | Pengeluaran | `PengeluaranController` | `/operasional/pengeluaran` | ~500 |
 | 3 | Pencairan + approval Jetty → Gudang → Accounting | `PencairanController` | `/operasional/pencairan` | ~1.000 |
 | 4 | Laporan: partner, telly/gaji, paguyuban, karyawan, pendapatan, kumpulan, keuangan | `LaporanController` (2.131 baris) | `/operasional/laporan/*` | ~6.000 |
@@ -145,7 +145,63 @@ cache"** di Neon Console (Postgres database → Data API). Data API Neon tidak
 mengikuti `NOTIFY pgrst`; sebelum di-refresh, panggilan ke objek baru gagal
 `PGRST202`.
 
-Sisa: Fase 2 — Database General (transaksi) dan Detail Kegiatan Kapal (rekap).
+### Fase 2 — selesai 12 Oktober 2026
+
+Empat layar, semuanya per bulan (`?bulan=&tahun=`):
+
+| Layar | Rute | Laravel |
+|---|---|---|
+| Database General | `/operasional/general` | `transaksi/index` + `OperasionalController::storeBulk`, `updateRekapModal`, `destroy` |
+| Detail Kegiatan Kapal | `/operasional/kegiatan` | `OperasionalController::index` |
+| Lengkapi Data Kegiatan | `/operasional/kegiatan/[id]` | `OperasionalController::editKegiatan`, `updateKegiatan` |
+| Rincian Pembayaran Truk | `/operasional/kegiatan/[id]/pembayaran` | `LaporanController::editKegiatanPartner`, `updatePembayaranBulk` |
+
+Setiap simpan yang menyentuh lebih dari satu tabel adalah satu fungsi
+database (`20250113000000_kegiatan_kapal.sql`): `tambah_kegiatan`,
+`ubah_kegiatan`, `simpan_rincian_kegiatan`, `simpan_pembayaran_truk`, dengan
+pembantu `hitung_ulang_kegiatan` (jumlah truk + honor telly) dan
+`sinkron_paguyuban`. Laravel menulisnya berurutan tanpa transaksi. Hapus
+kegiatan cukup `delete` biasa: truk, iuran, dan honor telly ikut lewat FK
+CASCADE. Tes: `tests/operasional-kegiatan.test.ts` (DB) dan
+`tests/kegiatan-helpers.test.ts` (rute, angka, periode).
+
+Rumus dipindah apa adanya: jumlah kegiatan = jumlah truk; beban rekanan =
+tonase × ongkos angkut; paguyuban = tonase × tarif (500); honor telly =
+tonase kegiatan × gaji per ton (tersimpan → tarif telly → 400), PPh
+dipertahankan. Dua perbaikan PR #5 ikut: Bulan Pengiriman mengikuti tanggal
+kegiatan, dan Detail Kegiatan punya tombol Tambah Kegiatan.
+
+Yang **sengaja berbeda** — semuanya kasus yang merusak data di Laravel:
+
+| Hal | Laravel | Di sini |
+|---|---|---|
+| Tambah kapal yang sudah punya kegiatan di bulan itu | `updateOrCreate` menimpa kegiatan lama: tonase dan biaya operasional jadi 0 | selalu kegiatan baru |
+| Membuka Lengkapi Data | GET membuat kegiatan bila belum ada | halaman hanya membaca, dibuka per id |
+| Kapal di form tambah/ubah | `kapal_id` dari combobox tertinggal walau nama diketik ulang | hanya nama; dicari tanpa beda huruf/spasi, dibuat bila baru |
+| Truk lama dicantumkan di kelompok pemilik lain | kendaraan dipindah ke pemilik itu, untuk semua kegiatan | pemilik truk lama tidak berubah (ubah di Master Kendaraan) |
+| Truk baru dengan pemilik baru | nama pemilik hilang, `pemilik_id` kosong | pemilik dibuat; truk baru tanpa pemilik ditolak |
+| Ritase/tonase 0 di Lengkapi Data | diabaikan, angka lama dipertahankan | tersimpan 0 |
+| Tonase berubah di Lengkapi Data | paguyuban dan beban rekanan tidak ikut | keduanya dihitung ulang |
+| Ubah Data memindahkan bulan/kapal | hanya kegiatan yang pindah; truknya tertinggal | truk dan iurannya ikut |
+| Hitung ulang setelah Rincian Pembayaran | dicari lewat (kapal, rute, bulan) — dua kegiatan serupa tercampur | per kegiatan |
+| Ganti petugas telly | tarif petugas lama tetap dipakai | tarif petugas baru |
+| Biaya operasional kosong di Detail Kegiatan | ditampilkan tonase × 1.000 dan ikut total, padahal laporan keuangan membaca 0 | "Belum diisi" (perkiraan di tooltip), total = angka tersimpan |
+| Hapus kegiatan | ikut menghapus baris Laporan Pendapatan yang namanya mirip nama kapal | pendapatan tidak disentuh |
+| Satu truk dua kali di satu kegiatan | saling menimpa | ditolak (`unique (operasional_rekap_id, kendaraan_id)`) |
+| FK `gaji_telly.operasional_rekap_id` | — | `ON DELETE CASCADE` (dulu SET NULL → tersisa sebagai gaji admin) |
+
+**Belum di-port, menunggu Fase 4:** `syncMissingShipsToPendapatan` (Laravel
+membuat/menghapus baris Laporan Pendapatan dari kegiatan setiap kali Lengkapi
+Data disimpan, dengan pencocokan nama) dan penghapusan snapshot
+`laporan_kumpulan`. Keduanya bagian dari layar laporan, dan pencocokan nama
+harus diganti tautan id di sana.
+
+**Truk tanpa kegiatan** (`operasional_rekap_id` null) tidak dibuat oleh
+platform; hanya bisa datang dari migrasi data Laravel. Database General
+menghitung dan memberitahukannya, tidak menyembunyikannya. Skrip migrasi data
+sebaiknya menautkannya ke kegiatan dengan (kapal, rute, bulan) yang sama.
+
+Sisa: Fase 3 — Pengeluaran dan Pencairan.
 
 Aturan untuk setiap port:
 

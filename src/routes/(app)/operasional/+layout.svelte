@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ClipboardList from 'lucide-svelte/icons/clipboard-list';
+  import Database from 'lucide-svelte/icons/database';
   import Eye from 'lucide-svelte/icons/eye';
   import IdCard from 'lucide-svelte/icons/id-card';
   import Ship from 'lucide-svelte/icons/ship';
@@ -10,9 +12,11 @@
 
   let { data, children }: { data: LayoutData; children: import('svelte').Snippet } = $props();
 
-  // Port order: docs/PENGGABUNGAN.md. Kapal, transaksi, rekap, pencairan and
+  // Port order: docs/PENGGABUNGAN.md. Pengeluaran, pencairan and
   // the reports join this list as they are ported — never as disabled tabs.
   const tabs = [
+    { href: '/operasional/general', label: 'Database General', icon: Database },
+    { href: '/operasional/kegiatan', label: 'Detail Kegiatan Kapal', icon: ClipboardList },
     { href: '/operasional/pemilik', label: 'Pemilik', icon: UserRound },
     { href: '/operasional/kendaraan', label: 'Kendaraan', icon: Truck },
     { href: '/operasional/kapal', label: 'Kapal', icon: Ship },
@@ -26,7 +30,9 @@
 
   function chooseEntity(event: Event) {
     const code = (event.currentTarget as HTMLSelectElement).value;
-    goto(`${page.url.pathname}?entitas=${encodeURIComponent(code)}`);
+    // One kegiatan belongs to one entity; switching goes back to its list.
+    const path = page.url.pathname.replace(/^(\/operasional\/kegiatan)\/\d+.*$/, '$1');
+    goto(`${path}?entitas=${encodeURIComponent(code)}`);
   }
 </script>
 
