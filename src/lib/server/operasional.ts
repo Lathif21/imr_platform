@@ -87,6 +87,11 @@ export function explainDbError(
       return messages.duplicate ?? 'Data yang sama sudah ada.';
     case '23503':
       return 'Data yang dirujuk tidak ditemukan di entitas ini, atau masih dipakai data lain.';
+    case 'PGRST202':
+      // Fungsi baru belum masuk cache skema Neon Data API. Cache itu tidak
+      // mengikuti NOTIFY pgrst; ia diperbarui lewat tombol "Refresh schema
+      // cache" di Neon Console (Postgres database → Data API).
+      return 'Fitur ini memerlukan pembaruan database yang belum aktif di server. Minta admin sistem menekan "Refresh schema cache" pada Data API di Neon Console.';
     default:
       return messages.fallback;
   }

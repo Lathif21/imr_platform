@@ -1,6 +1,7 @@
 <script lang="ts">
   import Eye from 'lucide-svelte/icons/eye';
   import IdCard from 'lucide-svelte/icons/id-card';
+  import Ship from 'lucide-svelte/icons/ship';
   import Truck from 'lucide-svelte/icons/truck';
   import UserRound from 'lucide-svelte/icons/user-round';
   import { goto } from '$app/navigation';
@@ -14,6 +15,7 @@
   const tabs = [
     { href: '/operasional/pemilik', label: 'Pemilik', icon: UserRound },
     { href: '/operasional/kendaraan', label: 'Kendaraan', icon: Truck },
+    { href: '/operasional/kapal', label: 'Kapal', icon: Ship },
     { href: '/operasional/karyawan', label: 'Karyawan', icon: IdCard }
   ];
 
