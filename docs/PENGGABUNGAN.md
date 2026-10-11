@@ -120,7 +120,32 @@ Yang **sengaja berbeda** dari Laravel — tinjau bila tidak setuju:
 | Detail pemilik | halaman `pemilik/show` | tautan "n unit" → Kendaraan terfilter pemilik itu | isinya sama: daftar kendaraan pemilik |
 | Label kolom pemilik | "Pendapatan Bruto" | "Pendapatan Bruto Rekanan" | angkanya uang yang DIBAYAR ke rekanan, bukan pendapatan entitas |
 
-Sisa Fase 1: **1b — Kapal** (rute, rincian muatan truk), lalu Fase 2.
+### Fase 1b — selesai 12 Oktober 2026
+
+`/operasional/kapal`: daftar kapal (nama, perusahaan pemilik), tambah, ubah,
+hapus. Hapus lewat `hapus_kapal()` (`20250112000000`); tes di
+`tests/operasional-kapal.test.ts`.
+
+**Rute dan rincian muatan truk tidak di-port di sini**, karena di Laravel
+keduanya kode mati: `kapal/show.blade.php` memanggil `kapal.rute.store` dan
+`kapal.muatan.store`, tetapi `KapalController` tidak punya `show`,
+`storeRute`, maupun `storeMuatan`, dan tidak ada tautan ke halaman itu. Rute
+dan truk yang dipakai admin diisi lewat Database General / Detail Kegiatan
+Kapal (Fase 2).
+
+| Hal | Laravel | Di sini | Alasan |
+|---|---|---|---|
+| Nama kapal ganda | `unique:kapal,nama_kapal` | ditolak per entitas, tanpa memedulikan besar-kecil huruf dan spasi berlebih | kolomnya sengaja tidak unik di skema; tanpa cek, "KM Sinar" dan "km  sinar" membelah satu riwayat |
+| Hapus: honor telly per kegiatan | dihapus eksplisit | dihapus eksplisit di `hapus_kapal()` | FK `gaji_telly.operasional_rekap_id` SET NULL — tanpa itu baris tersisa tanpa induk dan terbaca sebagai **gaji admin** |
+| Hapus: kapal yang punya pencairan | (tidak ada pencairan per kapal yang ikut terhapus) | **ditolak** | FK `pencairan.kapal_id` CASCADE akan menghapus pencairan dan riwayat approval diam-diam |
+| Kolom daftar | No, Nama, Pemilik | + jumlah Kegiatan dan Truk | konfirmasi hapus menyebut apa saja yang ikut terhapus |
+
+**Setiap migrasi yang menambah tabel atau fungsi butuh "Refresh schema
+cache"** di Neon Console (Postgres database → Data API). Data API Neon tidak
+mengikuti `NOTIFY pgrst`; sebelum di-refresh, panggilan ke objek baru gagal
+`PGRST202`.
+
+Sisa: Fase 2 — Database General (transaksi) dan Detail Kegiatan Kapal (rekap).
 
 Aturan untuk setiap port:
 
