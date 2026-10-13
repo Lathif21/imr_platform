@@ -19,7 +19,8 @@ import {
 } from './helpers';
 
 /**
- * Every table 20250108000000_operasional.sql creates. Kept here as well as in
+ * Every operational table: those 20250108000000_operasional.sql creates,
+ * and lampiran_operasional (20250119000000_lampiran.sql). Kept here as well as in
  * the migration on purpose: the catalog test below fails when the two
  * disagree, which is the point — a table added to the module and forgotten in
  * the migration's loop would otherwise ship with no RLS at all.
@@ -40,7 +41,9 @@ const OPERATIONAL_TABLES = [
   'pencairan',
   'pencairan_approval',
   'laporan_pendapatan',
-  'laporan_kumpulan'
+  'laporan_kumpulan',
+  // 20250119000000_lampiran.sql — same policy pair, written out there.
+  'lampiran_operasional'
 ];
 
 let admin: SupabaseClient;

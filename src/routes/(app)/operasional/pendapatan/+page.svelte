@@ -6,6 +6,7 @@
   import RefreshCw from 'lucide-svelte/icons/refresh-cw';
   import Trash2 from 'lucide-svelte/icons/trash-2';
   import { untrack } from 'svelte';
+  import Lampiran from '$lib/components/Lampiran.svelte';
   import { enhance } from '$app/forms';
   import FormModal from '$lib/components/FormModal.svelte';
   import { withFeedback } from '$lib/form-feedback';
@@ -202,7 +203,7 @@
 
   <div class="bg-card border border-border rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
-      <fieldset disabled={!data.canWrite}>
+      <fieldset>
         <table class="w-full min-w-[2100px] text-[13px]">
           <thead>
             <tr class="text-muted-foreground border-b border-border">
@@ -222,47 +223,48 @@
               <th class="{TH} text-left w-[130px]">Tgl Entry</th>
               <th class="{TH} text-left w-[130px]">Payment Date</th>
               <th class="{TH} text-left w-[200px]">Keterangan</th>
-              <th class="{TH} w-[64px]"></th>
+              <th class="{TH} w-[100px]"></th>
             </tr>
           </thead>
           <tbody>
             {#each tampil as { b, i } (b.id)}
               {@const h = angkaBaris[i]}
               <tr class="border-b border-border/40 align-middle {sudahDibayar(h) ? 'bg-positive/5' : ''}">
-                <td class="py-1.5 px-2"><input bind:value={b.no_urut} inputmode="numeric" aria-label="Nomor urut" class="{CELL} text-center num" /></td>
-                <td class="py-1.5 px-2"><input bind:value={b.no_invoice} aria-label="Nomor invoice" class="{CELL} num" /></td>
+                <td class="py-1.5 px-2"><input disabled={!data.canWrite} bind:value={b.no_urut} inputmode="numeric" aria-label="Nomor urut" class="{CELL} text-center num" /></td>
+                <td class="py-1.5 px-2"><input disabled={!data.canWrite} bind:value={b.no_invoice} aria-label="Nomor invoice" class="{CELL} num" /></td>
                 <td class="py-1.5 px-2">
-                  <input bind:value={b.kegiatan} aria-label="Kegiatan" class={CELL} title={b.tertaut ? 'Tertaut ke kegiatan kapal' : ''} />
+                  <input disabled={!data.canWrite} bind:value={b.kegiatan} aria-label="Kegiatan" class={CELL} title={b.tertaut ? 'Tertaut ke kegiatan kapal' : ''} />
                 </td>
-                <td class="py-1.5 px-2"><input bind:value={b.no_faktur_pajak} aria-label="No faktur pajak" class="{CELL} num" /></td>
-                <td class="py-1.5 px-2"><input bind:value={b.no_sto_spo} aria-label="No STO/SPO" class="{CELL} num" /></td>
-                <td class="py-1.5 px-2"><input bind:value={b.lokasi} aria-label="Lokasi" class={CELL} /></td>
-                <td class="py-1.5 px-2"><input bind:value={b.tanggal_kegiatan} aria-label="Tanggal kegiatan" class={CELL} /></td>
+                <td class="py-1.5 px-2"><input disabled={!data.canWrite} bind:value={b.no_faktur_pajak} aria-label="No faktur pajak" class="{CELL} num" /></td>
+                <td class="py-1.5 px-2"><input disabled={!data.canWrite} bind:value={b.no_sto_spo} aria-label="No STO/SPO" class="{CELL} num" /></td>
+                <td class="py-1.5 px-2"><input disabled={!data.canWrite} bind:value={b.lokasi} aria-label="Lokasi" class={CELL} /></td>
+                <td class="py-1.5 px-2"><input disabled={!data.canWrite} bind:value={b.tanggal_kegiatan} aria-label="Tanggal kegiatan" class={CELL} /></td>
                 <td class="py-1.5 px-2">
-                  <input value={b.party_kg} oninput={(e) => (b.party_kg = formatDigit(e.currentTarget.value))} inputmode="numeric" aria-label="Party KG" class="{CELL} text-right num" />
+                  <input disabled={!data.canWrite} value={b.party_kg} oninput={(e) => (b.party_kg = formatDigit(e.currentTarget.value))} inputmode="numeric" aria-label="Party KG" class="{CELL} text-right num" />
                 </td>
                 <td class="py-1.5 px-2">
-                  <input value={b.harga} oninput={(e) => (b.harga = formatDigit(e.currentTarget.value))} inputmode="numeric" aria-label="Harga per ton" class="{CELL} text-right num" />
+                  <input disabled={!data.canWrite} value={b.harga} oninput={(e) => (b.harga = formatDigit(e.currentTarget.value))} inputmode="numeric" aria-label="Harga per ton" class="{CELL} text-right num" />
                 </td>
                 <td class="py-1.5 px-2 text-right num whitespace-nowrap">{rupiah(h.total)}</td>
                 <td class="py-1.5 px-2">
-                  <select bind:value={b.tarif_pajak} aria-label="Tarif pajak" class={CELL}>
+                  <select disabled={!data.canWrite} bind:value={b.tarif_pajak} aria-label="Tarif pajak" class={CELL}>
                     {#each TARIF_PAJAK as t (t)}<option value={String(t)}>{ton(t)}% · {rupiah(Math.round(h.total * t) / 100)}</option>{/each}
                   </select>
                 </td>
                 <td class="py-1.5 px-2 text-right num whitespace-nowrap font-semibold text-foreground">{rupiah(h.net_tagihan)}</td>
                 <td class="py-1.5 px-2">
-                  <select bind:value={b.status_entry} aria-label="Status entry" class="{CELL} font-medium {warnaStatus(b.status_entry)}">
+                  <select disabled={!data.canWrite} bind:value={b.status_entry} aria-label="Status entry" class="{CELL} font-medium {warnaStatus(b.status_entry)}">
                     <option value="">— Pilih —</option>
                     {#each STATUS_ENTRY as s (s)}<option value={s}>{s}</option>{/each}
                     {#if b.status_entry && !(STATUS_ENTRY as readonly string[]).includes(b.status_entry)}<option value={b.status_entry}>{b.status_entry}</option>{/if}
                   </select>
                 </td>
-                <td class="py-1.5 px-2"><input type="date" bind:value={b.tanggal_entry} aria-label="Tanggal entry" class={CELL} /></td>
-                <td class="py-1.5 px-2"><input type="date" bind:value={b.payment_date} aria-label="Payment date" class={CELL} /></td>
-                <td class="py-1.5 px-2"><input bind:value={b.keterangan} aria-label="Keterangan" class={CELL} /></td>
+                <td class="py-1.5 px-2"><input disabled={!data.canWrite} type="date" bind:value={b.tanggal_entry} aria-label="Tanggal entry" class={CELL} /></td>
+                <td class="py-1.5 px-2"><input disabled={!data.canWrite} type="date" bind:value={b.payment_date} aria-label="Payment date" class={CELL} /></td>
+                <td class="py-1.5 px-2"><input disabled={!data.canWrite} bind:value={b.keterangan} aria-label="Keterangan" class={CELL} /></td>
                 <td class="py-1.5 px-2">
-                  <div class="flex justify-end gap-0.5">
+                  <div class="flex justify-end items-center gap-0.5">
+                    <Lampiran mode="tombol" jenis="pendapatan" ref={b.id} canWrite={data.canWrite} jumlah={data.lampiran[b.id] ?? 0} judul="Invoice {b.no_invoice || b.kegiatan}" />
                     <a href="/cetak/operasional/ba/{b.id}?{entityQuery}" target="_blank" rel="noopener" class={BTN_ICON} title="Cetak Berita Acara" aria-label="Cetak BA {b.no_invoice}">
                       <FileText size={14} />
                     </a>

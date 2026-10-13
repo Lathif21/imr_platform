@@ -1,5 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { bacaRupiah, periodeDari, rentangBulan } from '$lib/operasional/kegiatan';
+import { hitungLampiran } from '$lib/server/lampiran';
 import {
   ISO_DATE,
   explainDbError,
@@ -33,7 +34,7 @@ export interface PengeluaranRow {
 export const load: PageServerLoad = async ({ locals, parent, url }) => {
   const { opEntity } = await parent();
   const periode = periodeDari(url);
-  const kosong = { periode, pengeluaran: [] as PengeluaranRow[], daftarJenis: [] as string[], daftarPenerima: [] as { nama: string; jabatan: string | null }[] };
+  const kosong = { periode, lampiran: {} as Record<string, number>, pengeluaran: [] as PengeluaranRow[], daftarJenis: [] as string[], daftarPenerima: [] as { nama: string; jabatan: string | null }[] };
   if (!opEntity) return kosong;
 
   const db = locals.supabase;
@@ -72,8 +73,10 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
 
   const jenis = new Set([...(jenisResult.data ?? []), ...(mappingResult.data ?? [])].map((r) => r.jenis));
 
+  const lampiran = await hitungLampiran(locals.supabase, 'pengeluaran', (rowsResult.data ?? []).map((r) => r.id));
   return {
     ...kosong,
+    lampiran,
     pengeluaran: (rowsResult.data ?? []).map((r) => ({ ...r, jumlah: Number(r.jumlah) })),
     daftarJenis: [...jenis].sort((a, b) => a.localeCompare(b, 'id')),
     daftarPenerima: (karyawanResult.data ?? [])

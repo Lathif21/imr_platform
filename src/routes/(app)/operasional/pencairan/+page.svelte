@@ -5,6 +5,7 @@
   import Plus from 'lucide-svelte/icons/plus';
   import Search from 'lucide-svelte/icons/search';
   import Trash2 from 'lucide-svelte/icons/trash-2';
+  import Lampiran from '$lib/components/Lampiran.svelte';
   import { enhance } from '$app/forms';
   import FormModal from '$lib/components/FormModal.svelte';
   import { withFeedback } from '$lib/form-feedback';
@@ -157,7 +158,7 @@
             <th class="text-right font-semibold py-2.5 px-3">Nominal / Pajak</th>
             <th class="text-center font-semibold py-2.5 px-3">Approval Departemen</th>
             <th class="text-center font-semibold py-2.5 px-3">Status Final</th>
-            {#if data.canWrite}<th class="text-right font-semibold py-2.5 px-3 w-[90px]">Aksi</th>{/if}
+            <th class="text-right font-semibold py-2.5 px-3 w-[120px]">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -219,17 +220,18 @@
                   <span class="inline-block px-2 py-0.5 rounded-full bg-warning/10 text-warning text-[12px] font-medium">Pending</span>
                 {/if}
               </td>
-              {#if data.canWrite}
-                <td class="py-2 px-3">
-                  <div class="flex justify-end gap-1">
+              <td class="py-2 px-3">
+                <div class="flex justify-end items-center gap-1">
+                  <Lampiran mode="tombol" jenis="pencairan" ref={row.id} canWrite={data.canWrite} jumlah={data.lampiran[row.id] ?? 0} judul="Invoice {row.nomor_invoice}" />
+                  {#if data.canWrite}
                     <button type="button" onclick={() => openEdit(row)} class={BTN_ICON} aria-label="Ubah invoice {row.nomor_invoice}" title="Ubah"><Pencil size={14} /></button>
                     <form method="POST" action="?/hapus" use:enhance={remove(row)}>
                       <input type="hidden" name="id" value={row.id} />
                       <button type="submit" class={BTN_ICON_DANGER} aria-label="Hapus invoice {row.nomor_invoice}" title="Hapus"><Trash2 size={14} /></button>
                     </form>
-                  </div>
-                </td>
-              {/if}
+                  {/if}
+                </div>
+              </td>
             </tr>
           {:else}
             <tr>

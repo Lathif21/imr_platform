@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { canWriteReports } from '$lib/roles';
+  import Lampiran from '$lib/components/Lampiran.svelte';
   import ArrowLeft from 'lucide-svelte/icons/arrow-left';
   import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
   import { goto } from '$app/navigation';
@@ -25,6 +27,8 @@
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
+
+  const bolehLampir = $derived(canWriteReports(data.role));
 
   const revenue = $derived(toAmount(data.pnl.revenue) ?? 0);
 
@@ -447,5 +451,12 @@
         di kartu terpisah di atas dan kosong sampai entitas ini punya data 12 bulan.
       </p>
     </div>
+
+    <Lampiran
+      jenis="periode"
+      ref={data.periodId}
+      canWrite={bolehLampir}
+      bolehHapus={bolehLampir && (data.status === 'draft' || data.status === 'submitted')}
+    />
   </div>
 </div>

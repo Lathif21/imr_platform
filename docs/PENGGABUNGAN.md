@@ -405,6 +405,36 @@ seluruh alur (invoice `1/PT.ILA-XII/2026`), admin ILJ tidak melihat data
 ILA dari layar mana pun (kegiatan ILA lewat URL → 404), direksi membacanya
 dalam Mode baca, dan invoice ILJ tetap `PT.IMR`.
 
+### Lampiran dokumen asli, 13 Oktober 2026
+
+Dokumen asli sebagai bukti, di empat tempat: kegiatan kapal (Lengkapi Data),
+invoice pendapatan dan pencairan, pengeluaran (tombol 📎 di baris tabel), dan
+Laporan P&L (Input Laporan dan tampilan laporan). PDF, foto (JPG/PNG/HEIC),
+Excel, Word, CSV; maksimal 20 MB per berkas.
+
+- **Berkas** di Neon Object Storage, bucket `uploads`, kunci
+  `<entity>/<jenis>/<induk>/<uuid>.<ext>`. Variabel `AWS_*` dan `S3_BUCKET`
+  (lihat `.env.example`) harus ada di Vercel juga.
+- **Unggah langsung dari browser** lewat URL bertanda tangan
+  (`/lampiran`, `src/lib/server/storage.ts`), sehingga batas body ±4,5 MB
+  Vercel tidak berlaku. Butuh CORS bucket yang mengizinkan `PUT` — sudah ada
+  (`AllowedOrigin *`).
+- **Catatan** di `lampiran_operasional` (RLS operasional) dan
+  `lampiran_periode` (RLS laporan), `20250119000000_lampiran.sql`. Composite FK
+  mencegah lampiran menunjuk data entitas lain. Lampiran P&L boleh ditambah
+  kapan saja tetapi hanya dihapus selama periode draft/diajukan.
+- **Diketahui:** menghapus induk (kegiatan, invoice, pengeluaran) menghapus
+  baris lampirannya lewat cascade, tetapi objeknya tetap di bucket.
+  Penghapusan lampiran oleh pengguna menghapus objeknya langsung. Pembersihan
+  objek yatim belum dibuat.
+
+Diuji lewat layar: unggah dua berkas sekaligus, buka (inline) dan unduh,
+penolakan `.exe` dan berkas 21 MB dengan kedua alasan tercantum, hapus,
+tombol 📎 dan jumlahnya di Pengeluaran/Pendapatan/Pencairan; admin ILA tidak
+dapat membaca, mengunggah, atau menghapus lampiran ILJ (404); direksi hanya
+melihat. RLS `lampiran_periode` diuji dalam transaksi yang di-rollback
+(belum ada periode P&L di database platform).
+
 ## Integrasi: dari HTTP ke SQL
 
 Dengan satu database, `GET /api/integrasi/rekap-bulanan` dan tokennya tidak

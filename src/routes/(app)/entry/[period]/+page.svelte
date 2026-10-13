@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Lampiran from '$lib/components/Lampiran.svelte';
   import ArrowLeft from 'lucide-svelte/icons/arrow-left';
   import Check from 'lucide-svelte/icons/check';
   import Download from 'lucide-svelte/icons/download';
@@ -699,6 +700,17 @@
           {/each}
         </tbody>
       </table>
+
+      <!-- Evidence travels with the report: the signed statement, bank
+           letters. Added any time, removed only before approval. -->
+      <div class="p-4 sm:p-5 border-t border-border">
+        <Lampiran
+          jenis="periode"
+          ref={data.period.id}
+          canWrite={true}
+          bolehHapus={data.period.status === 'draft' || data.period.status === 'submitted'}
+        />
+      </div>
     </div>
 
     <!-- sticky footer · always visible -->

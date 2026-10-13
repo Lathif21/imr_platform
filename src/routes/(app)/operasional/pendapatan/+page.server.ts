@@ -2,6 +2,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { bacaAngka, bacaRupiah, periodeDari } from '$lib/operasional/kegiatan';
 import { ringkas } from '$lib/operasional/pendapatan';
 import { ISO_DATE, explainDbError, failLoad, idFrom, invalid, refuse, requiredText } from '$lib/server/operasional';
+import { hitungLampiran } from '$lib/server/lampiran';
 
 /**
  * Laporan Pendapatan — LaporanController::pendapatan and its actions.
@@ -41,6 +42,7 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
   const kosong = {
     periode,
     baris: [] as PendapatanRow[],
+    lampiran: {} as Record<string, number>,
     keseluruhan: ringkas([]),
     status: url.searchParams.get('status')
   };
@@ -76,8 +78,10 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
     return out;
   };
 
+  const lampiran = await hitungLampiran(locals.supabase, 'pendapatan', (rowsResult.data ?? []).map((r) => Number(r.id)));
   return {
     ...kosong,
+    lampiran,
     baris: (rowsResult.data ?? []).map((r) => asNumbers(r) as unknown as PendapatanRow),
     keseluruhan: ringkas((allResult.data ?? []).map((r) => asNumbers(r) as never))
   };
