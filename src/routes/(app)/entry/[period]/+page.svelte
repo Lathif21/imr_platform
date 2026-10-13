@@ -308,34 +308,11 @@
     };
   };
 
-  /** Tombol tarik data hanya ada bila entitasnya memang ditautkan. */
-  const canPull = $derived(editable && data.operationalSync);
-
-  const SOURCE_LABEL: Record<string, string> = {
-    invoice: 'invoice',
-    transaksi: 'transaksi',
-    rekap: 'rekap bulanan',
-    pengeluaran: 'pengeluaran',
-    gaji_telly: 'baris gaji telly',
-    gaji_admin: 'baris gaji admin'
-  };
+  /** Hanya untuk entitas yang laporannya diisi dari modul Operasional. */
+  const canPull = $derived(editable && data.operasional !== null);
 
   /**
-   * "26 invoice · 140 transaksi · 12 rekap bulanan".
-   *
-   * Bukan hiasan: angka yang ditarik dari nol invoice terlihat sama persis
-   * dengan angka yang ditarik dari dua puluh enam invoice sampai ada yang
-   * menghitungnya. Ini satu-satunya tempat penginput bisa melihat bedanya.
-   */
-  function describeSources(sources: Record<string, number> | undefined): string {
-    if (!sources) return '';
-    return Object.entries(sources)
-      .map(([key, count]) => `${count} ${SOURCE_LABEL[key] ?? key}`)
-      .join(' · ');
-  }
-
-  /**
-   * Tarik data menimpa angka yang sudah ada — termasuk koreksi yang baru
+   * Hitung ulang menimpa pos operasional — termasuk koreksi yang baru
    * diketik. Menimpa pekerjaan orang tanpa bertanya adalah cara tercepat
    * membuat tombol ini tidak dipercaya, jadi ia bertanya dulu. Formulir yang
    * masih kosong tidak ditanyakan: tidak ada yang bisa hilang.
@@ -344,15 +321,15 @@
     return confirmDialog(
       allZero
         ? {
-            title: 'Tarik data operasional?',
+            title: 'Hitung ulang dari data operasional?',
             message:
-              'Angka bulan ini akan diambil dari sistem operasional dan diisikan ke formulir. Anda masih bisa mengoreksinya sebelum diajukan.',
-            confirmLabel: 'Tarik data'
+              'Angka bulan ini dihitung dari modul Operasional dan diisikan ke formulir. Anda masih bisa mengoreksinya sebelum diajukan.',
+            confirmLabel: 'Hitung ulang'
           }
         : {
-            title: 'Timpa angka yang sudah diisi?',
+            title: 'Timpa pos operasional?',
             message:
-              'Sebagian baris sudah terisi. Tarik data akan mengganti angkanya dengan angka dari sistem operasional, termasuk koreksi yang baru Anda ketik.',
+              'Pos yang berasal dari modul Operasional (tagihan, pajak, rekanan, saku, terpal, operasional, telly, paguyuban, dan biaya yang dipetakan) akan diganti dengan angka terbaru, termasuk koreksi yang Anda ketik di pos itu. Pos lain tidak berubah.',
             confirmLabel: 'Ya, timpa',
             tone: 'danger'
           }
@@ -380,10 +357,9 @@
         if (result.type === 'success') {
           amounts = seedAmounts(data);
           notes = seedNotes(data);
-          const count = (result.data as { lineCount?: number } | undefined)?.lineCount;
           void notify('success', {
-            title: 'Data operasional berhasil ditarik',
-            message: `${count ?? 'Semua'} baris sudah terisi. Periksa angkanya, lalu simpan atau ajukan.`
+            title: 'Pos operasional diperbarui',
+            message: 'Angkanya sudah sesuai data operasional terbaru. Periksa, lalu ajukan.'
           });
         } else if (result.type === 'failure' || result.type === 'error') {
           reportFailure('pull', result);
@@ -439,7 +415,7 @@
         <button
           type="submit"
           disabled={pending !== null}
-          title="Ambil angka bulan ini dari sistem operasional ILJ"
+          title="Hitung ulang pos operasional bulan ini dari modul Operasional"
           class="px-3 py-1.5 rounded-lg bg-card border border-border text-[13px] font-medium
                  text-muted-foreground hover:text-primary hover:bg-primary/10 hover:border-primary/50
                  active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer
@@ -448,10 +424,10 @@
         >
           {#if pending === 'pull'}
             <LoaderCircle size={12} class="animate-spin" />
-            Menarik data…
+            Menghitung…
           {:else}
             <Download size={12} />
-            Tarik data operasional
+            Hitung ulang dari Operasional
           {/if}
         </button>
       </form>
@@ -500,61 +476,48 @@
         Draft tersimpan. Baris bernilai 0 tanpa catatan tidak disimpan.
       </p>
     </div>
-  {:else if form?.pulled}
-    <div class="px-5 py-2.5 bg-positive/10 border-b border-positive/25 shrink-0" role="status">
-      <p class="text-[13px] text-positive leading-relaxed">
-        {form.lineCount} baris ditarik dari sistem operasional
-        <!-- Jam dipotong dari string ISO, bukan lewat toLocaleString(). Server
-             dan browser bisa berada di zona waktu berbeda, dan angka jam yang
-             berubah saat hidrasi adalah persis jenis ketidakcocokan yang
-             membuat orang meragukan angka di sebelahnya. -->
-        {#if form.computedAt}pukul {form.computedAt.slice(11, 16)}{/if}. Angka ini masih draft
-        dan masih bisa dikoreksi sebelum diajukan.
-      </p>
-      {#if describeSources(form.sources)}
-        <p class="text-[12px] text-muted-foreground mt-1">
-          Dihitung dari {describeSources(form.sources)}.
-        </p>
-      {/if}
-    </div>
+  {/if}
 
-    <!-- Peringatan, bukan kegagalan: barisnya sudah tertulis. Rute yang hanya
-         punya rekap manual tetap menyumbang uang saku dan terpal, tetapi
-         operasional_rekap tidak punya kolom pendapatan — jadi bagian rekanan
-         untuk rute itu nol, dan iuran paguyubannya tidak ada sama sekali. -->
-    {#if form.rekapOnlyRoutes && form.rekapOnlyRoutes.length > 0}
-      <div
-        class="px-5 py-2.5 bg-warning/10 border-b border-warning/25 shrink-0"
-        role="status"
-      >
+  <!-- Draft dari modul Operasional diperbarui otomatis; yang perlu dibaca
+       orang hanya biaya yang tidak masuk pos semestinya. -->
+  {#if data.operasional}
+    {#if editable}
+      <div class="px-5 py-2 border-b border-border shrink-0" role="status">
+        <p class="text-[12px] text-muted-foreground leading-relaxed">
+          Pos operasional (tagihan, pajak, rekanan, saku, terpal, operasional, telly, paguyuban,
+          dan biaya yang dipetakan) terisi otomatis dari modul Operasional dan diperbarui setiap
+          kali data bulan ini berubah. Koreksi manual pada pos itu akan tertimpa pembaruan berikutnya.
+        </p>
+      </div>
+    {:else if data.operasional.selisih.length > 0}
+      <div class="px-5 py-2.5 bg-warning/10 border-b border-warning/25 shrink-0" role="status">
         <p class="text-[13px] text-warning leading-relaxed">
-          <span class="font-semibold">Periksa Bagian Rekanan dan Iuran Paguyuban.</span>
-          {form.rekapOnlyRoutes.length} rute bulan ini hanya punya rekap bulanan tanpa transaksi,
-          sehingga kedua pos itu tidak terisi untuk rute tersebut:
-          {form.rekapOnlyRoutes.map((r) => `${r.kapal} (${r.rute})`).join(', ')}.
+          <span class="font-semibold">Data operasional bulan ini berubah sejak periode diajukan.</span>
+          {data.operasional.selisih
+            .map((x) => `${x.line_label}: Rp ${formatAmount(x.tercatat)} → Rp ${formatAmount(x.sekarang)}`)
+            .join('; ')}. Kembalikan periode ke draft untuk memperbaruinya.
         </p>
       </div>
     {/if}
 
-    <!-- Jenis biaya tanpa pemetaan tidak menghentikan tarik data, tetapi juga
-         tidak boleh masuk Beban Operasional Lain diam-diam. Daftarnya selalu
-         ditampilkan supaya pemetaannya bisa dilengkapi direksi. -->
-    {#if form.unmappedExpenses && form.unmappedExpenses.length > 0}
+    <!-- Jenis biaya tanpa pemetaan tidak menghentikan perhitungan, tetapi juga
+         tidak boleh masuk Beban Operasional Lain diam-diam. -->
+    {#if data.operasional.belumDipetakan.length > 0}
       <div class="px-5 py-2.5 bg-warning/10 border-b border-warning/25 shrink-0" role="status">
         <p class="text-[13px] text-warning leading-relaxed">
           <span class="font-semibold">Masuk Beban Operasional Lain karena belum dipetakan:</span>
-          {form.unmappedExpenses
+          {data.operasional.belumDipetakan
             .map((b) => `${b.jenis} (Rp ${formatAmount(b.jumlah)})`)
             .join(', ')}. Minta direksi memetakan jenis ini di Administrasi → Pemetaan Biaya.
         </p>
       </div>
     {/if}
 
-    {#if form.skippedExpenses && form.skippedExpenses.length > 0}
+    {#if data.operasional.tidakDitarik.length > 0}
       <div class="px-5 py-2.5 border-b border-border shrink-0" role="status">
         <p class="text-[12px] text-muted-foreground leading-relaxed">
           Tidak ditarik sesuai pemetaan:
-          {form.skippedExpenses
+          {data.operasional.tidakDitarik
             .map((b) => `${b.jenis} (Rp ${formatAmount(b.jumlah)})`)
             .join(', ')}. Kalau biaya ini memang belum tercatat di pos lain, isi secara manual.
         </p>

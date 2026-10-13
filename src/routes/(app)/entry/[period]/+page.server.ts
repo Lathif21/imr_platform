@@ -1,6 +1,5 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
-import { env } from '$env/dynamic/private';
 import type { LineSection, Numeric, PeriodStatus } from '$lib/domain';
 import {
   AMOUNT_LIMIT,
@@ -12,7 +11,7 @@ import {
 import { canEnterReports } from '$lib/roles';
 import { MAX_UPLOAD_BYTES, parseWorkbook } from '$lib/server/report-excel';
 import { loadEntryAccess } from '../access';
-import { fetchRekapOperasional, petakanBiaya, type PemetaanBiaya } from './operational';
+import { muatInfoOperasional } from './operational';
 import type { Actions, PageServerLoad } from './$types';
 
 interface PeriodRow {
@@ -81,7 +80,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
   if (periodError) failLoad('periods', periodError);
   if (!period) error(404, 'Periode ini belum dibuat untuk entitas Anda.');
 
-  const [templateResult, linesResult, syncResult] = await Promise.all([
+  const [templateResult, linesResult] = await Promise.all([
     /**
      * The template of the period, not the newest one. A period keeps the
      * template it was created with so a historical statement still reads with
@@ -98,31 +97,14 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
       .from('report_lines')
       .select('line_code, amount, note')
       .eq('period_id', period.id)
-      .returns<ReportLine[]>(),
-    /**
-     * Apakah entitas ini ditautkan ke sistem operasional. Tanpa baris di
-     * `operational_sync_config`, tombol tarik data tidak ditampilkan sama
-     * sekali — bukan ditampilkan lalu gagal saat ditekan.
-     */
-    locals.supabase
-      .from('operational_sync_config')
-      .select('is_active')
-      .eq('entity_id', selected.id)
-      .maybeSingle<{ is_active: boolean }>()
+      .returns<ReportLine[]>()
   ]);
 
   const firstError = templateResult.error ?? linesResult.error;
   if (firstError) failLoad('template or report lines', firstError);
 
-  /**
-   * Kegagalan membaca konfigurasi tidak mematikan layar input. Mengisi
-   * laporan secara manual adalah jalur utama; tarik data adalah kemudahan di
-   * atasnya. Menjatuhkan seluruh formulir karena tabel konfigurasi bermasalah
-   * berarti menukar fitur tambahan dengan fungsi pokok.
-   */
-  if (syncResult.error) {
-    console.error('[entry form] operational_sync_config:', syncResult.error.message);
-  }
+  const reportLines = linesResult.data ?? [];
+  const operasional = await muatInfoOperasional(locals.supabase, selected.id, period, reportLines, templateResult.data ?? []);
 
   return {
     entities,
@@ -135,8 +117,9 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
      * is inserted on load, so opening a period never creates rows and never
      * touches `updated_at` or the audit log.
      */
-    reportLines: linesResult.data ?? [],
-    operationalSync: syncResult.data?.is_active === true
+    reportLines,
+    /** Null for an entity whose report is not filled from the Operasional module. */
+    operasional
   };
 };
 
@@ -343,25 +326,15 @@ async function stillDraft(
 
 export const actions: Actions = {
   /**
-   * Tarik angka bulan ini dari sistem operasional ILJ.
+   * Hitung ulang pos operasional periode draft ini dari modul Operasional.
    *
-   * Mengisi `report_lines` lewat jalur yang sama dengan form biasa: upsert ke
-   * tabel yang sama, dengan trigger dan RLS yang sama. Tidak ada jalur khusus,
-   * jadi tidak ada yang lolos audit (invarian 4), dan periode non-draft
-   * ditolak `guard_period_editable` seperti biasa (invarian 5).
-   *
-   * Idempoten: menekan tombol dua kali menghasilkan angka yang sama.
-   *
-   * Yang ditarik tetap bisa dikoreksi. Sinkronisasi mengisi periode draft;
-   * yang mengajukan tetap manusia.
+   * Draft sudah diperbarui otomatis setiap kali data operasional berubah
+   * (segarkan_pnl_operasional, 20250121). Tombol ini untuk menimpa koreksi
+   * manual pada pos operasional dan untuk draft yang dibuat sebelum ada
+   * datanya. Angka dihitung dan ditulis seluruhnya di database dalam satu
+   * transaksi — tidak ada nominal yang lewat JavaScript.
    */
   tarikOperasional: async ({ locals, params, request }) => {
-    /**
-     * Peran diperiksa di sini juga, bukan hanya di `load`. Action adalah
-     * endpoint tersendiri — pemeriksaan di `load` tidak menjaganya. RLS tetap
-     * yang menegakkan; ini supaya penolakannya terbaca sebagai kalimat, bukan
-     * sebagai "permission denied for table report_lines".
-     */
     if (!canEnterReports(locals.role)) {
       return fail(403, { message: 'Laporan diisi oleh staf entitas.' });
     }
@@ -370,146 +343,20 @@ export const actions: Actions = {
     const target = await resolvePeriod(locals, params.period, String(form.get('entitas') ?? ''));
     if (!target.ok) return fail(target.status, { message: target.message });
 
-    const { data: config, error: configError } = await locals.supabase
-      .from('operational_sync_config')
-      .select('base_url, is_active')
-      .eq('entity_id', target.entityId)
-      .maybeSingle<{ base_url: string; is_active: boolean }>();
-
-    if (configError) {
-      return fail(500, {
-        message: explain('operational_sync_config', configError, 'Gagal memuat konfigurasi integrasi.')
-      });
+    const { data: hasil, error: rpcError } = await locals.supabase.rpc('segarkan_pnl_operasional', {
+      p_entity_id: target.entityId,
+      p_periode: `${params.period}-01`
+    });
+    if (rpcError) {
+      return fail(400, { message: explain('segarkan_pnl_operasional', rpcError, 'Gagal menghitung ulang dari data operasional.') });
     }
-    if (!config || !config.is_active) {
-      return fail(400, {
-        message: 'Entitas ini tidak ditautkan ke sistem operasional. Hubungi direksi.'
-      });
+    if (hasil === 'terkunci') {
+      return fail(409, { message: 'Periode ini sudah tidak berstatus draft. Kembalikan ke draft untuk memperbarui angkanya.' });
     }
-
-    /**
-     * Token dari `$env/dynamic/private`, tidak pernah dari database dan tidak
-     * pernah dari klien — sejalan dengan cara service role key ditangani di
-     * /admin/users. SvelteKit menolak menyertakan modul ini ke bundel klien,
-     * dan itu lapisan pengaman terakhirnya, bukan yang pertama.
-     */
-    if (!env.OPERATIONAL_SYNC_TOKEN) {
-      console.error('[tarik operasional] OPERATIONAL_SYNC_TOKEN belum diisi');
-      return fail(500, {
-        message: 'Token integrasi belum dipasang di portal keuangan. Hubungi direksi.'
-      });
+    if (hasil === 'tanpa_template' || hasil === 'tanpa_data' || hasil === 'dihapus') {
+      return fail(409, { message: 'Bulan ini tidak punya data operasional untuk dihitung.' });
     }
-
-    const hasil = await fetchRekapOperasional(
-      config.base_url,
-      env.OPERATIONAL_SYNC_TOKEN,
-      params.period
-    );
-    if (!hasil.ok) return fail(hasil.status, { message: hasil.message });
-
-    const { rekap } = hasil;
-
-    /**
-     * Pengeluaran dan gaji admin datang per jenis; pos laporannya diputuskan
-     * di sini, lewat pemetaan yang diatur direksi di /admin/pemetaan-biaya.
-     *
-     * Kegagalan membaca pemetaan menghentikan tarik data. Melanjutkan dengan
-     * pemetaan kosong akan memasukkan seluruh pengeluaran ke Beban
-     * Operasional Lain — angka yang tampak wajar dan salah.
-     */
-    const { data: pemetaan, error: pemetaanError } = await locals.supabase
-      .from('operational_expense_mapping')
-      .select('source, jenis, line_code')
-      .eq('entity_id', target.entityId)
-      .returns<PemetaanBiaya[]>();
-
-    if (pemetaanError) {
-      return fail(500, {
-        message: explain('operational_expense_mapping', pemetaanError, 'Gagal memuat pemetaan biaya.')
-      });
-    }
-
-    const terpetakan = petakanBiaya(rekap.baris, rekap.biaya_per_jenis, pemetaan ?? []);
-
-    const { data: templateLines, error: templateError } = await locals.supabase
-      .from('report_template_lines')
-      .select('line_code')
-      .eq('template_id', target.templateId)
-      .eq('is_active', true)
-      .returns<{ line_code: string }[]>();
-
-    if (templateError) {
-      return fail(500, {
-        message: explain('report_template_lines', templateError, 'Gagal memuat template laporan.')
-      });
-    }
-
-    /**
-     * Kode di luar template diperiksa di sini, sebelum menulis apa pun.
-     *
-     * `guard_line_code_in_template` akan menolaknya juga, tetapi penolakan itu
-     * datang per baris di tengah upsert — dan separuh laporan yang tertulis
-     * lebih buruk daripada gagal seluruhnya. Periksa dulu, tulis sekali.
-     */
-    const known = new Set((templateLines ?? []).map((line) => line.line_code));
-    const unknown = Object.keys(terpetakan.baris).filter((code) => !known.has(code));
-    if (unknown.length > 0) {
-      return fail(409, {
-        message:
-          'Ada pos yang tidak ada di template periode ini, jadi tidak ada baris yang ditulis: ' +
-          unknown.join(', ') +
-          '. Periksa pemetaan biaya, atau template mungkin perlu dinaikkan versinya.'
-      });
-    }
-
-    const rows = Object.entries(terpetakan.baris).map(([line_code, amount]) => ({
-      period_id: target.periodId,
-      line_code,
-      /**
-       * String, bukan number. Nilainya diteruskan apa adanya ke Postgres dan
-       * dijadikan `numeric(18,2)` di sana, tanpa pernah melewati float.
-       */
-      amount,
-      source: 'operasional'
-    }));
-
-    /**
-     * Baris bernilai nol ikut disimpan, berbeda dari jalur form biasa yang
-     * menghapusnya.
-     *
-     * Di form, 0 tanpa catatan berarti "tidak diisi" dan menyimpannya hanya
-     * memenuhi tabel dengan baris yang tidak mengatakan apa-apa. Di sini 0
-     * berarti "sudah dihitung sistem operasional, hasilnya nol" — pernyataan
-     * yang berbeda, dan `source` adalah yang membedakannya.
-     *
-     * `note` tidak ikut dalam payload, jadi catatan yang sudah ditulis staf
-     * tetap utuh: upsert hanya memperbarui kolom yang dikirim.
-     */
-    const { error: writeError } = await locals.supabase
-      .from('report_lines')
-      .upsert(rows, { onConflict: 'period_id,line_code' });
-
-    if (writeError) {
-      return fail(400, {
-        message: explain('report_lines sync', writeError, 'Gagal menulis baris hasil tarik data.')
-      });
-    }
-
-    // Sama seperti saveDraft: penolakan RLS pada UPDATE tidak menghasilkan
-    // error, hanya nol baris tersentuh. Tanpa pemeriksaan ini, periode yang
-    // berpindah status di sela-sela akan melaporkan berhasil.
-    const state = await stillDraft(locals.supabase, target.periodId);
-    if (!state.draft) return fail(409, { message: state.message });
-
-    return {
-      pulled: true,
-      computedAt: rekap.dihitung_pada,
-      lineCount: rows.length,
-      sources: rekap.jumlah_sumber,
-      rekapOnlyRoutes: rekap.rute_rekap_saja,
-      unmappedExpenses: terpetakan.belumDipetakan,
-      skippedExpenses: terpetakan.tidakDitarik
-    };
+    return { pulled: true };
   },
 
   /**
