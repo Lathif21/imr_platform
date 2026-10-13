@@ -1,7 +1,6 @@
 <script lang="ts">
   import ArrowDownRight from 'lucide-svelte/icons/arrow-down-right';
   import ArrowUpRight from 'lucide-svelte/icons/arrow-up-right';
-  import Lock from 'lucide-svelte/icons/lock';
   import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
   import {
     NO_DATA,
@@ -39,14 +38,10 @@
   }
 
   const revenueMom = $derived(
-    data.scoped
-      ? null
-      : changePct(data.consolidated?.revenue_consolidated, data.previous?.revenue_consolidated)
+    changePct(data.consolidated?.revenue_consolidated, data.previous?.revenue_consolidated)
   );
   const netProfitMom = $derived(
-    data.scoped
-      ? null
-      : changePct(data.consolidated?.net_profit_consolidated, data.previous?.net_profit_consolidated)
+    changePct(data.consolidated?.net_profit_consolidated, data.previous?.net_profit_consolidated)
   );
 
   /**
@@ -59,7 +54,6 @@
    * full year, even when the bar looks alike.
    */
   const contributions = $derived.by(() => {
-    if (data.scoped) return [];
     const base = toAmount(data.consolidated?.revenue_sum);
     const months = data.completeness?.months ?? 1;
 
@@ -88,7 +82,7 @@
    * be inventing a policy (invariant 8). A negative result needs no threshold.
    */
   const alerts = $derived.by<Alert[]>(() => {
-    if (data.scoped || !data.range) return [];
+    if (!data.range) return [];
     const out: Alert[] = [];
 
     for (const item of contributions) {
@@ -143,7 +137,7 @@
    * in a second dimension, so the delta is marked instead of coloured green.
    */
   const momSetDiffers = $derived.by(() => {
-    if (data.scoped || !data.consolidated || !data.previous) return false;
+    if (!data.consolidated || !data.previous) return false;
     if (!data.completeness || !data.priorCompleteness) return false;
     return !sameCoverage(data.completeness, data.priorCompleteness);
   });
@@ -196,7 +190,6 @@
    * screen that puts them side by side must say so.
    */
   const basisWarning = $derived.by(() => {
-    if (data.scoped) return null;
     const counted = contributions.filter((c) => c.counted);
     if (counted.length === 0) return null;
 
@@ -214,32 +207,7 @@
 
 <svelte:head><title>Dasbor Eksekutif · IMR Platform</title></svelte:head>
 
-{#if data.scoped}
-  <div class="flex flex-col h-full">
-    <div class="h-12 flex items-center px-4 sm:px-5 border-b border-border shrink-0">
-      <h1 class="text-[14px] font-semibold text-foreground">Dasbor Eksekutif</h1>
-    </div>
-    <div class="flex-1 p-4 sm:p-5">
-      <div class="max-w-[520px] bg-card border border-border rounded-lg p-5">
-        <div class="flex items-center gap-2 mb-2">
-          <Lock size={14} class="text-muted-foreground" />
-          <h2 class="text-[14px] font-semibold text-foreground">Tidak tersedia untuk peran Anda</h2>
-        </div>
-        <p class="text-[13px] text-muted-foreground leading-relaxed">
-          Dasbor ini menampilkan angka konsolidasi seluruh grup. Akses Anda terbatas pada entitas
-          yang ditugaskan kepada Anda, dan total grup yang dihitung dari sebagian entitas bukan
-          versi kecil dari angka sebenarnya — itu angka yang berbeda.
-          {#if data.scopedNext}
-            Layar yang Anda perlukan adalah
-            <a href={data.scopedNext.href} class="text-primary hover:underline"
-              >{data.scopedNext.label}</a
-            >.
-          {/if}
-        </p>
-      </div>
-    </div>
-  </div>
-{:else if !data.period}
+{#if !data.period}
   <div class="flex flex-col h-full">
     <div class="h-12 flex items-center px-4 sm:px-5 border-b border-border shrink-0">
       <h1 class="text-[14px] font-semibold text-foreground">Dasbor Eksekutif</h1>

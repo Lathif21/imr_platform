@@ -379,6 +379,32 @@ Aturan untuk setiap port:
 
 ---
 
+### PT ILA — entitas operasional kedua, 13 Oktober 2026
+
+Keputusan: PT ILA memakai modul Operasional dengan format yang sama dengan
+ILJ (pelanggan Wilmar, muatan pupuk, harga default Rp 34.500/ton), datanya
+terpisah, dan ikut konsolidasi grup. "PT IMR" di catatan pengguna adalah
+ILJ sendiri (PT Indo Moda Raya), bukan entitas baru. Satu admin memegang
+satu PT; setelah login admin operasional langsung masuk ke Operasional
+PT-nya (Dasbor Eksekutif mengalihkan peran yang ber-scope entitas).
+
+Tidak ada kode yang disalin: setiap tabel operasional sudah ber-`entity_id`
+dan RLS-nya per penugasan entitas. Yang berubah hanya nomor invoice:
+`entities.invoice_prefix` (ILJ = `PT.IMR`, kosong = `PT.<kode>`), dipakai
+`nomor_invoice_otomatis(entity, …)` dan dikenali Rapikan Nomor
+(`20250118000000_awalan_invoice_entitas.sql`). Diatur di Administrasi →
+Entitas.
+
+Belum terjawab: siapa yang mengisi Laporan P&L bulanan ILA. Tarik data
+operasional ke Input Laporan hanya tersedia untuk ILJ (lewat
+`operational_sync_config` ke sistem Laravel), jadi P&L ILA diisi manual
+oleh staf entitas ILA.
+
+Diuji lewat layar: direksi membuat entitas dan akun, admin ILA menjalankan
+seluruh alur (invoice `1/PT.ILA-XII/2026`), admin ILJ tidak melihat data
+ILA dari layar mana pun (kegiatan ILA lewat URL → 404), direksi membacanya
+dalam Mode baca, dan invoice ILJ tetap `PT.IMR`.
+
 ## Integrasi: dari HTTP ke SQL
 
 Dengan satu database, `GET /api/integrasi/rekap-bulanan` dan tokennya tidak

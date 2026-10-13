@@ -417,7 +417,7 @@
           title={opEntity.legal_name}
         >
           <Building2 size={13} class="shrink-0 text-muted-foreground" />
-          <span class="text-[13px] font-medium text-foreground truncate">{opEntity.code}</span>
+          <span class="text-[13px] font-medium text-foreground shrink-0">{opEntity.code}</span>
           <span class="text-[12px] text-muted-foreground truncate {collapsed ? 'md:hidden' : ''}">
             {opEntity.legal_name}
           </span>

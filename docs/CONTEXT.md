@@ -8,7 +8,7 @@ inconsistent naming here has already produced wrong numbers once.
 
 | Term | Code | Meaning |
 |---|---|---|
-| Entitas | `entity` | One PT with its own NPWP. Four of them. Never "company" or "division" — they are separate legal entities and consolidate with elimination. |
+| Entitas | `entity` | One PT with its own NPWP. Five of them. Never "company" or "division" — they are separate legal entities and consolidate with elimination. |
 | Periode | `period` | One reporting month for one entity. Always stored as the 1st of the month. `(entity, period)` is unique. |
 | Baris laporan | `report_line` | One input figure for one period. Subtotals are never lines. |
 | Template | `report_template` | The set of lines an entity fills in. Data, not code. Versioned. |
@@ -57,7 +57,8 @@ Always carry `is_complete` and `missing_entities` alongside any group total.
 
 | Code | Legal name | Line | Notes |
 |---|---|---|---|
-| ILJ | PT Indo Moda Raya | trucking | Only entity with real historical data (Nov 2024 – Jul 2025). Legal name follows what the operational system prints on documents that reach customers; the deed has not been read. `npwp` stays null until it has. |
+| ILJ | PT Indo Moda Raya | trucking | Only entity with real historical data (Nov 2024 – Jul 2025). Legal name follows what the operational system prints on documents that reach customers; the deed has not been read. Also called **PT IMR** — its invoices print `PT.IMR`. `npwp` stays null until it has. |
+| ILA | *(to confirm)* | trucking | Added 13 Oktober 2026. Same operational format as ILJ (Wilmar, pupuk), its own data and admin; invoices print `PT.ILA`. |
 | — | *(to confirm)* | amdk | Bottled water manufacturing |
 | — | *(to confirm)* | mining | |
 | — | *(to confirm)* | salt | Legal form unconfirmed — may not be a PT |

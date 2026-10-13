@@ -100,6 +100,18 @@
         </label>
 
         <label class="block">
+          <span class="block text-[12px] font-medium text-muted-foreground mb-1.5">
+            Awalan nomor invoice <span class="text-subtle">(kosong = PT.&lt;kode&gt;)</span>
+          </span>
+          <input
+            name="invoice_prefix"
+            placeholder="PT.ILA"
+            class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[14px]
+                   text-foreground focus:outline-none focus:border-primary"
+          />
+        </label>
+
+        <label class="block">
           <span class="block text-[12px] font-medium text-muted-foreground mb-1.5">Lini usaha</span>
           <input
             name="business_line"
@@ -340,6 +352,22 @@
             class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[14px]
                    text-foreground tabular-nums focus:outline-none focus:border-primary"
           />
+        </label>
+
+        <label class="block">
+          <span class="block text-[12px] font-medium text-muted-foreground mb-1.5">
+            Awalan nomor invoice <span class="text-subtle">(kosong = PT.{editing.code})</span>
+          </span>
+          <input
+            name="invoice_prefix"
+            value={editing.invoice_prefix ?? ''}
+            placeholder="PT.{editing.code}"
+            class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[14px]
+                   text-foreground focus:outline-none focus:border-primary"
+          />
+          <span class="block text-[11px] text-subtle mt-1">
+            Dipakai invoice Laporan Pendapatan berikutnya, mis. 1/{editing.invoice_prefix || `PT.${editing.code}`}-XII/2026.
+          </span>
         </label>
 
         <label class="block">
