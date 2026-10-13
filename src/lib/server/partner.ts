@@ -1,7 +1,10 @@
 /**
  * Laporan Partner — LaporanController::partner. What is paid to each truck
  * owner in a month: beban rekanan (transaksi.pendapatan = tonase × ongkos
- * angkut), minus saku supir and terpal, as Laravel's "laba bersih".
+ * angkut), minus saku supir and terpal, as Laravel's "laba bersih", minus
+ * the potongan pajak at the owner's rate for the month (pajak_partner,
+ * 20250127; 0,5% when none is typed). The pajak is rounded once on the
+ * owner's total, so the per-truck rows stay before pajak.
  *
  * The column names stay as the partner sees them ("Pendapatan Bruto") — it
  * is the partner's income and this company's cost (10-integrasi-
@@ -11,6 +14,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { rentangBulan, type Periode } from '$lib/operasional/kegiatan';
+import { TARIF_PAJAK_REKANAN, pajakRekanan } from '$lib/operasional/pajak';
 import { failLoad } from './operasional';
 
 export interface BarisPartner {
@@ -35,14 +39,34 @@ export interface RingkasPartner {
   transaksi: number;
   pendapatan: number;
   biaya: number;
+  /** Potongan pajak rate of the month. */
+  persen_pajak: number;
+  /** False while nobody has typed a rate for this month: persen_pajak is then the default. */
+  persen_diisi: boolean;
+  pajak: number;
+  /** pendapatan − biaya − pajak: what is transferred to the owner. */
   bersih: number;
 }
 
 const n = (v: unknown) => Number(v ?? 0) || 0;
 
+/** Typed potongan pajak rates of the month, per owner. Owners without one use TARIF_PAJAK_REKANAN. */
+export async function muatTarifPajak(db: SupabaseClient, entityId: string, periode: Periode): Promise<Map<number, number>> {
+  const { data, error } = await db
+    .from('pajak_partner')
+    .select('pemilik_id, persen')
+    .eq('entity_id', entityId)
+    .eq('bulan', periode.bulan)
+    .eq('tahun', periode.tahun)
+    .returns<{ pemilik_id: number; persen: string }[]>();
+  if (error) failLoad('pajak partner', error);
+  return new Map((data ?? []).map((r) => [r.pemilik_id, Number(r.persen)]));
+}
+
 export async function muatPartner(db: SupabaseClient, entityId: string, periode: Periode) {
   const { dari, sampai } = rentangBulan(periode);
-  const [pemilikResult, kendaraanResult, trxResult, rekapResult, kapalResult] = await Promise.all([
+  const [tarif, pemilikResult, kendaraanResult, trxResult, rekapResult, kapalResult] = await Promise.all([
+    muatTarifPajak(db, entityId, periode),
     db.from('pemilik').select('id, nama_pemilik').eq('entity_id', entityId).order('nama_pemilik').returns<{ id: number; nama_pemilik: string }[]>(),
     db.from('kendaraan').select('id, nopol, pemilik_id').eq('entity_id', entityId).returns<{ id: number; nopol: string; pemilik_id: number }[]>(),
     db
@@ -105,7 +129,20 @@ export async function muatPartner(db: SupabaseClient, entityId: string, periode:
     const rows = perPemilik.get(p.id) ?? [];
     const pendapatan = rows.reduce((s, r) => s + r.pendapatan, 0);
     const biaya = rows.reduce((s, r) => s + r.sangu_supir + r.terpal, 0);
-    return { id: p.id, nama: p.nama_pemilik, kendaraan: jumlahKendaraan.get(p.id) ?? 0, transaksi: rows.length, pendapatan, biaya, bersih: pendapatan - biaya };
+    const persen = tarif.get(p.id) ?? TARIF_PAJAK_REKANAN;
+    const pajak = pajakRekanan(pendapatan, persen);
+    return {
+      id: p.id,
+      nama: p.nama_pemilik,
+      kendaraan: jumlahKendaraan.get(p.id) ?? 0,
+      transaksi: rows.length,
+      pendapatan,
+      biaya,
+      persen_pajak: persen,
+      persen_diisi: tarif.has(p.id),
+      pajak,
+      bersih: pendapatan - biaya - pajak
+    };
   });
 
   return { ringkas, perPemilik };

@@ -496,6 +496,54 @@ di ketiga departemen), Excel per layar, PDF dari menu, admin ILA tidak
 mendapat data ILJ, direksi dapat mengunduh. Ekspor P&L baru teruji untuk
 penolakan (belum ada periode P&L di database platform).
 
+### Laporan per Kapal, 13 Oktober 2026
+
+Format dari pengguna (`KM SANEI.pdf`, `TS 28.pdf`, September 2026): satu
+laporan per kapal per bulan, tiga halaman.
+
+- Layar `/operasional/laporan/kapal` (ringkasan per kapal + isian voyage),
+  cetak `/cetak/operasional/kapal[?kapal=id]` (halaman 1 lanskap, 2–3
+  potret; tanpa `kapal` = semua kapal bulan itu), Excel `?laporan=kapal`
+  (satu sheet per kapal). Rumus di `src/lib/operasional/laporan-kapal.ts`,
+  pemuat di `src/lib/server/laporan-kapal.ts`.
+- Migrasi `20250126000000_laporan_kapal.sql`: `operasional_rekap.voyage` dan
+  rekening pemilik (`rekening_atas_nama`, `no_rekening`, `nama_bank`, diisi
+  di Master Pemilik). Voyage per kegiatan, bukan `kapal.voyage`, karena satu
+  baris kapal dipakai ulang di setiap kedatangan.
+- Tes: `tests/laporan-kapal-helpers.test.ts` (setiap total di kedua PDF
+  contoh), `tests/operasional-laporan-kapal.test.ts` (pemuat lewat RLS,
+  voyage, Excel).
+
+Rumus, sesuai lembar pengguna: pencairan = net tagihan invoice; biaya =
+operasional kegiatan + PBM (tidak tercatat, 0) + rekanan (Σ tonase × ongkos
+angkut); net pendapatan = pencairan − biaya; pembayaran rekanan = bruto −
+uang saku − terpal − pajak 0,5% dari bruto (dibulatkan ke rupiah, sekali per
+rekanan). Invoice masuk ke kapal lewat tautan kegiatan; invoice tanpa tautan
+disebut di layar. Biaya operasional yang belum diisi dan kegiatan tanpa
+invoice dicetak sebagai catatan, tidak ditaksir.
+
+| Hal | Lembar pengguna | Di sini |
+|---|---|---|
+| Kolom Pajak PPN | selalu "-" | tetap ada, kosong — tidak ada data PPN di mana pun |
+| Rincian Rekanan KM SANEI | "H. M. ALI BASTHOMI 240" (seharusnya AGUS SUTRISNO), "AGUS SUTRISNO 60" (seharusnya SUWAJI) | nama pemilik truk yang sebenarnya |
+| Pembayaran AGUS SUTRISNO TS 28 | muatan/rit 1.000/41 dan 400/12 (total rute) | muatan/rit truknya sendiri, 242/10 dan 96/3; bruto dan net sama |
+
+### Potongan pajak di Laporan Partner, 13 Oktober 2026
+
+Laporan Partner mendapat kolom **Potongan Pajak (%)** (diisi) dan **Nominal
+Pajak** (dihitung: bruto × persen, dibulatkan ke rupiah sekali pada total
+rekanan). Jumlah Bersih = bruto − saku − terpal − nominal pajak; baris per
+truk tetap sebelum pajak. Cetak dan Excel Partner ikut.
+
+- Migrasi `20250127000000_pajak_partner.sql`: tabel `pajak_partner`, satu
+  persentase per rekanan **per bulan** (mengubah tarif bulan ini tidak
+  mengubah bulan lalu). Nominal tidak disimpan (invarian 2). RLS, audit, dan
+  FK komposit seperti tabel operasional lain; `operasional-rls.test.ts`
+  mencantumkannya.
+- Bulan yang belum diisi memakai **0,5%** (lembar pengguna), ditandai
+  "bawaan" di layar. `src/lib/operasional/pajak.ts` dipakai Laporan Partner
+  dan Laporan per Kapal, jadi keduanya selalu memotong tarif yang sama.
+
 ## Integrasi: dari HTTP ke SQL
 
 Dengan satu database, `GET /api/integrasi/rekap-bulanan` dan tokennya tidak

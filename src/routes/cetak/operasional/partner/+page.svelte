@@ -1,5 +1,6 @@
 <script lang="ts">
   import { NAMA_BULAN } from '$lib/operasional/kegiatan';
+  import { labelPersen } from '$lib/operasional/pajak';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -18,7 +19,7 @@
     <thead>
       <tr>
         <th>No</th><th>Nopol</th><th>Kapal</th><th>Rute</th><th>Ritase</th><th>Tonnase (MT)</th><th>Ongkos Angkut (Rp)</th>
-        <th>Pendapatan Bruto (Rp)</th><th>Saku Supir (Rp)</th><th>Uang Terpal (Rp)</th><th>Jumlah Bersih (Rp)</th>
+        <th>Pendapatan Bruto (Rp)</th><th>Saku Supir (Rp)</th><th>Uang Terpal (Rp)</th><th>Bersih Sebelum Pajak (Rp)</th>
       </tr>
     </thead>
     <tbody>
@@ -36,6 +37,12 @@
       <tr>
         <td colspan="4" class="c">TOTAL</td><td class="r">{data.jumlah.ritase}</td><td class="r">{n(data.jumlah.tonase, 2, 3)}</td><td></td>
         <td class="r">{n(data.jumlah.pendapatan)}</td><td class="r">{n(data.jumlah.sangu_supir)}</td><td class="r">{n(data.jumlah.terpal)}</td><td class="r">{n(data.jumlah.bersih)}</td>
+      </tr>
+      <tr>
+        <td colspan="10" class="r">POTONGAN PAJAK {labelPersen(data.pemilik.persen_pajak)}</td><td class="r">{n(data.pemilik.pajak)}</td>
+      </tr>
+      <tr>
+        <td colspan="10" class="r">JUMLAH BERSIH SETELAH PAJAK</td><td class="r">{n(data.pemilik.bersih)}</td>
       </tr>
     </tfoot>
   </table>

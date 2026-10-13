@@ -95,10 +95,11 @@
 
   <div class="bg-card border border-border rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[620px] text-[13px]">
+      <table class="w-full min-w-[820px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
             <th class="text-left font-semibold py-2.5 px-4">Nama Pemilik Kendaraan</th>
+            <th class="text-left font-semibold py-2.5 px-4">Rekening</th>
             <th class="text-right font-semibold py-2.5 px-4 w-[140px]">Total Kendaraan</th>
             <th
               class="text-right font-medium py-2.5 px-4 w-[200px]"
@@ -113,6 +114,14 @@
           {#each rows as row (row.id)}
             <tr class="border-b border-border/40 last:border-b-0 hover:bg-muted/40">
               <td class="py-2.5 px-4 font-medium text-foreground">{row.nama_pemilik}</td>
+              <td class="py-2.5 px-4">
+                {#if row.no_rekening || row.nama_bank}
+                  <span class="num">{[row.nama_bank, row.no_rekening].filter(Boolean).join(' · ')}</span>
+                  {#if row.rekening_atas_nama}<span class="text-muted-foreground"> a.n. {row.rekening_atas_nama}</span>{/if}
+                {:else}
+                  <span class="text-subtle">—</span>
+                {/if}
+              </td>
               <td class="py-2.5 px-4 text-right">
                 <a
                   href="/operasional/kendaraan{entityQuery}&pemilik={row.id}"
@@ -152,7 +161,7 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="4" class="py-10 px-4 text-center text-[13px] text-muted-foreground">
+              <td colspan="5" class="py-10 px-4 text-center text-[13px] text-muted-foreground">
                 {#if query}
                   Tidak ada pemilik yang cocok dengan "{query}".
                 {:else}
@@ -182,6 +191,24 @@
         class={FIELD}
       />
     </label>
+
+    <fieldset class="space-y-3">
+      <legend class="text-[12px] text-muted-foreground mb-2">Rekening pembayaran rekanan — opsional, tercetak di Laporan per Kapal</legend>
+      <label class="block">
+        <span class={LABEL}>Atas nama</span>
+        <input name="rekening_atas_nama" value={editing?.rekening_atas_nama ?? ''} maxlength="100" placeholder="cth. Agus Sutrisno" class={FIELD} />
+      </label>
+      <div class="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-3">
+        <label class="block">
+          <span class={LABEL}>Nomor rekening</span>
+          <input name="no_rekening" value={editing?.no_rekening ?? ''} maxlength="100" inputmode="numeric" placeholder="cth. 7900 874 655" class={FIELD} />
+        </label>
+        <label class="block">
+          <span class={LABEL}>Bank</span>
+          <input name="nama_bank" value={editing?.nama_bank ?? ''} maxlength="100" placeholder="cth. BCA" class={FIELD} />
+        </label>
+      </div>
+    </fieldset>
 
     <div class="flex justify-end gap-2 pt-1">
       <button type="button" onclick={() => (modalOpen = false)} class={BTN_SOFT}>Batal</button>

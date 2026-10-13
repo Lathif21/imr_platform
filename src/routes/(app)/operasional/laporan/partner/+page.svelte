@@ -2,8 +2,11 @@
   import ArrowLeft from 'lucide-svelte/icons/arrow-left';
   import Printer from 'lucide-svelte/icons/printer';
   import Wallet from 'lucide-svelte/icons/wallet';
+  import { enhance } from '$app/forms';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
+  import { withFeedback } from '$lib/form-feedback';
+  import { TARIF_PAJAK_REKANAN, bacaPersen, labelPersen, pajakRekanan } from '$lib/operasional/pajak';
   import UnduhExcel from '$lib/operasional/UnduhExcel.svelte';
   import PilihPeriode from '$lib/operasional/PilihPeriode.svelte';
   import { NAMA_BULAN, rentangTanggal, ton } from '$lib/operasional/kegiatan';
@@ -14,9 +17,36 @@
 
   const q = $derived(`entitas=${encodeURIComponent(data.opEntity?.code ?? '')}&bulan=${data.periode.bulan}&tahun=${data.periode.tahun}`);
   const namaBulan = $derived(`${NAMA_BULAN[data.periode.bulan - 1]} ${data.periode.tahun}`);
+  type Ringkas = (typeof data.ringkas)[number];
+
+  // What is typed in the rate fields, per owner, until it is saved. The
+  // nominal follows the typing; nothing is stored but the rate.
+  let ketik = $state<Record<number, string>>({});
+  let menyimpan = $state<number | null>(null);
+  const teksPersen = (r: Ringkas) => ketik[r.id] ?? r.persen_pajak.toLocaleString('id-ID', { maximumFractionDigits: 2 });
+  /** Rate on screen: the typed one when it reads, else the saved one. `sah` false while the typing does not read. */
+  function tarif(r: Ringkas) {
+    const typed = ketik[r.id];
+    if (typed === undefined) return { persen: r.persen_pajak, sah: true, berubah: false };
+    const p = bacaPersen(typed);
+    return { persen: p ?? r.persen_pajak, sah: p !== null, berubah: p !== r.persen_pajak };
+  }
+  const pajak = (r: Ringkas) => pajakRekanan(r.pendapatan, tarif(r).persen);
+  const bersih = (r: Ringkas) => r.pendapatan - r.biaya - pajak(r);
+
   const total = $derived(
-    data.ringkas.reduce((a, r) => ({ t: a.t + r.transaksi, p: a.p + r.pendapatan, b: a.b + r.biaya, n: a.n + r.bersih }), { t: 0, p: 0, b: 0, n: 0 })
+    data.ringkas.reduce(
+      (a, r) => ({ t: a.t + r.transaksi, p: a.p + r.pendapatan, b: a.b + r.biaya, x: a.x + pajak(r), n: a.n + bersih(r) }),
+      { t: 0, p: 0, b: 0, x: 0, n: 0 }
+    )
   );
+
+  const simpanPajak = (id: number) =>
+    withFeedback({
+      failTitle: 'Potongan pajak gagal disimpan',
+      onPending: (p) => (menyimpan = p ? id : null),
+      onSuccess: () => delete ketik[id]
+    });
 
   function pilih(e: Event) {
     const v = (e.currentTarget as HTMLSelectElement).value;
@@ -29,6 +59,38 @@
   const TH = 'font-semibold py-2.5 px-3 whitespace-nowrap';
   const TD = 'py-2.5 px-3 text-right num whitespace-nowrap';
 </script>
+
+{#snippet formPajak(r: Ringkas)}
+  {@const t = tarif(r)}
+  {#if data.canWrite}
+    <form method="POST" action="?/pajak" use:enhance={simpanPajak(r.id)} class="inline-flex items-center gap-1 justify-end">
+      <input type="hidden" name="entity_id" value={data.opEntity?.id} />
+      <input type="hidden" name="pemilik_id" value={r.id} />
+      <input type="hidden" name="bulan" value={data.periode.bulan} />
+      <input type="hidden" name="tahun" value={data.periode.tahun} />
+      <input
+        name="persen"
+        value={teksPersen(r)}
+        oninput={(e) => (ketik[r.id] = e.currentTarget.value)}
+        inputmode="decimal"
+        aria-label="Potongan pajak {r.nama} (persen)"
+        aria-invalid={!t.sah}
+        class="w-[58px] h-[28px] px-2 text-right num bg-background border rounded-md text-[13px] text-foreground focus:outline-none focus:border-primary {t.sah ? 'border-border' : 'border-destructive'}"
+      />
+      <span class="text-muted-foreground">%</span>
+      {#if t.berubah || !r.persen_diisi}
+        <button type="submit" disabled={menyimpan === r.id || !t.sah} class="h-[28px] px-2 rounded-md border border-border text-[12px] text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-60">
+          {menyimpan === r.id ? '…' : 'Simpan'}
+        </button>
+      {/if}
+    </form>
+  {:else}
+    {labelPersen(r.persen_pajak)}
+  {/if}
+  {#if !r.persen_diisi && !t.berubah}
+    <div class="text-[11px] text-subtle mt-0.5" title="Belum diisi untuk bulan ini; dipakai tarif bawaan">bawaan</div>
+  {/if}
+{/snippet}
 
 <svelte:head><title>Laporan Partner · Operasional · IMR Platform</title></svelte:head>
 
@@ -55,7 +117,7 @@
 
   {#if !data.dipilih}
     <div class="bg-card border border-border rounded-lg overflow-x-auto">
-      <table class="w-full min-w-[820px] text-[13px]">
+      <table class="w-full min-w-[1040px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
             <th class="{TH} text-left">Nama Pemilik / Rekanan</th>
@@ -63,6 +125,8 @@
             <th class="{TH} text-right">Total Transaksi</th>
             <th class="{TH} text-right">Pendapatan Bruto Rekanan</th>
             <th class="{TH} text-right">Biaya (Saku + Terpal)</th>
+            <th class="{TH} text-right">Potongan Pajak (%)</th>
+            <th class="{TH} text-right">Nominal Pajak</th>
             <th class="{TH} text-right">Jumlah Bersih</th>
             <th class="{TH} text-right">Aksi</th>
           </tr>
@@ -75,11 +139,13 @@
               <td class={TD}>{r.transaksi}</td>
               <td class={TD}>{rupiah(r.pendapatan)}</td>
               <td class={TD}>{rupiah(r.biaya)}</td>
-              <td class="{TD} font-semibold text-foreground">{rupiah(r.bersih)}</td>
+              <td class="py-2 px-3 text-right num whitespace-nowrap">{@render formPajak(r)}</td>
+              <td class={TD}>{rupiah(pajak(r))}</td>
+              <td class="{TD} font-semibold text-foreground">{rupiah(bersih(r))}</td>
               <td class="py-2 px-3 text-right"><a href="?{q}&pemilik={r.id}" class="text-primary hover:underline">Rincian</a></td>
             </tr>
           {:else}
-            <tr><td colspan="7" class="py-10 text-center text-muted-foreground">Belum ada pemilik kendaraan.</td></tr>
+            <tr><td colspan="9" class="py-10 text-center text-muted-foreground">Belum ada pemilik kendaraan.</td></tr>
           {/each}
         </tbody>
         {#if data.ringkas.length}
@@ -89,6 +155,8 @@
               <td class={TD}>{total.t}</td>
               <td class={TD}>{rupiah(total.p)}</td>
               <td class={TD}>{rupiah(total.b)}</td>
+              <td></td>
+              <td class={TD}>{rupiah(total.x)}</td>
               <td class={TD}>{rupiah(total.n)}</td>
               <td></td>
             </tr>
@@ -96,6 +164,11 @@
         {/if}
       </table>
     </div>
+
+    <p class="text-[12px] text-muted-foreground -mt-2">
+      Nominal pajak = pendapatan bruto × potongan pajak, dibulatkan ke rupiah. Jumlah bersih = bruto − saku − terpal − nominal pajak.
+      Potongan pajak berlaku per pemilik per bulan; bila belum diisi dipakai {labelPersen(TARIF_PAJAK_REKANAN)} (bawaan). Laporan per Kapal memakai persentase yang sama.
+    </p>
 
     <section class="space-y-2">
       <h2 class="text-[14px] font-semibold text-foreground">Rincian Pembayaran Truk per kegiatan · {namaBulan}</h2>
@@ -124,7 +197,7 @@
             <th class="{TH} text-right">Pendapatan Bruto</th>
             <th class="{TH} text-right">Saku Supir</th>
             <th class="{TH} text-right">Uang Terpal</th>
-            <th class="{TH} text-right">Jumlah Bersih</th>
+            <th class="{TH} text-right">Bersih (sebelum pajak)</th>
           </tr>
         </thead>
         <tbody>
@@ -157,6 +230,18 @@
               <td class={TD}>{rupiah(data.jumlah.sangu_supir)}</td>
               <td class={TD}>{rupiah(data.jumlah.terpal)}</td>
               <td class={TD}>{rupiah(data.jumlah.bersih)}</td>
+            </tr>
+            <tr class="text-foreground">
+              <td class="py-2 px-3 font-semibold text-right" colspan="10">Potongan pajak</td>
+              <td class="py-2 px-3 text-right">{@render formPajak(data.dipilih)}</td>
+            </tr>
+            <tr class="text-foreground">
+              <td class="py-2 px-3 font-semibold text-right" colspan="10">Nominal pajak</td>
+              <td class={TD}>{rupiah(pajak(data.dipilih))}</td>
+            </tr>
+            <tr class="border-t border-border bg-muted/40 font-semibold text-foreground">
+              <td class="py-2.5 px-3 text-right" colspan="10">JUMLAH BERSIH SETELAH PAJAK</td>
+              <td class={TD}>{rupiah(bersih(data.dipilih))}</td>
             </tr>
           </tfoot>
         {/if}

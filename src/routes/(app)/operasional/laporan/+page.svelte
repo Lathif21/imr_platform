@@ -8,6 +8,7 @@
   import HandHeart from 'lucide-svelte/icons/hand-heart';
   import Landmark from 'lucide-svelte/icons/landmark';
   import Receipt from 'lucide-svelte/icons/receipt';
+  import Ship from 'lucide-svelte/icons/ship';
   import Truck from 'lucide-svelte/icons/truck';
   import Users from 'lucide-svelte/icons/users';
   import UnduhExcel from '$lib/operasional/UnduhExcel.svelte';
@@ -24,6 +25,7 @@
 
   const laporan: { href: string; cetak?: string; excel?: string; icon: typeof BookOpen; title: string; desc: string }[] = [
     { href: 'laporan/kumpulan', cetak: 'kumpulan', excel: 'kumpulan', icon: BookOpen, title: 'Kumpulan Laporan Operasional & Laba Rugi', desc: 'Rincian operasional per kapal (invoice lunas) dan laba rugi operasional yang dapat diedit lalu dicetak.' },
+    { href: 'laporan/kapal', cetak: 'kapal', excel: 'kapal', icon: Ship, title: 'Laporan per Kapal', desc: 'Rincian kegiatan operasional tiap kapal: invoice, biaya, net pendapatan, truk rekanan per rute, dan pembayaran rekanan.' },
     { href: 'pendapatan', cetak: 'pendapatan', excel: 'pendapatan', icon: Landmark, title: 'Laporan Pendapatan Bulanan', desc: 'Rekap income penagihan Wilmar: party KG, PPh 0,5% / 2%, net tagihan, dan status pembayaran.' },
     { href: 'laporan/partner', excel: 'partner', icon: Truck, title: 'Laporan Partner', desc: 'Pembayaran ke pemilik kendaraan: beban rekanan, saku supir, terpal, dan jumlah bersih per pemilik.' },
     { href: 'laporan/gaji', excel: 'gaji', icon: Banknote, title: 'Laporan Gaji Karyawan', desc: 'Honor telly per kegiatan dan gaji admin bulanan, lengkap dengan PPh, gaji bersih, dan slip gaji.' },
