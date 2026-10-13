@@ -395,10 +395,36 @@ dan RLS-nya per penugasan entitas. Yang berubah hanya nomor invoice:
 (`20250118000000_awalan_invoice_entitas.sql`). Diatur di Administrasi →
 Entitas.
 
-Belum terjawab: siapa yang mengisi Laporan P&L bulanan ILA. Tarik data
-operasional ke Input Laporan hanya tersedia untuk ILJ (lewat
-`operational_sync_config` ke sistem Laravel), jadi P&L ILA diisi manual
-oleh staf entitas ILA.
+~~Belum terjawab: siapa yang mengisi Laporan P&L bulanan ILA.~~ Dijawab di
+"Draft P&L otomatis dari Operasional" di bawah.
+
+### Draft P&L otomatis dari Operasional, 13 Oktober 2026
+
+Keputusan pemilik sistem: angka P&L ILJ dan ILA dihitung dari tabel
+operasional platform ini — sistem Laravel tidak dipakai lagi untuk P&L — dan
+draft P&L dibuat serta diperbarui **otomatis** setiap kali data operasional
+bulan itu berubah. Alur pengajuan dan persetujuan tidak berubah; direksi
+melihat angkanya di konsolidasi setelah disetujui.
+
+- Migrasi `20250121000000_pnl_dari_operasional.sql`. Rumus per pos sama
+  dengan endpoint Laravel (`docs/task/10-integrasi-operasional.md`) dan
+  layar Laporan Operasional; pemetaan biaya (`petakanBiaya`) pindah ke SQL.
+- Constraint trigger yang ditunda sampai commit pada enam tabel operasional
+  dan `operational_expense_mapping`: satu perhitungan per (entitas, bulan)
+  per transaksi. Kegagalannya hanya `warning` — tidak pernah menggagalkan
+  penyimpanan data operasional.
+- Hanya periode draft yang diubah. Periode yang sudah diajukan tetap; layar
+  Input Laporan menampilkan pos yang berubah sejak diajukan.
+- Draft yang isinya hanya angka operasional dan kini semuanya nol (misalnya
+  kegiatannya dipindah bulan) dihapus. Ada baris manual, catatan, lampiran,
+  atau riwayat penolakan → tetap ada.
+- Pos operasional di draft ditimpa setiap pembaruan; koreksi manual pada pos
+  itu tidak bertahan. Pos lain (OPEX yang tidak dipetakan, pendapatan lain,
+  pajak penghasilan) tetap diisi staf.
+- Tombol "Hitung ulang dari Operasional" menggantikan "Tarik data
+  operasional". `operational_sync_config` dan `OPERATIONAL_SYNC_TOKEN` tidak
+  dipakai lagi oleh P&L (tabelnya masih menentukan entitas bawaan di modul
+  Operasional).
 
 Diuji lewat layar: direksi membuat entitas dan akun, admin ILA menjalankan
 seluruh alur (invoice `1/PT.ILA-XII/2026`), admin ILJ tidak melihat data

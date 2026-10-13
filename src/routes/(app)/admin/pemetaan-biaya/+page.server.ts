@@ -1,9 +1,8 @@
 import { error, fail } from '@sveltejs/kit';
 import type { PostgrestError } from '@supabase/supabase-js';
-import { env } from '$env/dynamic/private';
 import {
   POS_BELUM_DIPETAKAN,
-  fetchJenisPengeluaran,
+  type JenisTercatat,
   type PemetaanBiaya,
   type SumberBiaya
 } from '../../entry/[period]/operational';
@@ -13,17 +12,21 @@ import type { Actions, PageServerLoad } from './$types';
  * Pemetaan biaya sistem operasional ke pos laporan.
  *
  * Keputusan 4 Oktober 2026: pemetaan diatur di portal keuangan, bukan di
- * Laravel. Jenis yang belum dipetakan masuk Beban Operasional Lain saat tarik
- * data, dan disebut di layar input — layar ini tempat menyelesaikannya.
+ * Laravel. Jenis yang belum dipetakan masuk Beban Operasional Lain di draft
+ * P&L, dan disebut di layar input — layar ini tempat menyelesaikannya.
+ * Sejak 13 Oktober 2026 daftar jenisnya dibaca dari modul Operasional
+ * platform ini, dan menyimpan pemetaan memperbarui draft entitas itu.
  */
 
 /** Nilai pilihan di form. Selain dua ini, nilainya adalah line_code. */
 const BELUM = '';
 const TIDAK_DITARIK = '-';
 
-interface LinkedEntity {
-  entity_id: string;
-  entities: { code: string; legal_name: string; business_line: string } | null;
+interface OperationalEntity {
+  id: string;
+  code: string;
+  legal_name: string;
+  business_line: string;
 }
 
 function failLoad(context: string, cause: PostgrestError): never {
@@ -67,59 +70,47 @@ async function opexLines(supabase: App.Locals['supabase'], businessLine: string)
   return { lines: data ?? [], error: linesError };
 }
 
+/** Entitas yang laporannya diisi dari modul Operasional (template dengan pos rekanan). */
 async function linkedEntities(supabase: App.Locals['supabase']) {
-  return supabase
-    .from('operational_sync_config')
-    .select('entity_id, entities(code, legal_name, business_line)')
-    .eq('is_active', true)
-    .returns<LinkedEntity[]>();
+  const { data, error } = await supabase.rpc('entitas_operasional');
+  return { data: (data ?? []) as OperationalEntity[], error };
 }
 
 export const load: PageServerLoad = async ({ locals, url }) => {
   const { data: linked, error: linkedError } = await linkedEntities(locals.supabase);
-  if (linkedError) failLoad('operational_sync_config', linkedError);
+  if (linkedError) failLoad('entitas_operasional', linkedError);
 
-  const entities = (linked ?? [])
-    .filter((row) => row.entities)
-    .map((row) => ({ id: row.entity_id, ...row.entities! }))
-    .sort((a, b) => a.code.localeCompare(b.code));
+  const entities = linked ?? [];
 
   const selected = entities.find((e) => e.code === url.searchParams.get('entitas')) ?? entities[0];
   if (!selected) {
     return { entities, selected: null, rows: [], lines: [], fetchError: null, fallbackCode: POS_BELUM_DIPETAKAN };
   }
 
-  const [mappingResult, linesResult, configResult] = await Promise.all([
+  const [mappingResult, linesResult, jenisResult] = await Promise.all([
     locals.supabase
       .from('operational_expense_mapping')
       .select('source, jenis, line_code')
       .eq('entity_id', selected.id)
       .returns<PemetaanBiaya[]>(),
     opexLines(locals.supabase, selected.business_line),
-    locals.supabase
-      .from('operational_sync_config')
-      .select('base_url')
-      .eq('entity_id', selected.id)
-      .single<{ base_url: string }>()
+    locals.supabase.rpc('jenis_biaya_operasional', { p_entity_id: selected.id })
   ]);
 
-  const firstError = mappingResult.error ?? linesResult.error ?? configResult.error;
-  if (firstError) failLoad('mapping, template or config', firstError);
+  const firstError = mappingResult.error ?? linesResult.error;
+  if (firstError) failLoad('mapping or template', firstError);
 
   /**
-   * Daftar jenis dari sistem operasional. Kalau gagal, layar tetap bisa
-   * dipakai untuk pemetaan yang sudah ada — pesan kegagalannya ditampilkan,
-   * bukan menjatuhkan seluruh halaman.
+   * Daftar jenis yang pernah dicatat. Kalau gagal, layar tetap bisa dipakai
+   * untuk pemetaan yang sudah ada — pesan kegagalannya ditampilkan, bukan
+   * menjatuhkan seluruh halaman.
    */
   let fetchError: string | null = null;
-  let recorded: { sumber: SumberBiaya; jenis: string; baris: number; terakhir: string | null }[] = [];
-  if (!env.OPERATIONAL_SYNC_TOKEN) {
-    fetchError = 'Token integrasi belum dipasang di portal keuangan, jadi daftar jenis tidak dapat diambil.';
-  } else {
-    const hasil = await fetchJenisPengeluaran(configResult.data!.base_url, env.OPERATIONAL_SYNC_TOKEN);
-    if (hasil.ok) recorded = hasil.jenis;
-    else fetchError = hasil.message;
+  if (jenisResult.error) {
+    console.error('[admin/pemetaan-biaya] jenis_biaya_operasional:', jenisResult.error.code, jenisResult.error.message);
+    fetchError = 'Daftar jenis biaya dari modul Operasional tidak dapat dibaca.';
   }
+  const recorded = (jenisResult.data ?? []) as JenisTercatat[];
 
   /**
    * Gabungan jenis yang tercatat di sistem operasional dan jenis yang sudah
@@ -178,10 +169,10 @@ export const actions: Actions = {
 
     const { data: linked, error: linkedError } = await linkedEntities(locals.supabase);
     if (linkedError) {
-      return fail(500, { message: explain('operational_sync_config', linkedError, 'Gagal memuat entitas.') });
+      return fail(500, { message: explain('entitas_operasional', linkedError, 'Gagal memuat entitas.') });
     }
-    const entity = (linked ?? []).find((row) => row.entity_id === entityId)?.entities;
-    if (!entity) return fail(400, { message: 'Entitas ini tidak ditautkan ke sistem operasional.' });
+    const entity = (linked ?? []).find((row) => row.id === entityId);
+    if (!entity) return fail(400, { message: 'Laporan entitas ini tidak diisi dari modul Operasional.' });
 
     const { lines, error: linesError } = await opexLines(locals.supabase, entity.business_line);
     if (linesError) {

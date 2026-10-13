@@ -28,15 +28,15 @@
   {:else if form?.saved !== undefined}
     <div class="px-4 py-2.5 bg-positive/10 border border-positive/25 rounded-lg" role="status">
       <p class="text-[14px] text-positive leading-relaxed">
-        {form.saved === 0 ? 'Tidak ada perubahan.' : `${form.saved} pemetaan disimpan.`} Berlaku untuk
-        tarik data berikutnya; angka yang sudah ditarik tidak berubah sampai ditarik ulang.
+        {form.saved === 0 ? 'Tidak ada perubahan.' : `${form.saved} pemetaan disimpan.`} Draft P&L
+        entitas ini sudah dihitung ulang; periode yang sudah diajukan tidak berubah.
       </p>
     </div>
   {/if}
 
   <p class="text-[13px] text-muted-foreground leading-relaxed max-w-[80ch]">
-    Menentukan pos laporan untuk setiap jenis biaya dari sistem operasional. Jenis yang belum
-    dipetakan masuk <span class="text-foreground">{fallbackLabel}</span> saat tarik data dan
+    Menentukan pos laporan untuk setiap jenis biaya dari modul Operasional. Jenis yang belum
+    dipetakan masuk <span class="text-foreground">{fallbackLabel}</span> di draft P&L dan
     disebut di layar input. Pilih <span class="text-foreground">Tidak ditarik</span> untuk biaya
     yang sudah tercatat di tempat lain — misalnya gaji admin yang dicatat di Honor Telly
     <em>dan</em> sebagai pengeluaran: pilih salah satu saja, supaya tidak terhitung dua kali.
@@ -59,7 +59,7 @@
 
   {#if !data.selected}
     <p class="text-[14px] text-muted-foreground">
-      Belum ada entitas yang ditautkan ke sistem operasional.
+      Belum ada entitas yang laporannya diisi dari modul Operasional.
     </p>
   {:else}
     {#if data.fetchError}
