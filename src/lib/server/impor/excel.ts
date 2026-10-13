@@ -25,12 +25,15 @@ const MAKS_BARIS = 2000;
 const FORMAT: Record<string, string | undefined> = {
   // Text, not a date format: Excel parses a typed date by the computer's
   // locale, so on a US-locale laptop "5/10/2026" became 10 May. As text it
-  // reaches the server as typed and is read dd/mm/yyyy (sel.ts tanggal()).
+  // reaches the server as typed and is read dd/mm/yy (sel.ts tanggal()).
   tanggal: '@',
   rupiah: '#,##0',
   desimal: '#,##0.##',
   bulat: '0'
 };
+
+/** 'YYYY-MM-DD' → 'dd/mm/yy', the way the admins write dates. */
+const ddmmyy = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(2, 4)}`;
 
 const judulKolom = (k: { judul: string; wajib?: boolean }) => (k.wajib ? `${k.judul} *` : k.judul);
 
@@ -60,8 +63,8 @@ export async function buatTemplate(jenis: JenisImpor, def: DefImpor, k: Konteks,
     def.kolom.forEach((c, i) => {
       const v = baris[c.kunci];
       if (v === null || v === undefined || v === '') return;
-      // Dates as dd/mm/yyyy text, like a typed one (see FORMAT.tanggal).
-      ws.getCell(j + 2, i + 1).value = c.tipe === 'tanggal' && typeof v === 'string' ? v.split('-').reverse().join('/') : v;
+      // Dates as dd/mm/yy text, like a typed one (see FORMAT.tanggal).
+      ws.getCell(j + 2, i + 1).value = c.tipe === 'tanggal' && typeof v === 'string' ? ddmmyy(v) : v;
     });
   });
   const disiapkan = Math.max(BARIS_DISIAPKAN, isi.length + 500);
@@ -115,7 +118,7 @@ export async function buatTemplate(jenis: JenisImpor, def: DefImpor, k: Konteks,
   for (const p of [
     'Isi sheet "Data" mulai baris 2. Jangan ubah atau pindahkan judul kolom di baris 1.',
     'Kolom bertanda * wajib diisi. Arahkan kursor ke judul kolom untuk melihat penjelasannya.',
-    'Tanggal ditulis dd/mm/yyyy, mis. 05/12/2026. Rupiah ditulis tanpa "Rp", mis. 1250000 atau 1.250.000.',
+    'Tanggal ditulis hari/bulan/tahun: dd/mm/yy, mis. 05/10/26 untuk 5 Oktober 2026 (dd/mm/yyyy juga diterima). Kolom tanggal berformat teks, jadi Excel tidak mengubah urutan hari dan bulan. Rupiah ditulis tanpa "Rp", mis. 1250000 atau 1.250.000.',
     ...def.petunjuk,
     'Unggah file ini di layar yang sama. Sistem menampilkan pratinjau dan memeriksa setiap baris; data baru disimpan setelah semua baris benar.'
   ]) {
@@ -125,7 +128,7 @@ export async function buatTemplate(jenis: JenisImpor, def: DefImpor, k: Konteks,
   const h = wp.addRow(['Kolom', 'Wajib', 'Format', 'Contoh', 'Keterangan']);
   h.font = { bold: true };
   h.eachCell((c) => (c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5E7EB' } }));
-  const FORMAT_TEKS: Record<string, string> = { teks: 'teks', tanggal: 'dd/mm/yyyy', rupiah: 'angka rupiah', desimal: 'angka (koma desimal)', bulat: 'bilangan bulat' };
+  const FORMAT_TEKS: Record<string, string> = { teks: 'teks', tanggal: 'dd/mm/yy', rupiah: 'angka rupiah', desimal: 'angka (koma desimal)', bulat: 'bilangan bulat' };
   for (const c of def.kolom) {
     wp.addRow([c.judul, c.wajib ? 'Ya' : '', FORMAT_TEKS[c.tipe], c.contoh ?? '', [c.catatan, c.daftar ? 'Ada daftar pilihan (dropdown).' : ''].filter(Boolean).join(' ')]);
   }
