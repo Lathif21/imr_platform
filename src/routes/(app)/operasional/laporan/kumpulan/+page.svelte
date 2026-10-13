@@ -8,6 +8,7 @@
   import { untrack } from 'svelte';
   import { enhance } from '$app/forms';
   import { withFeedback } from '$lib/form-feedback';
+  import UnduhExcel from '$lib/operasional/UnduhExcel.svelte';
   import PilihPeriode from '$lib/operasional/PilihPeriode.svelte';
   import { NAMA_BULAN } from '$lib/operasional/kegiatan';
   import { pendapatanKartu, ringkasLabaRugi, type KartuKapal, type Pengeluaran } from '$lib/operasional/kumpulan';
@@ -84,6 +85,7 @@
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
+      <UnduhExcel laporan="kumpulan" />
       <a href="/cetak/operasional/kumpulan?{q}" target="_blank" rel="noopener" class={BTN_SOFT}><Printer size={14} /> Cetak</a>
       {#if data.canWrite && data.kumpulan?.disimpan}
         <form method="POST" action="?/reset" use:enhance={reset}>

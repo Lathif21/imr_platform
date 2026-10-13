@@ -8,6 +8,7 @@
   import { enhance } from '$app/forms';
   import FormModal from '$lib/components/FormModal.svelte';
   import { withFeedback } from '$lib/form-feedback';
+  import UnduhExcel from '$lib/operasional/UnduhExcel.svelte';
   import PilihPeriode from '$lib/operasional/PilihPeriode.svelte';
   import { NAMA_BULAN, rentangTanggal } from '$lib/operasional/kegiatan';
   import { BTN_ICON, BTN_ICON_DANGER, BTN_PRIMARY, BTN_SOFT, FIELD, LABEL, TEXTAREA, matches, rupiah } from '$lib/operasional/ui';
@@ -86,6 +87,7 @@
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
+      <UnduhExcel laporan="pengeluaran" />
       <div class="relative">
         <Search size={13} class="absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
         <input bind:value={query} type="search" placeholder="Cari jenis, nama, penerima…" aria-label="Cari pengeluaran" class="{FIELD} pl-8 w-[220px]" />

@@ -9,6 +9,7 @@
   import { enhance } from '$app/forms';
   import FormModal from '$lib/components/FormModal.svelte';
   import { withFeedback } from '$lib/form-feedback';
+  import UnduhExcel from '$lib/operasional/UnduhExcel.svelte';
   import PilihPeriode from '$lib/operasional/PilihPeriode.svelte';
   import { NAMA_BULAN, bulanIni, rentangTanggal, ton } from '$lib/operasional/kegiatan';
   import type { Approval, Departemen } from '$lib/operasional/pencairan';
@@ -125,6 +126,7 @@
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
+      <UnduhExcel laporan="pencairan" />
       <label class="sr-only" for="filter-kapal">Kapal</label>
       <select id="filter-kapal" bind:value={kapalFilter} class="h-[30px] px-2 bg-background border border-border rounded-md text-[13px] text-foreground focus:outline-none focus:border-primary max-w-[180px]">
         <option value="">Semua kapal</option>

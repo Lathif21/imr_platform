@@ -10,6 +10,7 @@
   import { enhance } from '$app/forms';
   import FormModal from '$lib/components/FormModal.svelte';
   import { withFeedback } from '$lib/form-feedback';
+  import UnduhExcel from '$lib/operasional/UnduhExcel.svelte';
   import PilihPeriode from '$lib/operasional/PilihPeriode.svelte';
   import { NAMA_BULAN, bacaRupiah, ton } from '$lib/operasional/kegiatan';
   import { STATUS_ENTRY, TARIF_PAJAK, posisi, ringkas, sudahDibayar, type Posisi } from '$lib/operasional/pendapatan';
@@ -134,6 +135,7 @@
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
+      <UnduhExcel laporan="pendapatan" />
       <a href="/cetak/operasional/pendapatan?{periodeQuery}" target="_blank" rel="noopener" class={BTN_SOFT}><Printer size={14} /> Cetak</a>
       {#if data.canWrite}
         <form method="POST" action="?/generate" use:enhance={aksi('Generate gagal')}>

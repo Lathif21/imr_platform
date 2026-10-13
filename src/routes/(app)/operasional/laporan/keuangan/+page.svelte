@@ -1,5 +1,6 @@
 <script lang="ts">
   import ArrowLeft from 'lucide-svelte/icons/arrow-left';
+  import UnduhExcel from '$lib/operasional/UnduhExcel.svelte';
   import PilihPeriode from '$lib/operasional/PilihPeriode.svelte';
   import { NAMA_BULAN, rentangTanggal } from '$lib/operasional/kegiatan';
   import { rupiah } from '$lib/operasional/ui';
@@ -26,6 +27,7 @@
       <p class="text-[13px] text-muted-foreground mt-0.5">Rincian biaya bulanan · {namaBulan} · laba rugi resmi ada di Laporan P&amp;L</p>
     </div>
     <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
+      <UnduhExcel laporan="keuangan" />
   </div>
 
   <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">

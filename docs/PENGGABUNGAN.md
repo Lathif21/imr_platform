@@ -435,6 +435,37 @@ dapat membaca, mengunggah, atau menghapus lampiran ILJ (404); direksi hanya
 melihat. RLS `lampiran_periode` diuji dalam transaksi yang di-rollback
 (belum ada periode P&L di database platform).
 
+### Download laporan (PDF & Excel), 13 Oktober 2026
+
+- **Laporan operasional bulanan** — kapan saja, tanpa approval (diputuskan
+  pengguna). Tombol **Excel** di setiap layar laporan (Detail Kegiatan,
+  Kumpulan, Pendapatan, Pencairan, Partner, Gaji, Paguyuban, Operasional,
+  Keuangan, Pengeluaran) dan **Unduh semua laporan** di menu Laporan: satu
+  workbook, satu sheet per laporan. `/operasional/laporan/excel?laporan=…|semua`,
+  `src/lib/server/laporan-excel.ts`. Angka ditulis sebagai angka berformat
+  Rupiah dan tanggal sebagai tanggal, jadi bisa dijumlah/difilter di Excel
+  maupun Google Sheets.
+- **PDF** = halaman cetak yang sudah ada → "Simpan sebagai PDF" di dialog
+  cetak browser (keputusan pengguna; tanpa pustaka PDF di server). Kartu di
+  menu Laporan punya tombol PDF bila laporannya punya halaman cetak; cetak
+  Partner dan Gaji tetap per pemilik/karyawan di layarnya.
+- **Laporan P&L** — hanya setelah **approved/dikunci**: tombol PDF
+  (`/cetak/laporan/[entitas]/[bulan]`) dan Excel
+  (`/entities/[id]/periods/[bulan]/excel`). Baris disusun seperti layar;
+  subtotal dari `v_period_pnl` (invarian 2). Sebelum disetujui layar
+  menulis "Unduh tersedia setelah disetujui" dan endpoint menjawab 409.
+- Pemuat Paguyuban, Operasional, Keuangan, Pendapatan (cetak) dan
+  Pengeluaran (cetak) dipindah apa adanya ke
+  `src/lib/server/laporan-operasional.ts`, supaya layar, cetakan, dan Excel
+  membaca angka dari satu tempat.
+
+Diuji lewat layar: workbook 10 sheet dengan angka uji yang tepat (tagihan
+345.000, pajak 1.725, pengeluaran 77.777, total kegiatan 500.000, rekanan
+200.000, paguyuban 5.000, total biaya 709.000, gaji 4.000, pencairan approved
+di ketiga departemen), Excel per layar, PDF dari menu, admin ILA tidak
+mendapat data ILJ, direksi dapat mengunduh. Ekspor P&L baru teruji untuk
+penolakan (belum ada periode P&L di database platform).
+
 ## Integrasi: dari HTTP ke SQL
 
 Dengan satu database, `GET /api/integrasi/rekap-bulanan` dan tokennya tidak

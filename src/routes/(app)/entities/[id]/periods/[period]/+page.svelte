@@ -2,6 +2,8 @@
   import { canWriteReports } from '$lib/roles';
   import Lampiran from '$lib/components/Lampiran.svelte';
   import ArrowLeft from 'lucide-svelte/icons/arrow-left';
+  import FileSpreadsheet from 'lucide-svelte/icons/file-spreadsheet';
+  import Printer from 'lucide-svelte/icons/printer';
   import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
   import { goto } from '$app/navigation';
   import {
@@ -29,6 +31,8 @@
   let { data }: { data: PageData } = $props();
 
   const bolehLampir = $derived(canWriteReports(data.role));
+  /** Downloads are the filed statement: only once its figures can no longer change. */
+  const bisaUnduh = $derived(data.status === 'approved' || data.status === 'locked');
 
   const revenue = $derived(toAmount(data.pnl.revenue) ?? 0);
 
@@ -200,6 +204,30 @@
     </div>
 
     <div class="flex items-center gap-2 shrink-0">
+      {#if bisaUnduh}
+        <a
+          href="/cetak/laporan/{data.entity.id}/{data.month}"
+          target="_blank"
+          rel="noopener"
+          title="Tampilan cetak — pilih &quot;Simpan sebagai PDF&quot; di dialog cetak"
+          class="h-[30px] px-3 rounded-lg border border-border bg-card text-[13px] font-medium text-muted-foreground
+                 hover:text-foreground hover:bg-muted transition-colors inline-flex items-center gap-1.5"
+        >
+          <Printer size={13} /> PDF
+        </a>
+        <a
+          href="/entities/{data.entity.id}/periods/{data.month}/excel"
+          download
+          class="h-[30px] px-3 rounded-lg border border-border bg-card text-[13px] font-medium text-muted-foreground
+                 hover:text-foreground hover:bg-muted transition-colors inline-flex items-center gap-1.5"
+        >
+          <FileSpreadsheet size={13} /> Excel
+        </a>
+      {:else}
+        <span class="hidden md:inline text-[12px] text-subtle" title="Angka masih bisa berubah sampai laporan disetujui.">
+          Unduh tersedia setelah disetujui
+        </span>
+      {/if}
       <label for="periode" class="sr-only">Periode</label>
       <select
         id="periode"

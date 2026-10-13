@@ -1,6 +1,7 @@
 <script lang="ts">
   import ArrowLeft from 'lucide-svelte/icons/arrow-left';
   import Printer from 'lucide-svelte/icons/printer';
+  import UnduhExcel from '$lib/operasional/UnduhExcel.svelte';
   import PilihPeriode from '$lib/operasional/PilihPeriode.svelte';
   import { NAMA_BULAN, rentangTanggal, ton } from '$lib/operasional/kegiatan';
   import { BTN_SOFT, rupiah } from '$lib/operasional/ui';
@@ -30,6 +31,7 @@
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
+      <UnduhExcel laporan="operasional" />
       <a href="/cetak/operasional/kegiatan?{q}" target="_blank" rel="noopener" class={BTN_SOFT}><Printer size={14} /> Cetak Biaya &amp; Operasional</a>
     </div>
   </div>
