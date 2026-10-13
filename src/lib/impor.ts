@@ -20,6 +20,8 @@ export interface BarisPratinjau {
   duplikat?: { keterangan: string; bisaTimpa: boolean };
   /** Kegiatan only: rows after the first of a kegiatan point to its first row. */
   ikutBaris?: number;
+  /** Worth a second look but not an error, e.g. a kegiatan landing in another month. */
+  peringatan?: string[];
 }
 
 export interface Pratinjau {

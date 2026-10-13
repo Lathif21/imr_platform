@@ -40,6 +40,7 @@
 
   const galat = $derived(pratinjau ? pratinjau.galatBerkas.length + pratinjau.baris.filter((b) => b.galat.length).length : 0);
   const duplikat = $derived(pratinjau?.baris.filter((b) => b.duplikat) ?? []);
+  const diperingatkan = $derived(pratinjau?.baris.filter((b) => !b.galat.length && b.peringatan?.length).length ?? 0);
   const perluPilih = $derived(duplikat.filter((b) => b.duplikat!.bisaTimpa));
   const belumDipilih = $derived(perluPilih.filter((b) => !pilihan[b.baris]).length);
   const siap = $derived(!!pratinjau && pratinjau.baris.length > 0 && galat === 0 && belumDipilih === 0);
@@ -138,6 +139,7 @@
           <span class="text-foreground font-medium">{pratinjau.baris.length} baris</span>
           <span class={galat ? 'text-destructive font-medium' : 'text-positive'}>{galat ? `${galat} baris salah` : 'semua baris benar'}</span>
           {#if duplikat.length}<span class="text-warning font-medium">{duplikat.length} sudah ada di sistem</span>{/if}
+          {#if diperingatkan}<span class="text-warning font-medium">{diperingatkan} perlu dicek</span>{/if}
           {#if perluPilih.length > 1}
             <span class="ml-auto inline-flex gap-1.5">
               <button type="button" onclick={() => pilihSemua('lama')} class="{BTN_SOFT} h-[28px] px-2.5 text-[12px]">Semua: data lama</button>
@@ -161,6 +163,11 @@
                   <td class="py-1.5 px-2 num text-muted-foreground">{b.baris}</td>
                   {#each b.tampil as t, i (i)}<td class="py-1.5 px-2">{t}</td>{/each}
                   <td class="py-1.5 px-2">
+                    {#if !b.galat.length && b.peringatan?.length}
+                      <ul class="space-y-0.5 text-warning mb-1">
+                        {#each b.peringatan as p (p)}<li>{p}</li>{/each}
+                      </ul>
+                    {/if}
                     {#if b.galat.length}
                       <ul class="space-y-0.5 text-destructive">
                         {#each b.galat as g (g)}<li>{g}</li>{/each}

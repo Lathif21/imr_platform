@@ -69,6 +69,17 @@ export type BarisEkspor = Record<string, string | number | null>;
 const angka = (v: string | number | null) => (v === null ? null : Number(v));
 
 const tgl = (iso: string | null) => (iso ? iso.split('-').reverse().join('/') : '');
+const namaBulan = (iso: string) => `${NAMA_BULAN[Number(iso.slice(5, 7)) - 1]} ${iso.slice(0, 4)}`;
+
+/**
+ * A date that lands outside the month on screen is allowed (the data simply
+ * shows up under its own month), but it is how a date Excel read as
+ * month/day shows itself — so the preview says so before saving.
+ */
+function bulanLain(iso: string | null, { bulan, tahun }: Periode): string | null {
+  if (!iso || (Number(iso.slice(5, 7)) === bulan && Number(iso.slice(0, 4)) === tahun)) return null;
+  return `Masuk ke bulan ${namaBulan(iso)}, bukan ${NAMA_BULAN[bulan - 1]} ${tahun} yang sedang dibuka. Pastikan tanggal ditulis dd/mm/yyyy.`;
+}
 const MAKS = 255;
 
 function wajibTeks(row: BarisMentah, kunci: string, label: string, galat: string[]): string {
@@ -161,7 +172,7 @@ const pengeluaran: DefImpor = {
       .returns<{ tanggal: string; jenis: string; nama_kegiatan: string | null; penerima: string | null; jumlah: string; keterangan: string | null }[]>();
     return (data ?? []).map((r) => ({ ...r, jumlah: angka(r.jumlah) }));
   },
-  async periksa(rows, { db, entity }) {
+  async periksa(rows, { db, entity, periode }) {
     const data = rows.map((row) => {
       const galat: string[] = [];
       const v = {
@@ -192,6 +203,8 @@ const pengeluaran: DefImpor = {
     const timpa = new Map<number, number>();
     const baris: BarisPratinjau[] = data.map(({ v, galat }) => {
       const b: BarisPratinjau = { baris: v.baris, tampil: [tgl(v.tanggal), v.jenis, v.nama_kegiatan ?? '', v.penerima ?? '', v.jumlah === null ? '' : rp(v.jumlah)], galat };
+      const lain = bulanLain(v.tanggal, periode);
+      if (lain) b.peringatan = [lain];
       const id = galat.length ? undefined : peta.get(kunci(v.tanggal, v.jenis, v.nama_kegiatan, v.jumlah));
       if (id !== undefined) {
         timpa.set(v.baris, id);
@@ -543,7 +556,7 @@ const kegiatan: DefImpor = {
   petunjuk: [
     'Satu baris = satu truk. Baris dengan nama kapal dan tanggal mulai yang sama menjadi satu kegiatan.',
     'Rute, biaya operasional, telly, dan keterangan cukup diisi di baris truk pertama kegiatan itu.',
-    'Bulan pengiriman mengikuti tanggal kegiatan.',
+    'Bulan pengiriman mengikuti tanggal kegiatan (mulai), bukan bulan yang sedang dibuka di layar.',
     'Kegiatan dengan kapal dan tanggal mulai yang sudah ada ditandai sebagai duplikat. Bila "data baru" dipilih, daftar truknya DIGANTI dengan isi file.'
   ],
   daftar: async ({ db, entity }) => {
@@ -620,7 +633,7 @@ const kegiatan: DefImpor = {
       }));
     });
   },
-  async periksa(rows, { db, entity }) {
+  async periksa(rows, { db, entity, periode }) {
     const [kd, ky, kp] = await Promise.all([
       db.from('kendaraan').select('nopol').eq('entity_id', entity.id).returns<{ nopol: string }[]>(),
       db.from('karyawan').select('id, nama').eq('entity_id', entity.id).eq('status', 'aktif').returns<{ id: number; nama: string }[]>(),
@@ -673,10 +686,14 @@ const kegiatan: DefImpor = {
       let g = grup.get(kunci);
       const b: BarisPratinjau = {
         baris: row.baris,
-        tampil: [tgl(tglMulai), namaKapal, nopol, pemilikBaru || (terdaftar.has(nopol) ? '(terdaftar)' : ''), String(ritase ?? ''), String(tonase ?? '')],
+        tampil: [tgl(tglMulai), tglMulai ? namaBulan(tglMulai) : '', namaKapal, nopol, pemilikBaru || (terdaftar.has(nopol) ? '(terdaftar)' : ''), String(ritase ?? ''), String(tonase ?? '')],
         galat
       };
       if (!g) {
+        const peringatan = [bulanLain(tglMulai, periode)].filter((p): p is string => !!p);
+        const hari = tglMulai && tglSelesai ? (Date.parse(tglSelesai) - Date.parse(tglMulai)) / 86_400_000 : 0;
+        if (hari > 31) peringatan.push(`Kegiatan berlangsung ${hari} hari (${tgl(tglMulai)} s/d ${tgl(tglSelesai)}). Pastikan tanggal ditulis dd/mm/yyyy.`);
+        if (peringatan.length) b.peringatan = peringatan;
         g = {
           baris: row.baris,
           nama_kapal: namaKapal,
@@ -729,7 +746,7 @@ const kegiatan: DefImpor = {
     }
 
     return {
-      kolom: ['Tanggal', 'Kapal', 'Nopol', 'Pemilik', 'Ritase', 'Tonase'],
+      kolom: ['Tanggal', 'Bulan', 'Kapal', 'Nopol', 'Pemilik', 'Ritase', 'Tonase'],
       baris,
       payload: (pilihan) => ({
         p_entity_id: entity.id,
