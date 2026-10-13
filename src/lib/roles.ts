@@ -96,6 +96,15 @@ export function canReadReports(role: UserRole | null): boolean {
 }
 
 /**
+ * SQL: can_write_reports() — writing a period's rows and adding its
+ * lampiran. Wider than `canEnterReports()`: direksi and manajer approve, and
+ * may attach the signed statement that comes with the approval.
+ */
+export function canWriteReports(role: UserRole | null): boolean {
+  return role === 'direksi' || role === 'manajer_keuangan' || role === 'staf_entitas';
+}
+
+/**
  * SQL: can_read_operational() — scope still comes from entity assignment.
  * Manajer and auditor read too, to trace a P&L figure back to its source.
  */

@@ -6,6 +6,7 @@
   import Truck from 'lucide-svelte/icons/truck';
   import Wallet from 'lucide-svelte/icons/wallet';
   import { untrack } from 'svelte';
+  import Lampiran from '$lib/components/Lampiran.svelte';
   import { enhance } from '$app/forms';
   import { withFeedback } from '$lib/form-feedback';
   import { NAMA_BULAN, bacaAngka, pecahRute, ton } from '$lib/operasional/kegiatan';
@@ -308,6 +309,8 @@
       </div>
     {/if}
   </form>
+
+  <Lampiran jenis="kegiatan" ref={data.kegiatan.id} canWrite={data.canWrite} />
 </div>
 
 <datalist id="daftar-asal">

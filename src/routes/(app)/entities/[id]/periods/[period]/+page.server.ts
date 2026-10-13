@@ -176,6 +176,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     entity,
     period,
     month: params.period,
+    periodId: current.id,
     status: current.status,
     /** Subtotals come from here and are never recomputed (invariant 2). */
     pnl: pnlResult.data,

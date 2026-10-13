@@ -1,6 +1,7 @@
 import type { Actions, PageServerLoad } from './$types';
 import { bacaRupiah, periodeDari } from '$lib/operasional/kegiatan';
 import { DEPARTEMEN, type Approval, type StatusPencairan as Status } from '$lib/operasional/pencairan';
+import { hitungLampiran } from '$lib/server/lampiran';
 import {
   ISO_DATE,
   explainDbError,
@@ -57,7 +58,7 @@ export interface PencairanRow {
 export const load: PageServerLoad = async ({ locals, parent, url }) => {
   const { opEntity } = await parent();
   const periode = periodeDari(url);
-  const kosong = { periode, pencairan: [] as PencairanRow[], daftarKapal: [] as { id: number; nama: string }[] };
+  const kosong = { periode, lampiran: {} as Record<string, number>, pencairan: [] as PencairanRow[], daftarKapal: [] as { id: number; nama: string }[] };
   if (!opEntity) return kosong;
   const db = locals.supabase;
 
@@ -107,8 +108,10 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
     approvals.set(a.pencairan_id, [...(approvals.get(a.pencairan_id) ?? []), a]);
   }
 
+  const lampiran = await hitungLampiran(locals.supabase, 'pencairan', pencairan.map((p) => p.id));
   return {
     ...kosong,
+    lampiran,
     daftarKapal: (kapalResult.data ?? []).map((k) => ({ id: k.id, nama: k.nama_kapal })),
     pencairan: pencairan.map((p): PencairanRow => {
       const l = laporan.get(p.nomor_invoice);

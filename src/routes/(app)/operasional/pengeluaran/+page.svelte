@@ -4,6 +4,7 @@
   import Printer from 'lucide-svelte/icons/printer';
   import Search from 'lucide-svelte/icons/search';
   import Trash2 from 'lucide-svelte/icons/trash-2';
+  import Lampiran from '$lib/components/Lampiran.svelte';
   import { enhance } from '$app/forms';
   import FormModal from '$lib/components/FormModal.svelte';
   import { withFeedback } from '$lib/form-feedback';
@@ -115,7 +116,7 @@
             <th class="text-right font-semibold py-2.5 px-3">Jumlah</th>
             <th class="text-left font-semibold py-2.5 px-3">Penerima</th>
             <th class="text-left font-semibold py-2.5 px-3">Keterangan</th>
-            {#if data.canWrite}<th class="text-right font-semibold py-2.5 px-3 w-[90px]">Aksi</th>{/if}
+            <th class="text-right font-semibold py-2.5 px-3 w-[120px]">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -128,17 +129,18 @@
               <td class="py-2.5 px-3 text-right num whitespace-nowrap font-semibold text-foreground">{rupiah(row.jumlah)}</td>
               <td class="py-2.5 px-3">{row.penerima ?? '—'}</td>
               <td class="py-2.5 px-3 text-muted-foreground max-w-[220px] truncate" title={row.keterangan ?? ''}>{row.keterangan ?? '—'}</td>
-              {#if data.canWrite}
-                <td class="py-2 px-3">
-                  <div class="flex justify-end gap-1">
+              <td class="py-2 px-3">
+                <div class="flex justify-end items-center gap-1">
+                  <Lampiran mode="tombol" jenis="pengeluaran" ref={row.id} canWrite={data.canWrite} jumlah={data.lampiran[row.id] ?? 0} judul="Pengeluaran {row.jenis}" />
+                  {#if data.canWrite}
                     <button type="button" onclick={() => openEdit(row)} class={BTN_ICON} aria-label="Ubah pengeluaran {row.jenis}" title="Ubah"><Pencil size={14} /></button>
                     <form method="POST" action="?/hapus" use:enhance={remove(row)}>
                       <input type="hidden" name="id" value={row.id} />
                       <button type="submit" class={BTN_ICON_DANGER} aria-label="Hapus pengeluaran {row.jenis}" title="Hapus"><Trash2 size={14} /></button>
                     </form>
-                  </div>
-                </td>
-              {/if}
+                  {/if}
+                </div>
+              </td>
             </tr>
           {:else}
             <tr>
@@ -153,7 +155,7 @@
             <tr class="border-t border-border bg-muted/40 font-semibold text-foreground">
               <td class="py-2.5 px-3" colspan="4">TOTAL KESELURUHAN {NAMA_BULAN[data.periode.bulan - 1].toUpperCase()} {data.periode.tahun}</td>
               <td class="py-2.5 px-3 text-right num whitespace-nowrap">{rupiah(total)}</td>
-              <td colspan={data.canWrite ? 3 : 2}></td>
+              <td colspan="3"></td>
             </tr>
           </tfoot>
         {/if}
