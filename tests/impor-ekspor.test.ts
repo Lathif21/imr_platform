@@ -67,7 +67,7 @@ describe('ekspor → unggah kembali', () => {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(buf as unknown as ArrayBuffer);
     const ws = wb.getWorksheet('Data')!;
-    expect(ws.getCell('A2').value).toBe('05/10/2026');
+    expect(ws.getCell('A2').value).toBe('05/10/26');
     expect(ws.getCell('A3').numFmt).toBe('@');
   });
 
@@ -82,6 +82,34 @@ describe('ekspor → unggah kembali', () => {
     expect(baris[0].peringatan).toHaveLength(2);
     expect(baris[0].peringatan![0]).toMatch(/bulan Mei 2026, bukan Oktober 2026/);
     expect(baris[0].peringatan![1]).toMatch(/153 hari/);
+  });
+
+  it('tanggal dibaca hari/bulan/tahun, tahun 2 atau 4 digit', () => {
+    expect(tanggal('05/10/26')).toBe('2026-10-05');
+    expect(tanggal('5/10/26')).toBe('2026-10-05');
+    expect(tanggal('05/10/2026')).toBe('2026-10-05');
+    expect(tanggal('31/02/26')).toBeUndefined();
+    expect(tanggal('10/31/26')).toBeUndefined();
+  });
+
+  it('template lama: sel yang sudah diubah Excel jadi tanggal tetap diperingatkan', async () => {
+    // File admin 13 Okt 2026: "05/10/2026" diketik di Excel berlokal AS,
+    // tersimpan sebagai serial 46152 (10 Mei 2026) dengan format bawaan 14.
+    const buf = await buatTemplate('kegiatan', IMPOR.kegiatan, K);
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buf as unknown as ArrayBuffer);
+    const ws = wb.getWorksheet('Data')!;
+    ws.getCell('A2').value = new Date(Date.UTC(2026, 4, 10));
+    ws.getCell('A2').numFmt = 'mm-dd-yy';
+    ws.getCell('B2').value = new Date(Date.UTC(2026, 9, 10));
+    ws.getCell('C2').value = 'KM Sinar Jaya';
+    ws.getCell('I2').value = 'W 1 A';
+    ws.getCell('J2').value = 'H. Ahmad';
+    const isi = Buffer.from(await wb.xlsx.writeBuffer());
+    const { rows } = await bacaBerkas('kegiatan', IMPOR.kegiatan, isi.buffer.slice(isi.byteOffset, isi.byteOffset + isi.byteLength) as ArrayBuffer);
+    const { baris } = await IMPOR.kegiatan.periksa(rows, K);
+    expect(tanggal(rows[0].nilai.tanggal_kegiatan)).toBe('2026-05-10');
+    expect(baris[0].peringatan?.[0]).toMatch(/bulan Mei 2026, bukan Oktober 2026/);
   });
 
   it('tanpa data, hasilnya template kosong', async () => {

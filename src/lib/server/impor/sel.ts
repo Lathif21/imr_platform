@@ -1,6 +1,6 @@
 /**
  * Reading one Excel cell the way the manual forms read a field: Indonesian
- * thousands dots and decimal comma, dates as dd/mm/yyyy or real date cells.
+ * thousands dots and decimal comma, dates as dd/mm/yy(yy) or real date cells.
  * Every reader returns `null` for an empty cell and `undefined` for a value
  * it cannot read, so the checker can say "wajib diisi" and "tidak sah" apart.
  */
@@ -36,14 +36,14 @@ function sah(y: number, m: number, d: number): string | undefined {
   return isoTanggal(dt);
 }
 
-/** 'YYYY-MM-DD' from a date cell, an Excel serial, dd/mm/yyyy or yyyy-mm-dd. */
+/** 'YYYY-MM-DD' from a date cell, an Excel serial, dd/mm/yy, dd/mm/yyyy or yyyy-mm-dd. A two-digit year is 20yy. */
 export function tanggal(v: unknown): string | null | undefined {
   if (kosong(v)) return null;
   if (v instanceof Date) return isNaN(v.getTime()) ? undefined : isoTanggal(v);
   if (typeof v === 'number') return isoTanggal(new Date(Date.UTC(1899, 11, 30) + Math.round(v) * 86_400_000));
   const s = teks(v);
-  let m = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/.exec(s);
-  if (m) return sah(+m[3], +m[2], +m[1]);
+  let m = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2}|\d{4})$/.exec(s);
+  if (m) return sah(m[3].length === 2 ? 2000 + +m[3] : +m[3], +m[2], +m[1]);
   m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s);
   if (m) return sah(+m[1], +m[2], +m[3]);
   return undefined;

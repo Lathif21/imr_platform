@@ -78,7 +78,7 @@ const namaBulan = (iso: string) => `${NAMA_BULAN[Number(iso.slice(5, 7)) - 1]} $
  */
 function bulanLain(iso: string | null, { bulan, tahun }: Periode): string | null {
   if (!iso || (Number(iso.slice(5, 7)) === bulan && Number(iso.slice(0, 4)) === tahun)) return null;
-  return `Masuk ke bulan ${namaBulan(iso)}, bukan ${NAMA_BULAN[bulan - 1]} ${tahun} yang sedang dibuka. Pastikan tanggal ditulis dd/mm/yyyy.`;
+  return `Masuk ke bulan ${namaBulan(iso)}, bukan ${NAMA_BULAN[bulan - 1]} ${tahun} yang sedang dibuka. Pastikan tanggal ditulis dd/mm/yy (hari/bulan/tahun).`;
 }
 const MAKS = 255;
 
@@ -97,7 +97,7 @@ function opsiTeks(row: BarisMentah, kunci: string, label: string, galat: string[
 
 function bacaTanggal(row: BarisMentah, kunci: string, label: string, galat: string[], wajib = false): string | null {
   const v = tanggal(row.nilai[kunci]);
-  if (v === undefined) galat.push(`${label} tidak sah — tulis dd/mm/yyyy, mis. 05/12/2026.`);
+  if (v === undefined) galat.push(`${label} tidak sah — tulis dd/mm/yy, mis. 05/10/26.`);
   else if (v === null && wajib) galat.push(`${label} wajib diisi.`);
   return v ?? null;
 }
@@ -137,7 +137,7 @@ const pengeluaran: DefImpor = {
   label: 'Pengeluaran',
   rpc: 'impor_pengeluaran',
   kolom: [
-    { judul: 'Tanggal', kunci: 'tanggal', tipe: 'tanggal', wajib: true, contoh: '05/12/2026' },
+    { judul: 'Tanggal', kunci: 'tanggal', tipe: 'tanggal', wajib: true, contoh: '05/10/26' },
     { judul: 'Jenis Pengeluaran', kunci: 'jenis', tipe: 'teks', wajib: true, contoh: 'Sewa Kantor', lebar: 26, daftar: { kunci: 'jenis' }, catatan: 'Pilih dari daftar, atau ketik jenis baru.' },
     { judul: 'Nama Pengeluaran / Kegiatan', kunci: 'nama_kegiatan', tipe: 'teks', contoh: 'Sewa Desember', lebar: 28 },
     { judul: 'Penerima', kunci: 'penerima', tipe: 'teks', contoh: 'Budi Santoso', lebar: 20 },
@@ -357,7 +357,7 @@ const karyawan: DefImpor = {
     { judul: 'Nama Lengkap', kunci: 'nama', tipe: 'teks', wajib: true, contoh: 'Budi Santoso', lebar: 24 },
     { judul: 'Jabatan', kunci: 'jabatan', tipe: 'teks', contoh: 'Telly', lebar: 16, catatan: 'Isi "Telly" untuk petugas telly, "Admin" untuk gaji admin.' },
     { judul: 'No. HP / WhatsApp', kunci: 'no_hp', tipe: 'teks', contoh: '0812xxxxxxx', lebar: 16 },
-    { judul: 'Tanggal Bergabung', kunci: 'tanggal_bergabung', tipe: 'tanggal', contoh: '01/01/2026' },
+    { judul: 'Tanggal Bergabung', kunci: 'tanggal_bergabung', tipe: 'tanggal', contoh: '01/01/26' },
     { judul: 'No. KTP', kunci: 'ktp', tipe: 'teks', lebar: 20 },
     { judul: 'No. NPWP', kunci: 'npwp', tipe: 'teks', lebar: 22 },
     { judul: 'Alamat', kunci: 'alamat', tipe: 'teks', lebar: 32 },
@@ -537,8 +537,8 @@ const kegiatan: DefImpor = {
   label: 'Kegiatan Kapal & Truk',
   rpc: 'impor_kegiatan',
   kolom: [
-    { judul: 'Tanggal Kegiatan (mulai)', kunci: 'tanggal_kegiatan', tipe: 'tanggal', wajib: true, contoh: '05/12/2026' },
-    { judul: 'Tanggal Selesai', kunci: 'tanggal_selesai', tipe: 'tanggal', contoh: '07/12/2026' },
+    { judul: 'Tanggal Kegiatan (mulai)', kunci: 'tanggal_kegiatan', tipe: 'tanggal', wajib: true, contoh: '05/10/26' },
+    { judul: 'Tanggal Selesai', kunci: 'tanggal_selesai', tipe: 'tanggal', contoh: '07/10/26' },
     { judul: 'Nama Kapal / VOY', kunci: 'nama_kapal', tipe: 'teks', wajib: true, contoh: 'KM Sinar Jaya', lebar: 24, daftar: { kunci: 'kapal' }, catatan: 'Kapal baru otomatis ditambahkan.' },
     { judul: 'Rute Asal', kunci: 'rute_asal', tipe: 'teks', contoh: 'Gudang Veteran', lebar: 18, daftar: { kunci: 'asal' } },
     { judul: 'Rute Tujuan', kunci: 'rute_tujuan', tipe: 'teks', contoh: 'Pelabuhan', lebar: 18 },
@@ -692,7 +692,7 @@ const kegiatan: DefImpor = {
       if (!g) {
         const peringatan = [bulanLain(tglMulai, periode)].filter((p): p is string => !!p);
         const hari = tglMulai && tglSelesai ? (Date.parse(tglSelesai) - Date.parse(tglMulai)) / 86_400_000 : 0;
-        if (hari > 31) peringatan.push(`Kegiatan berlangsung ${hari} hari (${tgl(tglMulai)} s/d ${tgl(tglSelesai)}). Pastikan tanggal ditulis dd/mm/yyyy.`);
+        if (hari > 31) peringatan.push(`Kegiatan berlangsung ${hari} hari (${tgl(tglMulai)} s/d ${tgl(tglSelesai)}). Pastikan tanggal ditulis dd/mm/yy (hari/bulan/tahun).`);
         if (peringatan.length) b.peringatan = peringatan;
         g = {
           baris: row.baris,
