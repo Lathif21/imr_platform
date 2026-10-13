@@ -93,6 +93,25 @@ describe('ekspor → unggah kembali', () => {
   });
 
   /** The template with row 2 holding real Excel date cells, as when a row is pasted from another file. */
+  it('kegiatan: kolom Paguyuban terbaca; template lama tanpa kolom itu tetap diterima', async () => {
+    const isi = [{ tanggal_kegiatan: '2026-10-05', nama_kapal: 'KM Uji', nopol: 'W 1 A', pemilik: 'H. Ahmad', ritase: 1, tonase: 10, paguyuban: 5_000 }];
+    const baru = await bolakBalik('kegiatan', isi);
+    expect(baru.galatBerkas).toEqual([]);
+    expect(rupiah(baru.rows[0].nilai.paguyuban)).toBe(5_000);
+
+    const buf = await buatTemplate('kegiatan', IMPOR.kegiatan, K, isi);
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buf as unknown as ArrayBuffer);
+    const ws = wb.getWorksheet('Data')!;
+    const kolom = IMPOR.kegiatan.kolom.findIndex((c) => c.kunci === 'paguyuban') + 1;
+    ws.spliceColumns(kolom, 1);
+    const lama = Buffer.from(await wb.xlsx.writeBuffer());
+    const { rows, galatBerkas } = await bacaBerkas('kegiatan', IMPOR.kegiatan, lama.buffer.slice(lama.byteOffset, lama.byteOffset + lama.byteLength) as ArrayBuffer);
+    expect(galatBerkas).toEqual([]);
+    // No key at all, so impor_kegiatan leaves the saved iuran alone.
+    expect('paguyuban' in rows[0].nilai).toBe(false);
+  });
+
   async function denganSelTanggal(mulai: Date, selesai: Date) {
     const buf = await buatTemplate('kegiatan', IMPOR.kegiatan, K);
     const wb = new ExcelJS.Workbook();

@@ -26,7 +26,7 @@
         <ArrowLeft size={13} /> {data.dipilih ? 'Rekap per paguyuban' : 'Laporan'}
       </a>
       <h1 class="text-[17px] font-semibold text-foreground mt-1">Laporan Paguyuban{grupDipilih ? ` · ${grupDipilih.nama}` : ''}</h1>
-      <p class="text-[13px] text-muted-foreground mt-0.5">Iuran paguyuban berdasarkan tonase · {namaBulan}</p>
+      <p class="text-[13px] text-muted-foreground mt-0.5">Iuran paguyuban per truk · {namaBulan}</p>
     </div>
     <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
       <UnduhExcel laporan="paguyuban" />
@@ -73,7 +73,7 @@
       </table>
     </div>
     <p class="text-[12px] text-muted-foreground">
-      Iuran dihitung otomatis saat rincian truk disimpan: tonase × tarif (Rp 500/ton bila belum disesuaikan).
+      Iuran diisi manual per truk di Rincian Pembayaran Truk. Tarif = iuran ÷ tonase truk itu.
       Kapal tanpa nama paguyuban dikelompokkan di "(Tanpa nama paguyuban)".
     </p>
   {:else}

@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { bacaAngka, bacaRupiah, susunRute } from '$lib/operasional/kegiatan';
+import { bacaRupiah, bacaTonase, susunRute } from '$lib/operasional/kegiatan';
 import { muatKegiatan } from '$lib/server/kegiatan';
 import { ISO_DATE, explainDbError, failLoad, invalid, optionalText, refuse, requiredText } from '$lib/server/operasional';
 
@@ -94,8 +94,10 @@ export const actions: Actions = {
     const form = await request.formData();
     const details: string[] = [];
 
-    const operasional = bacaRupiah(String(form.get('operasional') ?? ''));
-    if (operasional === null) details.push('Biaya operasional harus berupa angka rupiah, mis. 1.250.000.');
+    // Blank stays "belum diisi" (null); a typed 0 is saved as Rp 0.
+    const operasionalText = String(form.get('operasional') ?? '').trim();
+    const operasional = operasionalText === '' ? null : bacaRupiah(operasionalText);
+    if (operasionalText !== '' && operasional === null) details.push('Biaya operasional harus berupa angka rupiah, mis. 1.250.000.');
 
     const tellyRaw = optionalText(form, 'telly_id');
     const tellyId = tellyRaw === null ? null : Number(tellyRaw);
@@ -151,8 +153,8 @@ export const actions: Actions = {
 
       const ritase = ritaseText === '' ? 0 : Number(ritaseText);
       if (!Number.isInteger(ritase) || ritase < 0) details.push(`Truk ${nopol}: ritase harus bilangan bulat 0 atau lebih.`);
-      const tonase = bacaAngka(tonaseText);
-      if (tonase === null) details.push(`Truk ${nopol}: tonase harus angka 0 atau lebih, mis. 12,5.`);
+      const tonase = bacaTonase(tonaseText);
+      if (tonase === null) details.push(`Truk ${nopol}: tonase harus angka 0 atau lebih, paling banyak 3 angka di belakang koma, mis. 12,125.`);
 
       const pemilikId = /^\d+$/.test(String(item.pemilik_id ?? '')) ? Number(item.pemilik_id) : null;
       const pemilikBaru = String(item.pemilik_baru ?? '').trim();

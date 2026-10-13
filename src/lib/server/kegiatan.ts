@@ -14,7 +14,8 @@ export interface KegiatanDetail {
   tahun: number;
   nama_kapal: string;
   rute: string | null;
-  operasional: number;
+  /** `null` = belum diisi; 0 = diisi Rp 0. */
+  operasional: number | null;
   telly_id: number | null;
   tanggal_input: string | null;
   tanggal_kegiatan: string | null;
@@ -33,7 +34,7 @@ export async function muatKegiatan(
     .from('operasional_rekap')
     .select('id, entity_id, bulan, tahun, kapal_id, rute, operasional, telly_id, tanggal_input, tanggal_kegiatan, tanggal_selesai, keterangan')
     .eq('id', Number(id))
-    .maybeSingle<Omit<KegiatanDetail, 'nama_kapal' | 'operasional'> & { entity_id: string; kapal_id: number; operasional: string }>();
+    .maybeSingle<Omit<KegiatanDetail, 'nama_kapal' | 'operasional'> & { entity_id: string; kapal_id: number; operasional: string | null }>();
   if (err) failLoad('operasional_rekap', err);
   // Another entity's kegiatan, or one this account may not read: the same
   // answer, so the page does not confirm that the id exists.
@@ -47,7 +48,7 @@ export async function muatKegiatan(
     tahun: data.tahun,
     nama_kapal: kapal?.nama_kapal ?? '—',
     rute: data.rute,
-    operasional: Number(data.operasional),
+    operasional: data.operasional === null ? null : Number(data.operasional),
     telly_id: data.telly_id,
     tanggal_input: data.tanggal_input,
     tanggal_kegiatan: data.tanggal_kegiatan,

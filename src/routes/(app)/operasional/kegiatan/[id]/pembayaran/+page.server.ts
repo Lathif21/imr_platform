@@ -1,14 +1,15 @@
 import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { bacaAngka, bacaRupiah } from '$lib/operasional/kegiatan';
+import { bacaRupiah, bacaTonase } from '$lib/operasional/kegiatan';
 import { muatKegiatan } from '$lib/server/kegiatan';
 import { explainDbError, failLoad, invalid, refuse } from '$lib/server/operasional';
 
 /**
  * Rincian Pembayaran Truk — LaporanController::editKegiatanPartner and
  * ::updatePembayaranBulk. Per truck: ritase, tonase, ongkos angkut per ton,
- * saku supir, terpal. Beban rekanan (column `pendapatan`) and the paguyuban
- * fee are derived from them by simpan_pembayaran_truk(), never typed.
+ * saku supir, terpal, iuran paguyuban. Beban rekanan (column `pendapatan`)
+ * is derived by simpan_pembayaran_truk(), never typed; the paguyuban fee is
+ * typed, no longer tonase × tarif.
  */
 
 export interface PembayaranRow {
@@ -19,9 +20,10 @@ export interface PembayaranRow {
   tonase: number;
   ongkos_angkut: number;
   sangu_supir: number;
-  terpal: number;
-  /** Tarif tersimpan; 500 untuk truk yang belum punya iuran. */
-  tarif_paguyuban: number;
+  /** `null` = belum diisi; 0 = diisi Rp 0. */
+  terpal: number | null;
+  /** Iuran paguyuban (Rp). `null` = belum diisi; 0 = diisi Rp 0. */
+  paguyuban: number | null;
 }
 
 export const load: PageServerLoad = async ({ locals, parent, params }) => {
@@ -45,7 +47,7 @@ export const load: PageServerLoad = async ({ locals, parent, params }) => {
           tonase: string;
           ongkos_angkut: string;
           sangu_supir: string;
-          terpal: string;
+          terpal: string | null;
         }[]
       >(),
     db.from('kendaraan').select('id, nopol, pemilik_id').eq('entity_id', opEntity.id).returns<{ id: number; nopol: string; pemilik_id: number }[]>(),
@@ -59,12 +61,12 @@ export const load: PageServerLoad = async ({ locals, parent, params }) => {
   const transaksi = transaksiResult.data ?? [];
   const { data: paguyuban, error: pagError } = await db
     .from('paguyuban')
-    .select('transaksi_id, tarif')
+    .select('transaksi_id, total_bayar')
     .in('transaksi_id', transaksi.map((t) => t.id))
-    .returns<{ transaksi_id: number; tarif: string }[]>();
+    .returns<{ transaksi_id: number; total_bayar: string }[]>();
   if (pagError) failLoad('paguyuban', pagError);
 
-  const tarif = new Map((paguyuban ?? []).map((p) => [p.transaksi_id, Number(p.tarif)]));
+  const iuran = new Map((paguyuban ?? []).map((p) => [p.transaksi_id, Number(p.total_bayar)]));
   const pemilik = new Map((pemilikResult.data ?? []).map((p) => [p.id, p.nama_pemilik]));
   const kendaraan = new Map((kendaraanResult.data ?? []).map((k) => [k.id, k]));
 
@@ -78,8 +80,8 @@ export const load: PageServerLoad = async ({ locals, parent, params }) => {
       tonase: Number(t.tonase),
       ongkos_angkut: Number(t.ongkos_angkut),
       sangu_supir: Number(t.sangu_supir),
-      terpal: Number(t.terpal),
-      tarif_paguyuban: tarif.get(t.id) ?? 500
+      terpal: t.terpal === null ? null : Number(t.terpal),
+      paguyuban: iuran.get(t.id) ?? null
     };
   });
   truk.sort((a, b) => a.pemilik.localeCompare(b.pemilik, 'id') || a.nopol.localeCompare(b.nopol));
@@ -104,16 +106,21 @@ export const actions: Actions = {
       const nopol = String(item.nopol ?? '');
       const ritaseText = String(item.ritase ?? '').trim();
       const ritase = ritaseText === '' ? 0 : Number(ritaseText);
-      const tonase = bacaAngka(String(item.tonase ?? ''));
+      const tonase = bacaTonase(String(item.tonase ?? ''));
       const ongkos = bacaRupiah(String(item.ongkos_angkut ?? ''));
       const sangu = bacaRupiah(String(item.sangu_supir ?? ''));
-      const terpal = bacaRupiah(String(item.terpal ?? ''));
+      // Blank stays "belum diisi" (null); a typed 0 is saved as Rp 0.
+      const terpalText = String(item.terpal ?? '').trim();
+      const terpal = terpalText === '' ? null : bacaRupiah(terpalText);
+      const paguyubanText = String(item.paguyuban ?? '').trim();
+      const paguyuban = paguyubanText === '' ? null : bacaRupiah(paguyubanText);
 
       if (!Number.isInteger(ritase) || ritase < 0) details.push(`Truk ${nopol}: ritase harus bilangan bulat 0 atau lebih.`);
-      if (tonase === null) details.push(`Truk ${nopol}: tonase harus angka 0 atau lebih, mis. 12,5.`);
+      if (tonase === null) details.push(`Truk ${nopol}: tonase harus angka 0 atau lebih, paling banyak 3 angka di belakang koma, mis. 12,125.`);
       if (ongkos === null) details.push(`Truk ${nopol}: ongkos angkut harus angka rupiah.`);
       if (sangu === null) details.push(`Truk ${nopol}: saku supir harus angka rupiah.`);
-      if (terpal === null) details.push(`Truk ${nopol}: terpal harus angka rupiah.`);
+      if (terpalText !== '' && terpal === null) details.push(`Truk ${nopol}: terpal harus angka rupiah.`);
+      if (paguyubanText !== '' && paguyuban === null) details.push(`Truk ${nopol}: iuran paguyuban harus angka rupiah.`);
 
       return {
         id: Number(item.id),
@@ -121,7 +128,8 @@ export const actions: Actions = {
         tonase: tonase ?? 0,
         ongkos_angkut: ongkos ?? 0,
         sangu_supir: sangu ?? 0,
-        terpal: terpal ?? 0
+        terpal,
+        paguyuban
       };
     });
     if (details.length) return invalid(details);

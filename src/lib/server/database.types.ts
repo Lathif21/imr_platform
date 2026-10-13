@@ -856,7 +856,7 @@ export type Database = {
           id: number
           kapal_id: number
           keterangan: string | null
-          operasional: number
+          operasional: number | null
           rute: string | null
           sangu_supir: number | null
           tahun: number
@@ -878,7 +878,7 @@ export type Database = {
           id?: number
           kapal_id: number
           keterangan?: string | null
-          operasional?: number
+          operasional?: number | null
           rute?: string | null
           sangu_supir?: number | null
           tahun: number
@@ -900,7 +900,7 @@ export type Database = {
           id?: number
           kapal_id?: number
           keterangan?: string | null
-          operasional?: number
+          operasional?: number | null
           rute?: string | null
           sangu_supir?: number | null
           tahun?: number
@@ -1531,7 +1531,7 @@ export type Database = {
           tanggal_kegiatan: string | null
           tanggal_selesai: string | null
           telly_id: number | null
-          terpal: number
+          terpal: number | null
           tonase: number
           updated_at: string
           updated_by: string | null
@@ -1558,7 +1558,7 @@ export type Database = {
           tanggal_kegiatan?: string | null
           tanggal_selesai?: string | null
           telly_id?: number | null
-          terpal?: number
+          terpal?: number | null
           tonase?: number
           updated_at?: string
           updated_by?: string | null
@@ -1585,7 +1585,7 @@ export type Database = {
           tanggal_kegiatan?: string | null
           tanggal_selesai?: string | null
           telly_id?: number | null
-          terpal?: number
+          terpal?: number | null
           tonase?: number
           updated_at?: string
           updated_by?: string | null

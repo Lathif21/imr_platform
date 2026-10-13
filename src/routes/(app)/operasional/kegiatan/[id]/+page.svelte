@@ -8,6 +8,7 @@
   import { untrack } from 'svelte';
   import Lampiran from '$lib/components/Lampiran.svelte';
   import { enhance } from '$app/forms';
+  import { goto } from '$app/navigation';
   import { withFeedback } from '$lib/form-feedback';
   import { NAMA_BULAN, bacaAngka, pecahRute, ton } from '$lib/operasional/kegiatan';
   import { BTN_ICON_DANGER, BTN_PRIMARY, BTN_SOFT, FIELD, LABEL, SAVE_BAR, TEXTAREA } from '$lib/operasional/ui';
@@ -97,7 +98,7 @@
 
   const save = withFeedback({
     failTitle: 'Detail kegiatan gagal disimpan',
-    onSuccess: () => (baris = dariData()),
+    onSuccess: () => goto(kembaliHref),
     onPending: (pending) => (saving = pending)
   });
 </script>
@@ -147,9 +148,9 @@
             <input
               name="operasional"
               inputmode="numeric"
-              value={data.kegiatan.operasional ? new Intl.NumberFormat('id-ID').format(data.kegiatan.operasional) : ''}
+              value={data.kegiatan.operasional === null ? '' : new Intl.NumberFormat('id-ID').format(data.kegiatan.operasional)}
               oninput={format}
-              placeholder="0"
+              placeholder="Belum diisi"
               class="{FIELD} text-right num"
             />
           </label>

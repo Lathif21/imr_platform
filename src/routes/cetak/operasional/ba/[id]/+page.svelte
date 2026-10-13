@@ -4,7 +4,7 @@
   let { data }: { data: PageData } = $props();
 
   const rp = (v: number) => 'Rp ' + new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(v);
-  const n = (v: number, d = 0) => new Intl.NumberFormat('id-ID', { minimumFractionDigits: d, maximumFractionDigits: d }).format(v);
+  const n = (v: number, d = 0, maks = d) => new Intl.NumberFormat('id-ID', { minimumFractionDigits: d, maximumFractionDigits: maks }).format(v);
   const hariIni = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
 </script>
 
@@ -69,7 +69,7 @@
             <small>Telly Penanggung Jawab: {data.telly || '-'}</small>
           </td>
           <td class="c tebal">{n(data.item.party_kg)} KG</td>
-          <td class="c tebal">{n(data.item.party_kg / 1000, 2)} MT</td>
+          <td class="c tebal">{n(data.item.party_kg / 1000, 2, 3)} MT</td>
           <td class="r tebal">{rp(data.item.harga)}</td>
           <td class="r tebal">{rp(data.item.total)}</td>
         </tr>

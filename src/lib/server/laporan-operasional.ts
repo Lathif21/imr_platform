@@ -15,7 +15,8 @@ import { failLoad } from './operasional';
 // ---------------------------------------------------------------------------
 
 /**
- * Iuran per truck (paguyuban.total_bayar = tonase × tarif), grouped by the
+ * Iuran per truck (paguyuban.total_bayar, typed in Rincian Pembayaran Truk;
+ * tarif is derived as iuran ÷ tonase), grouped by the
  * ship's nama_paguyuban.
  *
  * Laravel listed only ships that have a nama_paguyuban, but no screen saves
@@ -269,7 +270,7 @@ export async function muatLaporanKeuangan(db: SupabaseClient, entityId: string, 
       .lt('tanggal', sampai)
       .order('tanggal')
       .order('id')
-      .returns<{ id: number; tanggal: string; kapal_id: number; kendaraan_id: number | null; pendapatan: string; sangu_supir: string; terpal: string; operasional: string }[]>(),
+      .returns<{ id: number; tanggal: string; kapal_id: number; kendaraan_id: number | null; pendapatan: string; sangu_supir: string; terpal: string | null; operasional: string }[]>(),
     db
       .from('pengeluaran')
       .select('id, tanggal, jenis, nama_kegiatan, penerima, jumlah')

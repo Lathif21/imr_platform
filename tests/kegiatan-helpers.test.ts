@@ -10,12 +10,15 @@ import { describe, expect, it } from 'vitest';
 import {
   bacaAngka,
   bacaRupiah,
+  bacaTonase,
   bulanIni,
   pecahRute,
   periodeDari,
   rentangBulan,
   rentangTanggal,
-  susunRute
+  susunRute,
+  ton,
+  tonaseSah
 } from '$lib/operasional/kegiatan';
 
 describe('rute', () => {
@@ -69,6 +72,28 @@ describe('angka', () => {
     ['abc', null]
   ])('bacaAngka(%s)', (raw, expected) => {
     expect(bacaAngka(raw)).toBe(expected);
+  });
+
+  it.each([
+    ['12,125', 12.125],
+    ['12.125', 12.125],
+    ['0,001', 0.001],
+    ['12', 12],
+    ['', 0],
+    ['12,1255', null],
+    ['abc', null]
+  ])('bacaTonase(%s) — paling banyak tiga desimal, tidak dibulatkan', (raw, expected) => {
+    expect(bacaTonase(raw)).toBe(expected);
+  });
+
+  it('tonaseSah: sisa pecahan dari rumus Excel tidak dianggap desimal keempat', () => {
+    expect(tonaseSah(10.1 + 2.2)).toBe(12.3);
+    expect(tonaseSah(12.1255)).toBeNull();
+  });
+
+  it('ton() menampilkan tiga desimal', () => {
+    expect(ton(12.125)).toBe('12,125');
+    expect(ton(12.5)).toBe('12,5');
   });
 });
 

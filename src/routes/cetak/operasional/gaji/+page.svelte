@@ -4,7 +4,7 @@
 
   let { data }: { data: PageData } = $props();
 
-  const n = (v: number, d = 0) => new Intl.NumberFormat('id-ID', { minimumFractionDigits: d, maximumFractionDigits: d }).format(v);
+  const n = (v: number, d = 0, maks = d) => new Intl.NumberFormat('id-ID', { minimumFractionDigits: d, maximumFractionDigits: maks }).format(v);
   const bulan = $derived(`${NAMA_BULAN[data.periode.bulan - 1]} ${data.periode.tahun}`);
   const jumlah = $derived(
     data.ringkas.reduce((a, r) => ({ kotor: a.kotor + r.gaji_kotor, pph: a.pph + r.pph, bersih: a.bersih + r.gaji_bersih }), { kotor: 0, pph: 0, bersih: 0 })
@@ -60,7 +60,7 @@
           <tr>
             <td class="b">{h.kegiatan}</td>
             <td>{h.rute ?? '-'}</td>
-            <td class="r">{n(h.tonase, 2)}</td>
+            <td class="r">{n(h.tonase, 2, 3)}</td>
             <td class="r">{n(h.gaji)}</td>
             <td class="r">{n(h.gaji_total)}</td>
             <td>{h.keterangan ?? ''}</td>
