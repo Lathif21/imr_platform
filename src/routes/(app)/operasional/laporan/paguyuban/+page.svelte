@@ -12,7 +12,7 @@
   const grupDipilih = $derived(data.grup.find((g) => g.kunci === data.dipilih) ?? null);
   const total = $derived(data.grup.reduce((a, g) => ({ t: a.t + g.transaksi, ton: a.ton + g.tonase, rp: a.rp + g.total }), { t: 0, ton: 0, rp: 0 }));
 
-  const TH = 'font-medium py-2.5 px-3 whitespace-nowrap';
+  const TH = 'font-semibold py-2.5 px-3 whitespace-nowrap';
   const TD = 'py-2.5 px-3 text-right num whitespace-nowrap';
 </script>
 
@@ -21,18 +21,18 @@
 <div class="p-4 sm:p-5 space-y-4">
   <div class="flex items-start justify-between gap-3 flex-wrap">
     <div>
-      <a href={data.dipilih ? `?${q}` : `/operasional/laporan?${q}`} class="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground">
+      <a href={data.dipilih ? `?${q}` : `/operasional/laporan?${q}`} class="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground">
         <ArrowLeft size={13} /> {data.dipilih ? 'Rekap per paguyuban' : 'Laporan'}
       </a>
-      <h1 class="text-[15px] font-semibold text-foreground mt-1">Laporan Paguyuban{grupDipilih ? ` · ${grupDipilih.nama}` : ''}</h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">Iuran paguyuban berdasarkan tonase · {namaBulan}</p>
+      <h1 class="text-[17px] font-semibold text-foreground mt-1">Laporan Paguyuban{grupDipilih ? ` · ${grupDipilih.nama}` : ''}</h1>
+      <p class="text-[13px] text-muted-foreground mt-0.5">Iuran paguyuban berdasarkan tonase · {namaBulan}</p>
     </div>
     <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
   </div>
 
   {#if !data.dipilih}
     <div class="bg-card border border-border rounded-lg overflow-x-auto">
-      <table class="w-full min-w-[700px] text-[12px]">
+      <table class="w-full min-w-[700px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
             <th class="{TH} text-left">Paguyuban</th>
@@ -70,15 +70,15 @@
         {/if}
       </table>
     </div>
-    <p class="text-[11px] text-muted-foreground">
+    <p class="text-[12px] text-muted-foreground">
       Iuran dihitung otomatis saat rincian truk disimpan: tonase × tarif (Rp 500/ton bila belum disesuaikan).
       Kapal tanpa nama paguyuban dikelompokkan di "(Tanpa nama paguyuban)".
     </p>
   {:else}
     <div class="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4 items-start">
       <div class="bg-card border border-border rounded-lg overflow-hidden">
-        <div class="px-3 py-2.5 border-b border-border text-[13px] font-semibold text-foreground">Daftar Kapal Tergabung</div>
-        <table class="w-full text-[12px]">
+        <div class="px-3 py-2.5 border-b border-border text-[14px] font-semibold text-foreground">Daftar Kapal Tergabung</div>
+        <table class="w-full text-[13px]">
           <thead><tr class="text-muted-foreground border-b border-border"><th class="{TH} text-left">Nama Kapal</th><th class="{TH} text-right">Kapasitas</th><th class="{TH} text-right">Biaya</th></tr></thead>
           <tbody>
             {#each data.kapalGrup as k (k.nama_kapal)}
@@ -90,7 +90,7 @@
         </table>
       </div>
       <div class="bg-card border border-border rounded-lg overflow-x-auto">
-        <table class="w-full min-w-[600px] text-[12px]">
+        <table class="w-full min-w-[600px] text-[13px]">
           <thead>
             <tr class="text-muted-foreground border-b border-border">
               <th class="{TH} text-left">Tanggal</th><th class="{TH} text-left">Kapal</th><th class="{TH} text-left">Kendaraan</th>

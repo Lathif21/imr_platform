@@ -6,7 +6,7 @@
   import { enhance } from '$app/forms';
   import { withFeedback } from '$lib/form-feedback';
   import { NAMA_BULAN, bacaAngka, bacaRupiah, ton } from '$lib/operasional/kegiatan';
-  import { BTN_PRIMARY, BTN_SOFT, FIELD, rupiah } from '$lib/operasional/ui';
+  import { BTN_PRIMARY, BTN_SOFT, FIELD, SAVE_BAR, rupiah } from '$lib/operasional/ui';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -76,7 +76,7 @@
   });
 
   const INPUT = `${FIELD} text-right num h-[30px] px-2`;
-  const TH = 'font-medium py-2 px-2';
+  const TH = 'font-semibold py-2 px-2';
 </script>
 
 <svelte:head><title>Rincian Pembayaran Truk · {data.kegiatan.nama_kapal} · IMR Platform</title></svelte:head>
@@ -84,44 +84,48 @@
 <div class="p-4 sm:p-5 space-y-4">
   <div class="flex items-start justify-between gap-3 flex-wrap">
     <div>
-      <a href={kembaliHref} class="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground">
+      <a href={kembaliHref} class="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground">
         <ArrowLeft size={13} /> Detail Kegiatan Kapal
       </a>
-      <h1 class="text-[15px] font-semibold text-foreground mt-1 inline-flex items-center gap-2">
+      <h1 class="text-[17px] font-semibold text-foreground mt-1 inline-flex items-center gap-2">
         <Wallet size={15} class="text-muted-foreground" />
         Rincian Pembayaran Truk · {data.kegiatan.nama_kapal}
       </h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">
+      <p class="text-[13px] text-muted-foreground mt-0.5">
         {NAMA_BULAN[data.kegiatan.bulan - 1]}
         {data.kegiatan.tahun} · {data.kegiatan.rute ?? '-'} · {baris.length} truk
       </p>
     </div>
-    <div class="flex items-center gap-2 flex-wrap">
-      {#if data.canWrite && baris.length > 0}
-        <label class="sr-only" for="ongkos-semua">Ongkos angkut untuk semua truk</label>
-        <input
-          id="ongkos-semua"
-          value={ongkosSemua}
-          oninput={(e) => (ongkosSemua = rp(e.currentTarget.value))}
-          inputmode="numeric"
-          placeholder="Ongkos / ton untuk semua"
-          class="{FIELD} w-[190px] text-right num"
-        />
-        <button type="button" onclick={terapkanOngkos} disabled={!ongkosSemua} class={BTN_SOFT}>Terapkan</button>
-      {/if}
-      <a href="/operasional/kegiatan/{data.kegiatan.id}?{entityQuery}" class={BTN_SOFT}>
-        <ClipboardList size={14} /> Lengkapi Data
-      </a>
-    </div>
+    <a href="/operasional/kegiatan/{data.kegiatan.id}?{entityQuery}" class={BTN_SOFT}>
+      <ClipboardList size={14} /> Lengkapi Data
+    </a>
   </div>
 
   <form method="POST" action="?/simpan" use:enhance={save} class="space-y-4">
     <input type="hidden" name="truk" value={trukJson} />
 
     <div class="bg-card border border-border rounded-lg overflow-hidden">
+      {#if data.canWrite && baris.length > 0}
+        <!-- Fills one column for every truck at once; it sits on the table it
+             changes, not in the page header. -->
+        <div class="flex items-center gap-2 flex-wrap px-4 py-3 border-b border-border">
+          <label for="ongkos-semua" class="text-[13px] font-medium text-foreground">Ongkos angkut / ton untuk semua truk</label>
+          <div class="w-[170px]">
+            <input
+              id="ongkos-semua"
+              value={ongkosSemua}
+              oninput={(e) => (ongkosSemua = rp(e.currentTarget.value))}
+              inputmode="numeric"
+              placeholder="0"
+              class="{FIELD} text-right num"
+            />
+          </div>
+          <button type="button" onclick={terapkanOngkos} disabled={!ongkosSemua} class={BTN_SOFT}>Terapkan</button>
+        </div>
+      {/if}
       <div class="overflow-x-auto">
         <fieldset disabled={!data.canWrite}>
-          <table class="w-full min-w-[1120px] text-[12px]">
+          <table class="w-full min-w-[1120px] text-[13px]">
             <thead>
               <tr class="text-muted-foreground border-b border-border">
                 <th class="{TH} text-center w-[36px]">#</th>
@@ -176,7 +180,7 @@
                 </tr>
               {:else}
                 <tr>
-                  <td colspan="10" class="py-10 px-4 text-center text-[12px] text-muted-foreground">
+                  <td colspan="10" class="py-10 px-4 text-center text-[13px] text-muted-foreground">
                     Belum ada truk pada kegiatan ini.
                     <a href="/operasional/kegiatan/{data.kegiatan.id}?{entityQuery}" class="text-primary hover:underline">Isi daftar truk</a>
                     di Lengkapi Data lebih dulu.
@@ -201,14 +205,14 @@
           </table>
         </fieldset>
       </div>
-      <p class="px-4 py-2.5 text-[11px] text-muted-foreground border-t border-border">
+      <p class="px-4 py-2.5 text-[12px] text-muted-foreground border-t border-border">
         Beban rekanan = tonase × ongkos angkut per ton, dibayarkan ke pemilik truk. Iuran paguyuban = tonase × tarif
         (Rp 500/ton bila belum disesuaikan) dan masih bisa dikoreksi di laporan keuangan.
       </p>
     </div>
 
     {#if data.canWrite && baris.length > 0}
-      <div class="flex justify-end gap-2">
+      <div class={SAVE_BAR}>
         <a href={kembaliHref} class={BTN_SOFT}>Kembali</a>
         <button type="submit" disabled={saving} class={BTN_PRIMARY}>
           {saving ? 'Menyimpan…' : 'Simpan Rincian Pembayaran'}

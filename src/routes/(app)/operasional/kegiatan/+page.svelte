@@ -40,7 +40,7 @@
     goto(url, { keepFocus: true, noScroll: true });
   }
 
-  const TH = 'font-medium py-2.5 px-3';
+  const TH = 'font-semibold py-2.5 px-3';
   const TD_NUM = 'py-2.5 px-3 text-right num whitespace-nowrap';
 </script>
 
@@ -49,8 +49,8 @@
 <div class="p-4 sm:p-5 space-y-4">
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <div>
-      <h1 class="text-[15px] font-semibold text-foreground">Detail Kegiatan Kapal</h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">
+      <h1 class="text-[17px] font-semibold text-foreground">Detail Kegiatan Kapal</h1>
+      <p class="text-[13px] text-muted-foreground mt-0.5">
         Rekap biaya per kegiatan · {NAMA_BULAN[data.periode.bulan - 1]}
         {data.periode.tahun} · {data.baris.length} kegiatan
       </p>
@@ -62,7 +62,7 @@
         id="filter-kapal"
         value={data.kapalFilter ?? ''}
         onchange={pilihKapal}
-        class="h-[30px] px-2 bg-background border border-border rounded-md text-[12px] text-foreground focus:outline-none focus:border-primary max-w-[200px]"
+        class="h-[30px] px-2 bg-background border border-border rounded-md text-[13px] text-foreground focus:outline-none focus:border-primary max-w-[200px]"
       >
         <option value="">Semua kapal</option>
         {#each data.kapalBulanIni as k (k.id)}<option value={k.id}>{k.nama}</option>{/each}
@@ -83,7 +83,7 @@
 
   <div class="bg-card border border-border rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[1080px] text-[12px]">
+      <table class="w-full min-w-[1080px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
             <th class="{TH} text-left">Kapal</th>
@@ -106,7 +106,7 @@
                   <Ship size={13} class="text-muted-foreground" />
                   {row.nama_kapal}
                 </div>
-                <div class="text-[11px] text-muted-foreground mt-0.5 pl-5 num">
+                <div class="text-[12px] text-muted-foreground mt-0.5 pl-5 num">
                   {rentangTanggal(row.tanggal_kegiatan, row.tanggal_selesai)}
                 </div>
               </td>
@@ -132,14 +132,14 @@
                 <div class="flex justify-end gap-1">
                   <a
                     href="/operasional/kegiatan/{row.id}?{entityQuery}"
-                    class="h-[28px] px-2.5 rounded-md bg-primary/10 text-primary text-[11px] font-medium inline-flex items-center gap-1.5 hover:bg-primary/15 whitespace-nowrap"
+                    class="h-[28px] px-2.5 rounded-md bg-primary/10 text-primary text-[12px] font-medium inline-flex items-center gap-1.5 hover:bg-primary/15 whitespace-nowrap"
                   >
                     <ClipboardList size={13} />
                     {data.canWrite ? 'Lengkapi Data' : 'Rincian'}
                   </a>
                   <a
                     href="/operasional/kegiatan/{row.id}/pembayaran?{entityQuery}"
-                    class="h-[28px] px-2.5 rounded-md border border-border text-[11px] font-medium inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:bg-muted whitespace-nowrap {row.jumlah_truk === 0 ? 'opacity-50 pointer-events-none' : ''}"
+                    class="h-[28px] px-2.5 rounded-md border border-border text-[12px] font-medium inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:bg-muted whitespace-nowrap {row.jumlah_truk === 0 ? 'opacity-50 pointer-events-none' : ''}"
                     aria-disabled={row.jumlah_truk === 0}
                     title={row.jumlah_truk === 0 ? 'Isi daftar truk di Lengkapi Data lebih dulu' : 'Rincian Pembayaran Truk'}
                   >
@@ -150,7 +150,7 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="10" class="py-10 px-4 text-center text-[12px] text-muted-foreground">
+              <td colspan="10" class="py-10 px-4 text-center text-[13px] text-muted-foreground">
                 Belum ada kegiatan kapal untuk {NAMA_BULAN[data.periode.bulan - 1]} {data.periode.tahun}.
                 {#if data.canWrite}<a href={tambahHref} class="text-primary hover:underline">Tambah kegiatan</a>{/if}
               </td>

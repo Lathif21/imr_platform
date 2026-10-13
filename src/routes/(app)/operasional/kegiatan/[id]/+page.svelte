@@ -9,7 +9,7 @@
   import { enhance } from '$app/forms';
   import { withFeedback } from '$lib/form-feedback';
   import { NAMA_BULAN, bacaAngka, pecahRute, ton } from '$lib/operasional/kegiatan';
-  import { BTN_ICON_DANGER, BTN_PRIMARY, BTN_SOFT, FIELD, LABEL, TEXTAREA } from '$lib/operasional/ui';
+  import { BTN_ICON_DANGER, BTN_PRIMARY, BTN_SOFT, FIELD, LABEL, SAVE_BAR, TEXTAREA } from '$lib/operasional/ui';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -106,14 +106,14 @@
 <div class="p-4 sm:p-5 space-y-4 max-w-[1100px]">
   <div class="flex items-start justify-between gap-3 flex-wrap">
     <div>
-      <a href={kembaliHref} class="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground">
+      <a href={kembaliHref} class="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground">
         <ArrowLeft size={13} /> Detail Kegiatan Kapal
       </a>
-      <h1 class="text-[15px] font-semibold text-foreground mt-1 inline-flex items-center gap-2">
+      <h1 class="text-[17px] font-semibold text-foreground mt-1 inline-flex items-center gap-2">
         <Ship size={15} class="text-muted-foreground" />
         {data.canWrite ? 'Lengkapi Data Kegiatan' : 'Rincian Kegiatan'} · {data.kegiatan.nama_kapal}
       </h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">
+      <p class="text-[13px] text-muted-foreground mt-0.5">
         {NAMA_BULAN[data.kegiatan.bulan - 1]}
         {data.kegiatan.tahun} · rute, biaya operasional, petugas telly, dan armada truk
       </p>
@@ -131,7 +131,7 @@
 
     <fieldset disabled={!data.canWrite} class="space-y-4">
       <section class="bg-card border border-border rounded-lg p-4 space-y-3">
-        <h2 class="text-[13px] font-semibold text-foreground">Data Kegiatan</h2>
+        <h2 class="text-[14px] font-semibold text-foreground">Data Kegiatan</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <label class="block">
             <span class={LABEL}>Rute asal</span>
@@ -178,37 +178,39 @@
           <span class={LABEL}>Keterangan <span class="text-subtle">(opsional)</span></span>
           <textarea name="keterangan" value={data.kegiatan.keterangan ?? ''} class={TEXTAREA}></textarea>
         </label>
-        <p class="text-[11px] text-muted-foreground">
+        <p class="text-[12px] text-muted-foreground">
           Honor telly dihitung otomatis: tonase kegiatan × tarif telly petugas (Rp 400/ton bila tarifnya belum diisi).
         </p>
       </section>
 
       <section class="bg-card border border-border rounded-lg overflow-hidden">
         <div class="flex items-center justify-between gap-3 flex-wrap px-4 py-3 border-b border-border">
-          <h2 class="text-[13px] font-semibold text-foreground inline-flex items-center gap-2">
+          <h2 class="text-[14px] font-semibold text-foreground inline-flex items-center gap-2">
             <Truck size={14} class="text-muted-foreground" /> Armada Truk
           </h2>
           {#if data.canWrite}
             <div class="flex items-center gap-2 flex-wrap">
               <label class="sr-only" for="pemilik-massal">Pemilik</label>
-              <select id="pemilik-massal" bind:value={pemilikMassal} class="{FIELD} w-[220px]">
-                <option value="">Tambah semua truk milik…</option>
-                {#each data.pemilik as p (p.id)}<option value={String(p.id)}>{p.nama}</option>{/each}
-              </select>
+              <div class="w-[220px]">
+                <select id="pemilik-massal" bind:value={pemilikMassal} class={FIELD}>
+                  <option value="">Tambah semua truk milik…</option>
+                  {#each data.pemilik as p (p.id)}<option value={String(p.id)}>{p.nama}</option>{/each}
+                </select>
+              </div>
               <button type="button" onclick={tambahTrukPemilik} disabled={!pemilikMassal} class={BTN_SOFT}>Tambahkan</button>
             </div>
           {/if}
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full min-w-[760px] text-[12px]">
+          <table class="w-full min-w-[760px] text-[13px]">
             <thead>
               <tr class="text-muted-foreground border-b border-border">
-                <th class="font-medium py-2 px-3 text-center w-[40px]">#</th>
-                <th class="font-medium py-2 px-3 text-left w-[180px]">Plat Nomor (Nopol)</th>
-                <th class="font-medium py-2 px-3 text-left">Pemilik Kendaraan</th>
-                <th class="font-medium py-2 px-3 text-right w-[110px]">Ritase</th>
-                <th class="font-medium py-2 px-3 text-right w-[140px]">Tonase (MT)</th>
+                <th class="font-semibold py-2 px-3 text-center w-[40px]">#</th>
+                <th class="font-semibold py-2 px-3 text-left w-[180px]">Plat Nomor (Nopol)</th>
+                <th class="font-semibold py-2 px-3 text-left">Pemilik Kendaraan</th>
+                <th class="font-semibold py-2 px-3 text-right w-[110px]">Ritase</th>
+                <th class="font-semibold py-2 px-3 text-right w-[140px]">Tonase (MT)</th>
                 <th class="w-[48px]"></th>
               </tr>
             </thead>
@@ -267,7 +269,7 @@
                 </tr>
               {:else}
                 <tr>
-                  <td colspan="6" class="py-8 px-4 text-center text-[12px] text-muted-foreground">
+                  <td colspan="6" class="py-8 px-4 text-center text-[13px] text-muted-foreground">
                     Belum ada truk pada kegiatan ini.
                   </td>
                 </tr>
@@ -277,7 +279,7 @@
               <tr class="border-t border-border bg-muted/40 font-semibold text-foreground">
                 <td class="py-2 px-3" colspan="3">
                   {#if data.canWrite}
-                    <button type="button" onclick={() => (baris = [...baris, kosong()])} class="{BTN_SOFT} h-[28px] px-3 text-[12px]">
+                    <button type="button" onclick={() => (baris = [...baris, kosong()])} class="{BTN_SOFT} h-[28px] px-3 text-[13px]">
                       <Plus size={13} /> Tambah truk
                     </button>
                   {/if}
@@ -290,7 +292,7 @@
             </tfoot>
           </table>
         </div>
-        <p class="px-4 py-2.5 text-[11px] text-muted-foreground border-t border-border">
+        <p class="px-4 py-2.5 text-[12px] text-muted-foreground border-t border-border">
           Truk yang sudah terdaftar tetap pada pemiliknya — ubah pemilik di Master Kendaraan. Ongkos angkut, saku
           supir, dan terpal diisi di Rincian Pembayaran Truk.
         </p>
@@ -298,7 +300,7 @@
     </fieldset>
 
     {#if data.canWrite}
-      <div class="flex justify-end gap-2">
+      <div class={SAVE_BAR}>
         <a href={kembaliHref} class={BTN_SOFT}>Kembali</a>
         <button type="submit" disabled={saving} class={BTN_PRIMARY}>
           {saving ? 'Menyimpan…' : 'Simpan Detail Kegiatan'}

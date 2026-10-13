@@ -95,8 +95,8 @@
 <div class="p-4 sm:p-5 space-y-4">
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <div>
-      <h1 class="text-[15px] font-semibold text-foreground">Database General</h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">
+      <h1 class="text-[17px] font-semibold text-foreground">Database General</h1>
+      <p class="text-[13px] text-muted-foreground mt-0.5">
         Data kegiatan kapal · {NAMA_BULAN[data.periode.bulan - 1]}
         {data.periode.tahun} · {data.kegiatan.length} kegiatan
       </p>
@@ -122,7 +122,7 @@
   </div>
 
   {#if data.trukTanpaKegiatan > 0}
-    <div class="flex gap-2 items-start rounded-lg border border-warning/40 bg-warning/10 px-3 py-2.5 text-[12px] text-foreground">
+    <div class="flex gap-2 items-start rounded-lg border border-warning/40 bg-warning/10 px-3 py-2.5 text-[13px] text-foreground">
       <TriangleAlert size={14} class="mt-0.5 shrink-0 text-warning" />
       <p>
         Ada {data.trukTanpaKegiatan} rincian truk di bulan ini yang tidak terhubung ke kegiatan kapal mana pun
@@ -134,16 +134,16 @@
 
   <div class="bg-card border border-border rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[860px] text-[12px]">
+      <table class="w-full min-w-[860px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
-            <th class="text-center font-medium py-2.5 px-3 w-[44px]">No</th>
-            <th class="text-left font-medium py-2.5 px-3">Tanggal Input</th>
-            <th class="text-left font-medium py-2.5 px-3">Tanggal Kegiatan</th>
-            <th class="text-left font-medium py-2.5 px-3">Nama Kapal / VOY</th>
-            <th class="text-left font-medium py-2.5 px-3">Truk</th>
-            <th class="text-left font-medium py-2.5 px-3">Status Pengisian Data</th>
-            <th class="text-right font-medium py-2.5 px-3">Aksi</th>
+            <th class="text-center font-semibold py-2.5 px-3 w-[44px]">No</th>
+            <th class="text-left font-semibold py-2.5 px-3">Tanggal Input</th>
+            <th class="text-left font-semibold py-2.5 px-3">Tanggal Kegiatan</th>
+            <th class="text-left font-semibold py-2.5 px-3">Nama Kapal / VOY</th>
+            <th class="text-left font-semibold py-2.5 px-3">Truk</th>
+            <th class="text-left font-semibold py-2.5 px-3">Status Pengisian Data</th>
+            <th class="text-right font-semibold py-2.5 px-3">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -159,12 +159,12 @@
                   <Ship size={13} class="text-muted-foreground" />
                   {row.nama_kapal}
                 </div>
-                <div class="text-[11px] text-muted-foreground mt-0.5 pl-5">{row.rute ?? '-'}</div>
+                <div class="text-[12px] text-muted-foreground mt-0.5 pl-5">{row.rute ?? '-'}</div>
               </td>
               <td class="py-2.5 px-3">
                 {#if row.jumlah_truk > 0}
                   <div class="num">{row.jumlah_truk} truk · {ton(row.tonase)} MT</div>
-                  <div class="text-[11px] text-muted-foreground mt-0.5 max-w-[240px] truncate" title={row.pemilik.join(', ')}>
+                  <div class="text-[12px] text-muted-foreground mt-0.5 max-w-[240px] truncate" title={row.pemilik.join(', ')}>
                     {row.pemilik.join(', ') || '—'}
                   </div>
                 {:else}
@@ -173,11 +173,11 @@
               </td>
               <td class="py-2.5 px-3">
                 {#if lengkap(row)}
-                  <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-positive/10 text-positive text-[11px] font-medium">
+                  <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-positive/10 text-positive text-[12px] font-medium">
                     <span class="h-1.5 w-1.5 rounded-full bg-positive"></span> Sudah Lengkap
                   </span>
                 {:else}
-                  <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-warning/15 text-warning text-[11px] font-medium">
+                  <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-warning/15 text-warning text-[12px] font-medium">
                     <span class="h-1.5 w-1.5 rounded-full bg-warning"></span> Belum Lengkap
                   </span>
                 {/if}
@@ -197,7 +197,7 @@
                   {/if}
                   <a
                     href="/operasional/kegiatan/{row.id}?{entityQuery}"
-                    class="h-[28px] px-2.5 rounded-md bg-primary/10 text-primary text-[11px] font-medium inline-flex items-center gap-1.5 hover:bg-primary/15"
+                    class="h-[28px] px-2.5 rounded-md bg-primary/10 text-primary text-[12px] font-medium inline-flex items-center gap-1.5 hover:bg-primary/15"
                   >
                     <ClipboardList size={13} />
                     {data.canWrite ? 'Lengkapi Data' : 'Lihat Rincian'}
@@ -215,7 +215,7 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="7" class="py-10 px-4 text-center text-[12px] text-muted-foreground">
+              <td colspan="7" class="py-10 px-4 text-center text-[13px] text-muted-foreground">
                 {#if query}
                   Tidak ada kegiatan yang cocok dengan "{query}".
                 {:else}
@@ -253,7 +253,7 @@
           placeholder="Ketik atau pilih nama kapal…"
           class={FIELD}
         />
-        <span class="block text-[11px] text-subtle mt-1">Nama baru otomatis ditambahkan ke Master Kapal.</span>
+        <span class="block text-[12px] text-subtle mt-1">Nama baru otomatis ditambahkan ke Master Kapal.</span>
       </label>
       <div class="grid grid-cols-[1fr_96px] gap-2">
         <label class="block">
@@ -297,7 +297,7 @@
         <textarea name="keterangan" class={TEXTAREA}></textarea>
       </label>
     {:else}
-      <p class="text-[11px] text-muted-foreground">
+      <p class="text-[12px] text-muted-foreground">
         Rincian truk kegiatan ini ikut pindah ke kapal dan bulan yang baru.
       </p>
     {/if}

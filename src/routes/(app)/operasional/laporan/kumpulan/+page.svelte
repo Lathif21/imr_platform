@@ -63,7 +63,7 @@
     onPending: (p) => (saving = p)
   });
 
-  const IN = 'h-[28px] w-full px-2 bg-background border border-border rounded-md text-[12px] text-foreground focus:outline-none focus:border-primary';
+  const IN = 'h-[28px] w-full px-2 bg-background border border-border rounded-md text-[13px] text-foreground focus:outline-none focus:border-primary';
 </script>
 
 <svelte:head><title>Kumpulan Laporan · Operasional · IMR Platform</title></svelte:head>
@@ -71,9 +71,9 @@
 <div class="p-4 sm:p-5 space-y-4">
   <div class="flex items-start justify-between gap-3 flex-wrap">
     <div>
-      <a href="/operasional/laporan?{q}" class="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground"><ArrowLeft size={13} /> Laporan</a>
-      <h1 class="text-[15px] font-semibold text-foreground mt-1">Kumpulan Laporan Operasional &amp; Laba Rugi</h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">
+      <a href="/operasional/laporan?{q}" class="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground"><ArrowLeft size={13} /> Laporan</a>
+      <h1 class="text-[17px] font-semibold text-foreground mt-1">Kumpulan Laporan Operasional &amp; Laba Rugi</h1>
+      <p class="text-[13px] text-muted-foreground mt-0.5">
         {namaBulan} ·
         {#if data.kumpulan?.disimpan}
           versi tersimpan manual, {new Date(data.kumpulan.disimpan).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Jakarta' })}
@@ -97,7 +97,7 @@
   </div>
 
   {#if data.kumpulan?.tanpaKegiatan.length}
-    <div class="flex gap-2 items-start rounded-lg border border-warning/40 bg-warning/10 px-3 py-2.5 text-[12px] text-foreground">
+    <div class="flex gap-2 items-start rounded-lg border border-warning/40 bg-warning/10 px-3 py-2.5 text-[13px] text-foreground">
       <TriangleAlert size={14} class="mt-0.5 shrink-0 text-warning" />
       <p>
         {data.kumpulan.tanpaKegiatan.length} invoice lunas tidak tertaut ke kegiatan kapal ({data.kumpulan.tanpaKegiatan.join(', ')}), sehingga
@@ -109,14 +109,14 @@
   <fieldset disabled={!data.canWrite} class="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4 items-start">
     <section class="space-y-3">
       <div class="flex items-center justify-between">
-        <h2 class="text-[13px] font-semibold text-foreground">Rincian Kegiatan Operasional</h2>
+        <h2 class="text-[14px] font-semibold text-foreground">Rincian Kegiatan Operasional</h2>
         {#if data.canWrite}
-          <button type="button" onclick={() => (isi.cards = [...isi.cards, kartuBaru()])} class="{BTN_SOFT} h-[28px] px-3 text-[12px]"><Plus size={13} /> Tambah kartu</button>
+          <button type="button" onclick={() => (isi.cards = [...isi.cards, kartuBaru()])} class="{BTN_SOFT} h-[28px] px-3 text-[13px]"><Plus size={13} /> Tambah kartu</button>
         {/if}
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         {#each isi.cards as c, i (i)}
-          <div class="bg-card border border-border rounded-lg p-3 space-y-1.5 text-[12px]">
+          <div class="bg-card border border-border rounded-lg p-3 space-y-1.5 text-[13px]">
             <div class="flex gap-1.5">
               <input bind:value={c.kegiatan} placeholder="NAMA KAPAL / KEGIATAN" aria-label="Kapal kartu {i + 1}" class="{IN} font-semibold uppercase" />
               {#if data.canWrite}
@@ -139,15 +139,15 @@
             </div>
           </div>
         {:else}
-          <p class="md:col-span-2 bg-card border border-border rounded-lg py-8 text-center text-[12px] text-muted-foreground">
+          <p class="md:col-span-2 bg-card border border-border rounded-lg py-8 text-center text-[13px] text-muted-foreground">
             Belum ada invoice lunas untuk {namaBulan}. Kumpulan hanya memuat invoice yang sudah dibayar.
           </p>
         {/each}
       </div>
     </section>
 
-    <section class="bg-card border border-border rounded-lg p-4 text-[12px] space-y-1.5">
-      <h2 class="text-[13px] font-semibold text-foreground text-center">Laporan Laba Rugi</h2>
+    <section class="bg-card border border-border rounded-lg p-4 text-[13px] space-y-1.5">
+      <h2 class="text-[14px] font-semibold text-foreground text-center">Laporan Laba Rugi</h2>
       <p class="text-center text-muted-foreground">{data.opEntity?.legal_name} · {namaBulan}</p>
       <div class="pt-2 font-semibold text-foreground">PENDAPATAN</div>
       {#each [['Tagihan Wilmar', lr.tagihan_wilmar], ['Pajak (0,5%)', lr.pajak], ['Rekanan', lr.rekanan], ['PBM', lr.pbm], ['Terpal (50%)', lr.terpal_50], ['Operasional Telly', lr.operasional_telly]] as [label, v] (label)}
@@ -162,14 +162,14 @@
         </label>
       {/each}
       <div class="flex justify-between font-semibold text-destructive border-t border-border pt-1.5"><span>Pengeluaran Total</span><span class="num">{rupiah(lr.total_pengeluaran)}</span></div>
-      <div class="flex justify-between font-semibold text-[14px] pt-2 {lr.pendapatan_bersih < 0 ? 'text-destructive' : 'text-positive'}">
+      <div class="flex justify-between font-semibold text-[15px] pt-2 {lr.pendapatan_bersih < 0 ? 'text-destructive' : 'text-positive'}">
         <span>Pendapatan Bersih</span><span class="num">{rupiah(lr.pendapatan_bersih)}</span>
       </div>
       <label class="block pt-3">
-        <span class="text-[11px] text-muted-foreground">Catatan</span>
+        <span class="text-[12px] text-muted-foreground">Catatan</span>
         <textarea bind:value={isi.notes} class={TEXTAREA}></textarea>
       </label>
-      <p class="text-[11px] text-muted-foreground leading-relaxed pt-1">
+      <p class="text-[12px] text-muted-foreground leading-relaxed pt-1">
         Laporan operasional internal. Laba rugi resmi entitas dihitung di Laporan P&amp;L portal keuangan.
       </p>
     </section>

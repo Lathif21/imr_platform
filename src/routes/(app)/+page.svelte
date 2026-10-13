@@ -185,7 +185,7 @@
   }
 
   const SELECT =
-    'h-[30px] pl-3 pr-2 bg-card border border-border rounded-lg text-[13px] text-foreground ' +
+    'h-[30px] pl-3 pr-2 bg-card border border-border rounded-lg text-[14px] text-foreground ' +
     'tabular-nums hover:bg-muted transition-colors focus:outline-none focus:border-primary';
 
   const submitOnChange = (event: Event) =>
@@ -217,15 +217,15 @@
 {#if data.scoped}
   <div class="flex flex-col h-full">
     <div class="h-12 flex items-center px-4 sm:px-5 border-b border-border shrink-0">
-      <h1 class="text-[13px] font-semibold text-foreground">Dasbor Eksekutif</h1>
+      <h1 class="text-[14px] font-semibold text-foreground">Dasbor Eksekutif</h1>
     </div>
     <div class="flex-1 p-4 sm:p-5">
       <div class="max-w-[520px] bg-card border border-border rounded-lg p-5">
         <div class="flex items-center gap-2 mb-2">
           <Lock size={14} class="text-muted-foreground" />
-          <h2 class="text-[13px] font-semibold text-foreground">Tidak tersedia untuk peran Anda</h2>
+          <h2 class="text-[14px] font-semibold text-foreground">Tidak tersedia untuk peran Anda</h2>
         </div>
-        <p class="text-[12px] text-muted-foreground leading-relaxed">
+        <p class="text-[13px] text-muted-foreground leading-relaxed">
           Dasbor ini menampilkan angka konsolidasi seluruh grup. Akses Anda terbatas pada entitas
           yang ditugaskan kepada Anda, dan total grup yang dihitung dari sebagian entitas bukan
           versi kecil dari angka sebenarnya — itu angka yang berbeda.
@@ -242,12 +242,12 @@
 {:else if !data.period}
   <div class="flex flex-col h-full">
     <div class="h-12 flex items-center px-4 sm:px-5 border-b border-border shrink-0">
-      <h1 class="text-[13px] font-semibold text-foreground">Dasbor Eksekutif</h1>
+      <h1 class="text-[14px] font-semibold text-foreground">Dasbor Eksekutif</h1>
     </div>
     <div class="flex-1 p-4 sm:p-5">
       <div class="max-w-[520px] bg-card border border-border rounded-lg p-5">
-        <h2 class="text-[13px] font-semibold text-foreground mb-2">Belum ada periode</h2>
-        <p class="text-[12px] text-muted-foreground leading-relaxed">
+        <h2 class="text-[14px] font-semibold text-foreground mb-2">Belum ada periode</h2>
+        <p class="text-[13px] text-muted-foreground leading-relaxed">
           Belum ada satu pun periode pelaporan yang dibuat. Angka konsolidasi akan muncul setelah
           entitas mengisi dan laporannya disetujui.
         </p>
@@ -259,8 +259,8 @@
     <!-- header · 48px -->
     <div class="h-12 flex items-center justify-between px-4 sm:px-5 border-b border-border shrink-0 gap-3">
       <div class="flex items-center gap-3 min-w-0">
-        <h1 class="text-[13px] font-semibold text-foreground truncate">Dasbor Eksekutif</h1>
-        <span class="text-[11px] text-muted-foreground truncate hidden sm:inline">
+        <h1 class="text-[14px] font-semibold text-foreground truncate">Dasbor Eksekutif</h1>
+        <span class="text-[12px] text-muted-foreground truncate hidden sm:inline">
           Grup Holding · Konsolidasi · {data.rangeLabel}
         </span>
       </div>
@@ -281,7 +281,7 @@
             <a
               href={modeHref(option.mode)}
               aria-current={active ? 'true' : undefined}
-              class="h-[26px] px-3 inline-flex items-center rounded-md text-[12px] transition-colors
+              class="h-[26px] px-3 inline-flex items-center rounded-md text-[13px] transition-colors
                      {active
                 ? 'bg-primary text-primary-foreground font-medium'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted'}"
@@ -302,7 +302,7 @@
               {/each}
             </select>
           {:else if data.range?.mode === 'custom'}
-            <label for="dari" class="text-[12px] text-muted-foreground">Dari</label>
+            <label for="dari" class="text-[13px] text-muted-foreground">Dari</label>
             <select id="dari" name="dari" class={SELECT}>
               {#each monthOptions as month (month)}
                 <option value={periodToMonth(month)} selected={month === data.range.from}>
@@ -310,7 +310,7 @@
                 </option>
               {/each}
             </select>
-            <label for="sampai" class="text-[12px] text-muted-foreground">sampai</label>
+            <label for="sampai" class="text-[13px] text-muted-foreground">sampai</label>
             <select id="sampai" name="sampai" class={SELECT}>
               {#each monthOptions as month (month)}
                 <option value={periodToMonth(month)} selected={month === data.range.to}>
@@ -320,7 +320,7 @@
             </select>
             <button
               type="submit"
-              class="h-[30px] px-3 rounded-lg bg-primary text-[12px] font-medium text-primary-foreground
+              class="h-[30px] px-3 rounded-lg bg-primary text-[13px] font-medium text-primary-foreground
                      hover:bg-accent transition-colors"
             >
               Terapkan
@@ -343,7 +343,7 @@
           {/if}
         </form>
 
-        <p class="text-[11px] text-subtle">
+        <p class="text-[12px] text-subtle">
           Dibandingkan dengan {data.priorLabel} ({tag})
         </p>
       </div>
@@ -356,7 +356,7 @@
           role="status"
         >
           <TriangleAlert size={14} class="text-warning shrink-0 mt-px" />
-          <p class="text-[13px] text-warning flex-1 leading-relaxed">
+          <p class="text-[14px] text-warning flex-1 leading-relaxed">
             {#if multiMonth}
               Data belum lengkap — {data.completeness.reported} dari {data.completeness.expected}
               entitas-bulan sudah disetujui ({data.completeness.months} bulan × {data.entities.length}
@@ -378,35 +378,35 @@
 
       {#snippet momBadge(value: number | null)}
         {#if value === null}
-          <p class="text-[11px] text-subtle">Tidak ada pembanding untuk {prevPeriodLabel}</p>
+          <p class="text-[12px] text-subtle">Tidak ada pembanding untuk {prevPeriodLabel}</p>
         {:else if momSetDiffers}
           <span
-            class="inline-flex items-center gap-0.5 text-[11px] font-medium px-1.5 py-0.5 rounded
+            class="inline-flex items-center gap-0.5 text-[12px] font-medium px-1.5 py-0.5 rounded
                    tabular-nums bg-warning/10 text-warning"
           >
             <TriangleAlert size={10} />
             {formatDelta(value)} {tag}
           </span>
-          <p class="text-[11px] text-warning">
+          <p class="text-[12px] text-warning">
             himpunan entitas berbeda dari {prevPeriodLabel} — bukan perubahan kinerja
           </p>
         {:else}
           <span
-            class="inline-flex items-center gap-0.5 text-[11px] font-medium px-1.5 py-0.5 rounded tabular-nums
+            class="inline-flex items-center gap-0.5 text-[12px] font-medium px-1.5 py-0.5 rounded tabular-nums
                    {value >= 0 ? 'bg-positive/10 text-positive' : 'bg-destructive/10 text-destructive'}"
           >
             {#if value >= 0}<ArrowUpRight size={10} />{:else}<ArrowDownRight size={10} />{/if}
             {formatDelta(value)} {tag}
           </span>
-          <p class="text-[11px] text-subtle">vs. {prevPeriodLabel}</p>
+          <p class="text-[12px] text-subtle">vs. {prevPeriodLabel}</p>
         {/if}
       {/snippet}
 
       <!-- KPI cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <div class="bg-card border border-border rounded-lg p-4">
-          <p class="text-[11px] font-medium text-muted-foreground mb-1.5">Pendapatan Konsolidasi</p>
-          <p class="text-[22px] font-semibold text-foreground tabular-nums leading-none mb-2">
+          <p class="text-[12px] font-medium text-muted-foreground mb-1.5">Pendapatan Konsolidasi</p>
+          <p class="text-[24px] font-semibold text-foreground tabular-nums leading-none mb-2">
             {formatCompact(data.consolidated?.revenue_consolidated)}
           </p>
           <div class="flex items-center gap-1.5 flex-wrap">
@@ -415,8 +415,8 @@
         </div>
 
         <div class="bg-card border border-border rounded-lg p-4">
-          <p class="text-[11px] font-medium text-muted-foreground mb-1.5">Laba Bersih Konsolidasi</p>
-          <p class="text-[22px] font-semibold text-foreground tabular-nums leading-none mb-2">
+          <p class="text-[12px] font-medium text-muted-foreground mb-1.5">Laba Bersih Konsolidasi</p>
+          <p class="text-[24px] font-semibold text-foreground tabular-nums leading-none mb-2">
             {formatCompact(data.consolidated?.net_profit_consolidated)}
           </p>
           <div class="flex items-center gap-1.5 flex-wrap">
@@ -430,11 +430,11 @@
              is shown instead — it is the one number the group computes that
              no single entity can. -->
         <div class="bg-card border border-border rounded-lg p-4">
-          <p class="text-[11px] font-medium text-muted-foreground mb-1.5">Eliminasi Antar-Perusahaan</p>
-          <p class="text-[22px] font-semibold text-foreground tabular-nums leading-none mb-2">
+          <p class="text-[12px] font-medium text-muted-foreground mb-1.5">Eliminasi Antar-Perusahaan</p>
+          <p class="text-[24px] font-semibold text-foreground tabular-nums leading-none mb-2">
             {formatCompact(data.consolidated?.elimination)}
           </p>
-          <p class="text-[11px] text-subtle">
+          <p class="text-[12px] text-subtle">
             {toAmount(data.consolidated?.elimination)
               ? `Jumlah aritmetik ${formatCompact(data.consolidated?.revenue_sum)} sebelum eliminasi`
               : 'Belum ada transaksi antar-perusahaan tercatat'}
@@ -442,26 +442,26 @@
         </div>
 
         <div class="bg-card border border-border rounded-lg p-4">
-          <p class="text-[11px] font-medium text-muted-foreground mb-1.5">Kelengkapan</p>
-          <p class="text-[22px] font-semibold text-foreground tabular-nums leading-none mb-2">
+          <p class="text-[12px] font-medium text-muted-foreground mb-1.5">Kelengkapan</p>
+          <p class="text-[24px] font-semibold text-foreground tabular-nums leading-none mb-2">
             {data.completeness?.reported ?? 0}/{data.completeness?.expected ?? 0}
           </p>
           <div class="flex items-center gap-1.5 flex-wrap">
             {#if data.completeness?.is_complete}
               <span
-                class="inline-flex items-center gap-0.5 text-[11px] font-medium px-1.5 py-0.5 rounded bg-positive/10 text-positive"
+                class="inline-flex items-center gap-0.5 text-[12px] font-medium px-1.5 py-0.5 rounded bg-positive/10 text-positive"
               >
                 Lengkap
               </span>
             {:else}
               <span
-                class="inline-flex items-center gap-0.5 text-[11px] font-medium px-1.5 py-0.5 rounded bg-warning/10 text-warning"
+                class="inline-flex items-center gap-0.5 text-[12px] font-medium px-1.5 py-0.5 rounded bg-warning/10 text-warning"
               >
                 <TriangleAlert size={10} />
                 {(data.completeness?.expected ?? 0) - (data.completeness?.reported ?? 0)} belum lapor
               </span>
             {/if}
-            <p class="text-[11px] text-subtle">
+            <p class="text-[12px] text-subtle">
               {multiMonth ? 'entitas-bulan disetujui' : 'entitas disetujui'}
             </p>
           </div>
@@ -471,14 +471,14 @@
       <!-- contributions + alerts -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="lg:col-span-2 bg-card border border-border rounded-lg p-5">
-          <h2 class="text-[13px] font-semibold text-foreground mb-1">Kontribusi per Lini Usaha</h2>
-          <p class="text-[11px] text-subtle mb-4">
+          <h2 class="text-[14px] font-semibold text-foreground mb-1">Kontribusi per Lini Usaha</h2>
+          <p class="text-[12px] text-subtle mb-4">
             Porsi dari jumlah aritmetik {formatCompact(data.consolidated?.revenue_sum)}, sebelum
             eliminasi.
           </p>
 
           {#if basisWarning}
-            <p class="flex items-start gap-2 text-[11px] text-warning mb-4 leading-relaxed">
+            <p class="flex items-start gap-2 text-[12px] text-warning mb-4 leading-relaxed">
               <TriangleAlert size={12} class="shrink-0 mt-px" />
               {basisWarning}
             </p>
@@ -492,36 +492,36 @@
                   <div class="flex items-center gap-2 min-w-0">
                     <Icon size={13} class={item.counted ? 'text-muted-foreground' : 'text-subtle'} />
                     <span
-                      class="text-[13px] font-medium shrink-0 {item.counted
+                      class="text-[14px] font-medium shrink-0 {item.counted
                         ? 'text-foreground'
                         : 'text-subtle'}"
                     >
                       {item.entity.code}
                     </span>
-                    <span class="text-[11px] text-muted-foreground truncate hidden sm:inline">
+                    <span class="text-[12px] text-muted-foreground truncate hidden sm:inline">
                       {item.entity.legal_name}
                     </span>
                   </div>
                   <div class="flex items-center gap-4 shrink-0">
                     {#if item.counted}
                       {#if item.partial}
-                        <span class="text-[11px] text-warning tabular-nums">
+                        <span class="text-[12px] text-warning tabular-nums">
                           {item.totals?.countedMonths}/{data.completeness?.months} bln
                         </span>
                       {/if}
-                      <span class="text-[11px] text-muted-foreground tabular-nums">
+                      <span class="text-[12px] text-muted-foreground tabular-nums">
                         {formatCompact(item.revenue)}
                       </span>
-                      <span class="text-[12px] font-semibold text-foreground tabular-nums w-12 text-right">
+                      <span class="text-[13px] font-semibold text-foreground tabular-nums w-12 text-right">
                         {formatPct(item.share)}
                       </span>
                     {:else}
-                      <span class="text-[11px] text-subtle">
+                      <span class="text-[12px] text-subtle">
                         {item.totals?.latestStatus
                           ? PERIOD_STATUS_LABEL[item.totals.latestStatus]
                           : 'belum lapor'}
                       </span>
-                      <span class="text-[12px] text-subtle tabular-nums w-12 text-right">{NO_DATA}</span>
+                      <span class="text-[13px] text-subtle tabular-nums w-12 text-right">{NO_DATA}</span>
                     {/if}
                   </div>
                 </div>
@@ -542,9 +542,9 @@
         </div>
 
         <div class="bg-card border border-border rounded-lg p-5">
-          <h2 class="text-[13px] font-semibold text-foreground mb-4">Perlu Perhatian</h2>
+          <h2 class="text-[14px] font-semibold text-foreground mb-4">Perlu Perhatian</h2>
           {#if alerts.length === 0}
-            <p class="text-[12px] text-subtle leading-relaxed">
+            <p class="text-[13px] text-subtle leading-relaxed">
               Tidak ada temuan untuk periode ini.
             </p>
           {:else}
@@ -555,8 +555,8 @@
                     ? 'border-destructive bg-destructive/5'
                     : 'border-warning bg-warning/5'}"
                 >
-                  <p class="text-[12px] font-semibold text-foreground mb-0.5">{alert.title}</p>
-                  <p class="text-[11px] text-muted-foreground leading-relaxed">{alert.detail}</p>
+                  <p class="text-[13px] font-semibold text-foreground mb-0.5">{alert.title}</p>
+                  <p class="text-[12px] text-muted-foreground leading-relaxed">{alert.detail}</p>
                 </div>
               {/each}
             </div>
@@ -568,17 +568,17 @@
            arithmetic sum, elimination, consolidated result. "Sum of four
            entities" is not the group figure. -->
       <div class="bg-card border border-border rounded-lg p-5">
-        <h2 class="text-[13px] font-semibold text-foreground mb-4">
+        <h2 class="text-[14px] font-semibold text-foreground mb-4">
           Konsolidasi {data.rangeLabel}
         </h2>
         <div class="overflow-x-auto">
-          <table class="w-full text-[12px]">
+          <table class="w-full text-[13px]">
             <thead>
               <tr class="text-muted-foreground">
-                <th class="text-left font-medium pb-2">Pos</th>
-                <th class="text-right font-medium pb-2">Jumlah aritmetik</th>
-                <th class="text-right font-medium pb-2">Eliminasi</th>
-                <th class="text-right font-medium pb-2">Konsolidasi</th>
+                <th class="text-left font-semibold pb-2">Pos</th>
+                <th class="text-right font-semibold pb-2">Jumlah aritmetik</th>
+                <th class="text-right font-semibold pb-2">Eliminasi</th>
+                <th class="text-right font-semibold pb-2">Konsolidasi</th>
               </tr>
             </thead>
             <tbody class="text-foreground">
@@ -613,7 +613,7 @@
             </tbody>
           </table>
         </div>
-        <p class="text-[11px] text-subtle mt-3 leading-relaxed">
+        <p class="text-[12px] text-subtle mt-3 leading-relaxed">
           Eliminasi diterapkan pada pendapatan. Beban pokok dan beban usaha menunggu registrasi
           transaksi antar-perusahaan per pos (ASSUMPTIONS.md A-5). Laba bersih tidak disesuaikan
           karena satu transaksi antar-perusahaan adalah omset di satu buku dan beban di buku

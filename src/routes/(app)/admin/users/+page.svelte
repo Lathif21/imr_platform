@@ -78,7 +78,7 @@
 <div class="p-4 sm:p-5 space-y-4">
   {#if form?.message}
     <div class="px-4 py-2.5 bg-destructive/10 border border-destructive/25 rounded-lg" role="alert">
-      <p class="text-[13px] text-destructive leading-relaxed">{form.message}</p>
+      <p class="text-[14px] text-destructive leading-relaxed">{form.message}</p>
     </div>
   {/if}
 
@@ -91,7 +91,7 @@
       role="status"
     >
       <TriangleAlert size={14} class="text-warning shrink-0 mt-px" />
-      <p class="text-[13px] text-warning flex-1 leading-relaxed">
+      <p class="text-[14px] text-warning flex-1 leading-relaxed">
         Ada pengguna aktif yang belum ditautkan ke entitas mana pun. Selain direksi, setiap peran
         hanya melihat entitas yang ditugaskan di sini — sampai ditautkan, layar mereka kosong.
       </p>
@@ -106,7 +106,7 @@
       class="bg-card border border-border rounded-lg p-4 space-y-3"
     >
       <div class="flex items-center justify-between gap-3">
-        <h2 class="text-[13px] font-semibold text-foreground">Pengguna baru</h2>
+        <h2 class="text-[14px] font-semibold text-foreground">Pengguna baru</h2>
         <a href="/admin/users" class="text-muted-foreground hover:text-foreground" aria-label="Tutup">
           <X size={14} />
         </a>
@@ -114,43 +114,43 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <label class="block">
-          <span class="block text-[11px] font-medium text-muted-foreground mb-1.5">Nama lengkap</span>
+          <span class="block text-[12px] font-medium text-muted-foreground mb-1.5">Nama lengkap</span>
           <input
             name="full_name"
             required
-            class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[13px]
+            class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[14px]
                    text-foreground focus:outline-none focus:border-primary"
           />
         </label>
         <label class="block">
-          <span class="block text-[11px] font-medium text-muted-foreground mb-1.5">Email</span>
+          <span class="block text-[12px] font-medium text-muted-foreground mb-1.5">Email</span>
           <input
             name="email"
             type="email"
             required
-            class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[13px]
+            class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[14px]
                    text-foreground focus:outline-none focus:border-primary"
           />
         </label>
         <label class="block">
-          <span class="block text-[11px] font-medium text-muted-foreground mb-1.5">Peran</span>
+          <span class="block text-[12px] font-medium text-muted-foreground mb-1.5">Peran</span>
           <select
             name="role"
             bind:value={newRole}
-            class="w-full h-[30px] px-2 bg-background border border-border rounded-lg text-[13px]
+            class="w-full h-[30px] px-2 bg-background border border-border rounded-lg text-[14px]
                    text-foreground focus:outline-none focus:border-primary"
           >
             {#each ROLES as role (role)}<option value={role}>{ROLE_LABEL[role]}</option>{/each}
           </select>
         </label>
         <label class="block">
-          <span class="block text-[11px] font-medium text-muted-foreground mb-1.5">
+          <span class="block text-[12px] font-medium text-muted-foreground mb-1.5">
             Telepon <span class="text-subtle">(opsional)</span>
           </span>
           <input
             name="phone"
             placeholder="+6281100000001"
-            class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[13px]
+            class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[14px]
                    text-foreground tabular-nums focus:outline-none focus:border-primary"
           />
         </label>
@@ -158,7 +158,7 @@
 
       <div class="flex items-end gap-2 flex-wrap">
         <label class="block flex-1 min-w-[220px] max-w-[360px]">
-          <span class="block text-[11px] font-medium text-muted-foreground mb-1.5">
+          <span class="block text-[12px] font-medium text-muted-foreground mb-1.5">
             Password awal
           </span>
           <input
@@ -166,21 +166,21 @@
             type="password"
             required
             minlength="8"
-            class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[13px]
+            class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[14px]
                    text-foreground focus:outline-none focus:border-primary"
           />
         </label>
         <button
           type="button"
           onclick={fillRandom}
-          class="h-[30px] px-3 rounded-lg border border-border text-[12px] text-muted-foreground
+          class="h-[30px] px-3 rounded-lg border border-border text-[13px] text-muted-foreground
                  hover:text-foreground hover:bg-muted transition-colors"
         >
           Acak
         </button>
       </div>
 
-      <p class="text-[11px] text-subtle leading-relaxed max-w-[70ch]">
+      <p class="text-[12px] text-subtle leading-relaxed max-w-[70ch]">
         Tidak ada verifikasi email dan tidak ada reset mandiri, jadi admin yang menetapkan password
         awal dan menyampaikannya sendiri. Salin sekarang — password tidak pernah ditampilkan lagi
         setelah ini.
@@ -188,10 +188,10 @@
 
       {#if isEntityScopedRole(newRole)}
         <fieldset class="border border-border rounded-lg p-3">
-          <legend class="text-[11px] font-medium text-muted-foreground px-1">Akses entitas</legend>
+          <legend class="text-[12px] font-medium text-muted-foreground px-1">Akses entitas</legend>
           <div class="flex flex-wrap gap-x-4 gap-y-2">
             {#each data.entities as entity (entity.id)}
-              <label class="flex items-center gap-2 text-[12px] text-foreground">
+              <label class="flex items-center gap-2 text-[13px] text-foreground">
                 <input type="checkbox" name="entity_ids" value={entity.id} class="accent-primary" />
                 {entity.code}
                 <span class="text-subtle">{entity.legal_name}</span>
@@ -203,7 +203,7 @@
 
       <button
         type="submit"
-        class="h-[30px] px-4 rounded-lg bg-primary text-[13px] font-medium text-primary-foreground
+        class="h-[30px] px-4 rounded-lg bg-primary text-[14px] font-medium text-primary-foreground
                hover:bg-accent transition-colors"
       >
         Buat pengguna
@@ -211,12 +211,12 @@
     </form>
   {:else}
     <div class="flex items-center justify-between gap-3 flex-wrap">
-      <p class="text-[12px] text-muted-foreground">
+      <p class="text-[13px] text-muted-foreground">
         {data.users.filter((u) => u.is_active).length} pengguna aktif dari {data.users.length}
       </p>
       <a
         href="?baru"
-        class="h-[30px] px-4 rounded-lg bg-primary text-[13px] font-medium text-primary-foreground
+        class="h-[30px] px-4 rounded-lg bg-primary text-[14px] font-medium text-primary-foreground
                hover:bg-accent transition-colors flex items-center gap-1.5"
       >
         <Plus size={13} />
@@ -228,15 +228,15 @@
   <!-- ── list ───────────────────────────────────────────────────────── -->
   <div class="bg-card border border-border rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[860px] text-[12px]">
+      <table class="w-full min-w-[860px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
-            <th class="text-left font-medium py-2.5 px-4 min-w-[160px]">Nama</th>
-            <th class="text-left font-medium py-2.5 px-4 w-[210px]">Email</th>
-            <th class="text-left font-medium py-2.5 px-4 w-[140px]">Peran</th>
-            <th class="text-left font-medium py-2.5 px-4 w-[160px]">Entitas</th>
-            <th class="text-left font-medium py-2.5 px-4 w-[130px]">Telepon</th>
-            <th class="text-right font-medium py-2.5 px-4 w-[160px]">Aksi</th>
+            <th class="text-left font-semibold py-2.5 px-4 min-w-[160px]">Nama</th>
+            <th class="text-left font-semibold py-2.5 px-4 w-[210px]">Email</th>
+            <th class="text-left font-semibold py-2.5 px-4 w-[140px]">Peran</th>
+            <th class="text-left font-semibold py-2.5 px-4 w-[160px]">Entitas</th>
+            <th class="text-left font-semibold py-2.5 px-4 w-[130px]">Telepon</th>
+            <th class="text-right font-semibold py-2.5 px-4 w-[160px]">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -245,15 +245,15 @@
               <td class="py-2.5 px-4">
                 <span class="text-foreground">{user.full_name}</span>
                 {#if user.id === data.selfId}
-                  <span class="text-[10px] text-subtle"> · Anda</span>
+                  <span class="text-[11px] text-subtle"> · Anda</span>
                 {/if}
                 {#if !user.is_active}
-                  <span class="block text-[10px] text-subtle">Nonaktif</span>
+                  <span class="block text-[11px] text-subtle">Nonaktif</span>
                 {/if}
               </td>
               <td class="py-2.5 px-4 text-muted-foreground truncate">{user.email ?? NO_DATA}</td>
               <td class="py-2.5 px-4">
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                <span class="text-[11px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                   {ROLE_LABEL[user.role]}
                 </span>
               </td>
@@ -280,7 +280,7 @@
                 <div class="flex items-center justify-end gap-1.5 flex-wrap">
                   <a
                     href="?ubah={user.id}"
-                    class="px-2 py-1 rounded-md text-[11px] text-muted-foreground hover:bg-muted
+                    class="px-2 py-1 rounded-md text-[12px] text-muted-foreground hover:bg-muted
                            hover:text-foreground transition-colors flex items-center gap-1"
                   >
                     <SquarePen size={11} /> Ubah
@@ -290,7 +290,7 @@
                     <input type="hidden" name="is_active" value={(!user.is_active).toString()} />
                     <button
                       type="submit"
-                      class="px-2 py-1 rounded-md text-[11px] text-muted-foreground hover:bg-muted
+                      class="px-2 py-1 rounded-md text-[12px] text-muted-foreground hover:bg-muted
                              hover:text-foreground transition-colors"
                     >
                       {user.is_active ? 'Nonaktifkan' : 'Aktifkan'}
@@ -309,7 +309,7 @@
   {#if editing}
     <div class="bg-card border border-border rounded-lg p-4 space-y-4">
       <div class="flex items-center justify-between gap-3">
-        <h2 class="text-[13px] font-semibold text-foreground">Ubah {editing.full_name}</h2>
+        <h2 class="text-[14px] font-semibold text-foreground">Ubah {editing.full_name}</h2>
         <a href="/admin/users" class="text-muted-foreground hover:text-foreground" aria-label="Tutup">
           <X size={14} />
         </a>
@@ -320,35 +320,35 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <label class="block">
-            <span class="block text-[11px] font-medium text-muted-foreground mb-1.5">
+            <span class="block text-[12px] font-medium text-muted-foreground mb-1.5">
               Nama lengkap
             </span>
             <input
               name="full_name"
               required
               value={editing.full_name}
-              class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[13px]
+              class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[14px]
                      text-foreground focus:outline-none focus:border-primary"
             />
           </label>
 
           <div class="block">
-            <span class="block text-[11px] font-medium text-muted-foreground mb-1.5">Email</span>
+            <span class="block text-[12px] font-medium text-muted-foreground mb-1.5">Email</span>
             <p class="h-[30px] px-3 flex items-center bg-muted/40 border border-border rounded-lg
-                      text-[13px] text-subtle truncate">
+                      text-[14px] text-subtle truncate">
               {editing.email ?? NO_DATA}
             </p>
             <!-- Changing someone's email without verification is how an
                  account gets taken over. Deactivate and create a new one. -->
-            <span class="block text-[10px] text-subtle mt-1">Email tidak dapat diubah.</span>
+            <span class="block text-[11px] text-subtle mt-1">Email tidak dapat diubah.</span>
           </div>
 
           <label class="block">
-            <span class="block text-[11px] font-medium text-muted-foreground mb-1.5">Peran</span>
+            <span class="block text-[12px] font-medium text-muted-foreground mb-1.5">Peran</span>
             <select
               name="role"
               bind:value={editRole}
-              class="w-full h-[30px] px-2 bg-background border border-border rounded-lg text-[13px]
+              class="w-full h-[30px] px-2 bg-background border border-border rounded-lg text-[14px]
                      text-foreground focus:outline-none focus:border-primary"
             >
               {#each ROLES as role (role)}<option value={role}>{ROLE_LABEL[role]}</option>{/each}
@@ -356,11 +356,11 @@
           </label>
 
           <label class="block">
-            <span class="block text-[11px] font-medium text-muted-foreground mb-1.5">Telepon</span>
+            <span class="block text-[12px] font-medium text-muted-foreground mb-1.5">Telepon</span>
             <input
               name="phone"
               value={editing.phone ?? ''}
-              class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[13px]
+              class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[14px]
                      text-foreground tabular-nums focus:outline-none focus:border-primary"
             />
           </label>
@@ -368,10 +368,10 @@
 
         {#if isEntityScopedRole(editRole)}
           <fieldset class="border border-border rounded-lg p-3">
-            <legend class="text-[11px] font-medium text-muted-foreground px-1">Akses entitas</legend>
+            <legend class="text-[12px] font-medium text-muted-foreground px-1">Akses entitas</legend>
             <div class="flex flex-wrap gap-x-4 gap-y-2">
               {#each data.entities as entity (entity.id)}
-                <label class="flex items-center gap-2 text-[12px] text-foreground">
+                <label class="flex items-center gap-2 text-[13px] text-foreground">
                   <input
                     type="checkbox"
                     name="entity_ids"
@@ -389,7 +389,7 @@
 
         <button
           type="submit"
-          class="h-[30px] px-4 rounded-lg bg-primary text-[13px] font-medium text-primary-foreground
+          class="h-[30px] px-4 rounded-lg bg-primary text-[14px] font-medium text-primary-foreground
                  hover:bg-accent transition-colors"
         >
           Simpan perubahan
@@ -398,12 +398,12 @@
 
       <form method="POST" action="?/resetPassword" class="border-t border-border pt-3 space-y-2">
         <input type="hidden" name="id" value={editing.id} />
-        <h3 class="text-[12px] font-semibold text-foreground flex items-center gap-1.5">
+        <h3 class="text-[13px] font-semibold text-foreground flex items-center gap-1.5">
           <KeyRound size={12} /> Ganti password
         </h3>
         <div class="flex items-end gap-2 flex-wrap">
           <label class="block flex-1 min-w-[220px] max-w-[360px]">
-            <span class="block text-[11px] font-medium text-muted-foreground mb-1.5">
+            <span class="block text-[12px] font-medium text-muted-foreground mb-1.5">
               Password baru
             </span>
             <input
@@ -411,14 +411,14 @@
               type="password"
               required
               minlength="8"
-              class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[13px]
+              class="w-full h-[30px] px-3 bg-background border border-border rounded-lg text-[14px]
                      text-foreground focus:outline-none focus:border-primary"
             />
           </label>
           <button
             type="button"
             onclick={fillRandom}
-            class="h-[30px] px-3 rounded-lg border border-border text-[12px] text-muted-foreground
+            class="h-[30px] px-3 rounded-lg border border-border text-[13px] text-muted-foreground
                    hover:text-foreground hover:bg-muted transition-colors"
           >
             Acak
@@ -426,7 +426,7 @@
           <button
             type="submit"
             class="h-[30px] px-4 rounded-lg border border-destructive/30 bg-destructive/10
-                   text-[12px] font-medium text-destructive hover:bg-destructive/20 transition-colors"
+                   text-[13px] font-medium text-destructive hover:bg-destructive/20 transition-colors"
           >
             Ganti password
           </button>

@@ -23,18 +23,18 @@
 <div class="p-4 sm:p-5 space-y-4">
   {#if form?.message}
     <div class="px-4 py-2.5 bg-destructive/10 border border-destructive/25 rounded-lg" role="alert">
-      <p class="text-[13px] text-destructive leading-relaxed">{form.message}</p>
+      <p class="text-[14px] text-destructive leading-relaxed">{form.message}</p>
     </div>
   {:else if form?.saved !== undefined}
     <div class="px-4 py-2.5 bg-positive/10 border border-positive/25 rounded-lg" role="status">
-      <p class="text-[13px] text-positive leading-relaxed">
+      <p class="text-[14px] text-positive leading-relaxed">
         {form.saved === 0 ? 'Tidak ada perubahan.' : `${form.saved} pemetaan disimpan.`} Berlaku untuk
         tarik data berikutnya; angka yang sudah ditarik tidak berubah sampai ditarik ulang.
       </p>
     </div>
   {/if}
 
-  <p class="text-[12px] text-muted-foreground leading-relaxed max-w-[80ch]">
+  <p class="text-[13px] text-muted-foreground leading-relaxed max-w-[80ch]">
     Menentukan pos laporan untuk setiap jenis biaya dari sistem operasional. Jenis yang belum
     dipetakan masuk <span class="text-foreground">{fallbackLabel}</span> saat tarik data dan
     disebut di layar input. Pilih <span class="text-foreground">Tidak ditarik</span> untuk biaya
@@ -47,7 +47,7 @@
       {#each data.entities as entity (entity.id)}
         <a
           href="?entitas={entity.code}"
-          class="px-2.5 py-1 rounded-md text-[12px] {entity.id === data.selected?.id
+          class="px-2.5 py-1 rounded-md text-[13px] {entity.id === data.selected?.id
             ? 'bg-primary/10 text-primary font-medium'
             : 'text-muted-foreground hover:bg-card hover:text-foreground'}"
         >
@@ -58,7 +58,7 @@
   {/if}
 
   {#if !data.selected}
-    <p class="text-[13px] text-muted-foreground">
+    <p class="text-[14px] text-muted-foreground">
       Belum ada entitas yang ditautkan ke sistem operasional.
     </p>
   {:else}
@@ -68,7 +68,7 @@
         role="status"
       >
         <TriangleAlert size={14} class="text-warning shrink-0 mt-0.5" />
-        <p class="text-[12px] text-warning leading-relaxed">
+        <p class="text-[13px] text-warning leading-relaxed">
           Daftar jenis dari sistem operasional tidak dapat diambil: {data.fetchError} Yang tampil hanya
           pemetaan yang sudah tersimpan.
         </p>
@@ -76,7 +76,7 @@
     {/if}
 
     {#if data.lines.length === 0}
-      <p class="text-[13px] text-warning">
+      <p class="text-[14px] text-warning">
         Lini usaha {data.selected.business_line} belum punya template aktif dengan pos beban
         operasional.
       </p>
@@ -86,25 +86,25 @@
       <input type="hidden" name="entity_id" value={data.selected.id} />
 
       <div class="px-4 py-2.5 border-b border-border flex items-center justify-between gap-3 flex-wrap">
-        <h2 class="text-[12px] font-semibold text-foreground uppercase tracking-wider">
+        <h2 class="text-[13px] font-semibold text-foreground uppercase tracking-wider">
           {data.selected.code} · {data.rows.length} jenis
         </h2>
         {#if unmapped > 0}
-          <span class="text-[11px] px-1.5 py-0.5 rounded bg-warning/10 text-warning">
+          <span class="text-[12px] px-1.5 py-0.5 rounded bg-warning/10 text-warning">
             {unmapped} belum dipetakan
           </span>
         {/if}
       </div>
 
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[640px] text-[12px]">
+        <table class="w-full min-w-[640px] text-[13px]">
           <thead>
             <tr class="text-muted-foreground border-b border-border">
-              <th class="text-left font-medium py-2.5 px-4">Jenis</th>
-              <th class="text-left font-medium py-2.5 px-4 w-[110px]">Sumber</th>
-              <th class="text-right font-medium py-2.5 px-4 w-[90px]">Baris</th>
-              <th class="text-left font-medium py-2.5 px-4 w-[110px]">Terakhir</th>
-              <th class="text-left font-medium py-2.5 px-4 w-[260px]">Pos laporan</th>
+              <th class="text-left font-semibold py-2.5 px-4">Jenis</th>
+              <th class="text-left font-semibold py-2.5 px-4 w-[110px]">Sumber</th>
+              <th class="text-right font-semibold py-2.5 px-4 w-[90px]">Baris</th>
+              <th class="text-left font-semibold py-2.5 px-4 w-[110px]">Terakhir</th>
+              <th class="text-left font-semibold py-2.5 px-4 w-[260px]">Pos laporan</th>
             </tr>
           </thead>
           <tbody>
@@ -125,7 +125,7 @@
                     name="pilihan"
                     value={row.pilihan}
                     aria-label="Pos laporan untuk {row.jenis}"
-                    class="w-full h-[28px] px-2 bg-background border rounded-lg text-[12px] text-foreground
+                    class="w-full h-[28px] px-2 bg-background border rounded-lg text-[13px] text-foreground
                            focus:outline-none focus:border-primary
                            {row.pilihan === '' ? 'border-warning/50' : 'border-border'}"
                   >
@@ -152,7 +152,7 @@
         <div class="px-4 py-3 border-t border-border">
           <button
             type="submit"
-            class="h-[30px] px-4 rounded-lg bg-primary text-[13px] font-medium text-primary-foreground
+            class="h-[30px] px-4 rounded-lg bg-primary text-[14px] font-medium text-primary-foreground
                    hover:bg-accent transition-colors"
           >
             Simpan pemetaan

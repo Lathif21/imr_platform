@@ -152,8 +152,8 @@
 <div class="p-4 sm:p-5 space-y-4">
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <div>
-      <h1 class="text-[15px] font-semibold text-foreground">Karyawan</h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">
+      <h1 class="text-[17px] font-semibold text-foreground">Karyawan</h1>
+      <p class="text-[13px] text-muted-foreground mt-0.5">
         {data.karyawan.filter((k) => k.status === 'aktif').length} aktif dari {data.karyawan.length}
         karyawan · tarif gaji diatur di Rekap Gaji
       </p>
@@ -179,16 +179,16 @@
 
   <div class="bg-card border border-border rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[900px] text-[12px]">
+      <table class="w-full min-w-[900px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
-            <th class="text-left font-medium py-2.5 px-4">Karyawan</th>
-            <th class="text-left font-medium py-2.5 px-4 w-[190px]">Kontak</th>
-            <th class="text-left font-medium py-2.5 px-4 w-[190px]">Dokumen</th>
-            <th class="text-left font-medium py-2.5 px-4 w-[110px]">Bergabung</th>
-            <th class="text-left font-medium py-2.5 px-4 w-[90px]">Status</th>
-            <th class="text-left font-medium py-2.5 px-4 w-[90px]">Kinerja</th>
-            <th class="text-right font-medium py-2.5 px-4 w-[120px]">Aksi</th>
+            <th class="text-left font-semibold py-2.5 px-4">Karyawan</th>
+            <th class="text-left font-semibold py-2.5 px-4 w-[190px]">Kontak</th>
+            <th class="text-left font-semibold py-2.5 px-4 w-[190px]">Dokumen</th>
+            <th class="text-left font-semibold py-2.5 px-4 w-[110px]">Bergabung</th>
+            <th class="text-left font-semibold py-2.5 px-4 w-[90px]">Status</th>
+            <th class="text-left font-semibold py-2.5 px-4 w-[90px]">Kinerja</th>
+            <th class="text-right font-semibold py-2.5 px-4 w-[120px]">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -199,24 +199,24 @@
             >
               <td class="py-2.5 px-4">
                 <p class="font-medium text-foreground">{row.nama}</p>
-                <p class="text-[11px] text-muted-foreground">{row.jabatan ?? 'Karyawan'}</p>
+                <p class="text-[12px] text-muted-foreground">{row.jabatan ?? 'Karyawan'}</p>
               </td>
               <td class="py-2.5 px-4">
                 <p class="text-foreground tabular-nums">{row.no_hp ?? '—'}</p>
                 {#if row.alamat}
-                  <p class="text-[11px] text-muted-foreground truncate max-w-[170px]" title={row.alamat}>
+                  <p class="text-[12px] text-muted-foreground truncate max-w-[170px]" title={row.alamat}>
                     {row.alamat}
                   </p>
                 {/if}
               </td>
-              <td class="py-2.5 px-4 text-[11px] tabular-nums">
+              <td class="py-2.5 px-4 text-[12px] tabular-nums">
                 <p><span class="text-subtle">KTP</span> <span class="text-foreground">{row.ktp ?? '—'}</span></p>
                 <p><span class="text-subtle">NPWP</span> <span class="text-foreground">{row.npwp ?? '—'}</span></p>
               </td>
               <td class="py-2.5 px-4 text-muted-foreground">{formatDate(row.tanggal_bergabung)}</td>
               <td class="py-2.5 px-4">
                 <span
-                  class="text-[11px] font-medium {row.status === 'aktif'
+                  class="text-[12px] font-medium {row.status === 'aktif'
                     ? 'text-positive'
                     : 'text-muted-foreground'}"
                 >
@@ -225,7 +225,7 @@
               </td>
               <td class="py-2.5 px-4">
                 <span
-                  class="inline-block px-2 py-0.5 rounded-full border text-[11px] font-semibold
+                  class="inline-block px-2 py-0.5 rounded-full border text-[12px] font-semibold
                          {KINERJA_STYLE[row.status_kinerja]}"
                 >
                   {row.status_kinerja}
@@ -269,7 +269,7 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="7" class="py-10 px-4 text-center text-[12px] text-muted-foreground">
+              <td colspan="7" class="py-10 px-4 text-center text-[13px] text-muted-foreground">
                 {#if query}
                   Tidak ada karyawan yang cocok dengan "{query}".
                 {:else}
@@ -370,10 +370,10 @@
   {#if catatanTarget}
     {@const riwayat = catatanByKaryawan.get(catatanTarget.id) ?? []}
     <div class="space-y-4">
-      <div class="flex items-center gap-2 text-[12px]">
+      <div class="flex items-center gap-2 text-[13px]">
         <span class="text-muted-foreground">Status kinerja saat ini:</span>
         <span
-          class="inline-block px-2 py-0.5 rounded-full border text-[11px] font-semibold
+          class="inline-block px-2 py-0.5 rounded-full border text-[12px] font-semibold
                  {KINERJA_STYLE[catatanTarget.status_kinerja]}"
         >
           {catatanTarget.status_kinerja}
@@ -422,15 +422,15 @@
       {/if}
 
       <div>
-        <p class="text-[11px] font-medium text-muted-foreground mb-2">Riwayat</p>
+        <p class="text-[12px] font-medium text-muted-foreground mb-2">Riwayat</p>
         {#if riwayat.length === 0}
-          <p class="text-[12px] text-subtle py-3">Karyawan ini belum memiliki riwayat catatan atau SP.</p>
+          <p class="text-[13px] text-subtle py-3">Karyawan ini belum memiliki riwayat catatan atau SP.</p>
         {:else}
           <ul class="space-y-2 max-h-[40vh] overflow-y-auto">
             {#each riwayat as item (item.id)}
               <li class="flex items-start gap-3 rounded-lg border border-border px-3 py-2.5">
                 <span
-                  class="shrink-0 mt-0.5 px-2 py-0.5 rounded-full border text-[10px] font-semibold
+                  class="shrink-0 mt-0.5 px-2 py-0.5 rounded-full border text-[11px] font-semibold
                          {item.jenis === 'catatan'
                     ? 'bg-muted text-muted-foreground border-border'
                     : KINERJA_STYLE[item.jenis]}"
@@ -438,8 +438,8 @@
                   {JENIS_LABEL[item.jenis]}
                 </span>
                 <div class="flex-1 min-w-0">
-                  <p class="text-[11px] text-muted-foreground">{formatDate(item.tanggal)}</p>
-                  <p class="text-[12px] text-foreground leading-relaxed whitespace-pre-line">
+                  <p class="text-[12px] text-muted-foreground">{formatDate(item.tanggal)}</p>
+                  <p class="text-[13px] text-foreground leading-relaxed whitespace-pre-line">
                     {item.keterangan ?? '—'}
                   </p>
                 </div>

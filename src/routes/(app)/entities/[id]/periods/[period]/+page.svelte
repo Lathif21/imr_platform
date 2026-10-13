@@ -180,17 +180,17 @@
       >
         <ArrowLeft size={14} />
       </a>
-      <h1 class="text-[13px] font-semibold text-foreground shrink-0">{data.entity.code}</h1>
-      <span class="text-[11px] text-muted-foreground truncate hidden lg:inline">
+      <h1 class="text-[14px] font-semibold text-foreground shrink-0">{data.entity.code}</h1>
+      <span class="text-[12px] text-muted-foreground truncate hidden lg:inline">
         {data.entity.legal_name}
       </span>
       <!-- The period is already in the picker on the right, so on a phone this
            copy of it gives way before the status badge does. The badge stays:
            whether these figures are approved changes how they should be read. -->
-      <span class="text-[11px] text-muted-foreground shrink-0 tabular-nums hidden sm:inline">
+      <span class="text-[12px] text-muted-foreground shrink-0 tabular-nums hidden sm:inline">
         · {formatPeriod(data.period)}
       </span>
-      <span class="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0">
+      <span class="text-[11px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0">
         {PERIOD_STATUS_LABEL[data.status]}
       </span>
     </div>
@@ -199,7 +199,7 @@
       <label for="periode" class="sr-only">Periode</label>
       <select
         id="periode"
-        class="h-[30px] pl-3 pr-2 bg-card border border-border rounded-lg text-[13px] text-foreground
+        class="h-[30px] pl-3 pr-2 bg-card border border-border rounded-lg text-[14px] text-foreground
                tabular-nums hover:bg-muted transition-colors focus:outline-none focus:border-primary"
         onchange={onPeriodChange}
       >
@@ -215,12 +215,12 @@
   <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
     <noscript>
       <div class="bg-card border border-border rounded-lg p-3">
-        <p class="text-[11px] text-muted-foreground mb-2">Periode lain:</p>
+        <p class="text-[12px] text-muted-foreground mb-2">Periode lain:</p>
         <div class="flex flex-wrap gap-2">
           {#each data.periods as option (option.id)}
             <a
               href="/entities/{data.entity.id}/periods/{periodToMonth(option.period)}"
-              class="text-[12px] px-2 py-1 rounded bg-muted text-foreground hover:bg-border-strong"
+              class="text-[13px] px-2 py-1 rounded bg-muted text-foreground hover:bg-border-strong"
             >
               {formatPeriod(option.period)}
             </a>
@@ -236,7 +236,7 @@
         role="status"
       >
         <TriangleAlert size={14} class="text-warning shrink-0 mt-px" />
-        <p class="text-[13px] text-warning flex-1 leading-relaxed">
+        <p class="text-[14px] text-warning flex-1 leading-relaxed">
           Sebagian kebijakan akuntansi belum ditetapkan — angka bersifat sementara.
           <!-- `revenue_presentation_trucking` is one unbreakable word; without
                this it runs straight off the side of a phone. -->
@@ -250,9 +250,9 @@
     <!-- summary strip -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       <div class="bg-card border border-border rounded-lg p-4">
-        <p class="text-[11px] font-medium text-muted-foreground mb-1.5">Laba Bersih</p>
+        <p class="text-[12px] font-medium text-muted-foreground mb-1.5">Laba Bersih</p>
         <p
-          class="text-[20px] font-semibold tabular-nums leading-none {(toAmount(
+          class="text-[22px] font-semibold tabular-nums leading-none {(toAmount(
             data.pnl.net_profit
           ) ?? 0) < 0
             ? 'text-destructive'
@@ -263,28 +263,28 @@
       </div>
 
       <div class="bg-card border border-border rounded-lg p-4">
-        <p class="text-[11px] font-medium text-muted-foreground mb-1.5">Margin Bersih</p>
-        <p class="text-[20px] font-semibold text-foreground tabular-nums leading-none">
+        <p class="text-[12px] font-medium text-muted-foreground mb-1.5">Margin Bersih</p>
+        <p class="text-[22px] font-semibold text-foreground tabular-nums leading-none">
           {formatPct(data.pnl.net_margin_pct, 2)}
         </p>
       </div>
 
       <div class="bg-card border border-border rounded-lg p-4">
-        <p class="text-[11px] font-medium text-muted-foreground mb-1.5">Pendapatan MoM</p>
-        <p class="text-[20px] font-semibold tabular-nums leading-none {deltaClass(revenueMom, null)}">
+        <p class="text-[12px] font-medium text-muted-foreground mb-1.5">Pendapatan MoM</p>
+        <p class="text-[22px] font-semibold tabular-nums leading-none {deltaClass(revenueMom, null)}">
           {formatDelta(revenueMom)}
         </p>
-        <p class="text-[11px] text-subtle mt-1">
+        <p class="text-[12px] text-subtle mt-1">
           {data.priorPeriod ? `vs. ${formatPeriod(data.priorPeriod)}` : 'tidak ada bulan pembanding'}
         </p>
       </div>
 
       <div class="bg-card border border-border rounded-lg p-4">
-        <p class="text-[11px] font-medium text-muted-foreground mb-1.5">Pendapatan YoY</p>
-        <p class="text-[20px] font-semibold tabular-nums leading-none {deltaClass(revenueYoy, null)}">
+        <p class="text-[12px] font-medium text-muted-foreground mb-1.5">Pendapatan YoY</p>
+        <p class="text-[22px] font-semibold tabular-nums leading-none {deltaClass(revenueYoy, null)}">
           {formatDelta(revenueYoy)}
         </p>
-        <p class="text-[11px] text-subtle mt-1">
+        <p class="text-[12px] text-subtle mt-1">
           {revenueYoy === null ? 'belum ada data 12 bulan sebelumnya' : 'vs. periode tahun lalu'}
         </p>
       </div>
@@ -294,10 +294,10 @@
     <div class="bg-card border border-border rounded-lg">
       <div class="px-4 sm:px-5 py-4 border-b border-border flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h2 class="text-[13px] font-semibold text-foreground">
+          <h2 class="text-[14px] font-semibold text-foreground">
             Laporan Laba Rugi · {formatPeriod(data.period)}
           </h2>
-          <p class="text-[11px] text-subtle mt-0.5">
+          <p class="text-[12px] text-subtle mt-0.5">
             Subtotal dihitung oleh <code class="text-muted-foreground">v_period_pnl</code>, bukan
             oleh layar ini.
           </p>
@@ -307,7 +307,7 @@
              the numbers, not after (CONTEXT.md, "Basis pelaporan"). -->
         <div class="flex flex-wrap items-center gap-1.5">
           <span
-            class="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded
+            class="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded
                    {data.entity.reporting_basis === 'unknown'
               ? 'bg-warning/10 text-warning'
               : 'bg-muted text-muted-foreground'}"
@@ -316,7 +316,7 @@
             {REPORTING_BASIS_LABEL[data.entity.reporting_basis]}
           </span>
           <span
-            class="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded
+            class="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded
                    {data.entity.revenue_presentation === 'unknown'
               ? 'bg-warning/10 text-warning'
               : 'bg-muted text-muted-foreground'}"
@@ -329,7 +329,7 @@
 
       {#if basisUnknown}
         <p
-          class="flex items-start gap-2 text-[11px] text-warning px-4 sm:px-5 py-2.5 border-b border-border leading-relaxed"
+          class="flex items-start gap-2 text-[12px] text-warning px-4 sm:px-5 py-2.5 border-b border-border leading-relaxed"
         >
           <TriangleAlert size={12} class="shrink-0 mt-px" />
           Basis pelaporan entitas ini belum ditetapkan (ASSUMPTIONS.md A-1, A-4), sehingga angka di
@@ -338,18 +338,18 @@
       {/if}
 
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[560px] text-[12px]">
+        <table class="w-full min-w-[560px] text-[13px]">
           <thead>
             <tr class="text-muted-foreground border-b border-border">
-              <th class="text-left font-medium px-5 py-2.5">Pos</th>
-              <th class="text-right font-medium px-3 py-2.5 whitespace-nowrap">
+              <th class="text-left font-semibold px-5 py-2.5">Pos</th>
+              <th class="text-right font-semibold px-3 py-2.5 whitespace-nowrap">
                 {formatPeriod(data.period)}
               </th>
-              <th class="text-right font-medium px-3 py-2.5 whitespace-nowrap">
+              <th class="text-right font-semibold px-3 py-2.5 whitespace-nowrap">
                 {data.priorPeriod ? formatPeriod(data.priorPeriod) : 'Periode lalu'}
               </th>
-              <th class="text-right font-medium px-3 py-2.5 whitespace-nowrap">Δ MoM</th>
-              <th class="text-right font-medium px-5 py-2.5 whitespace-nowrap">
+              <th class="text-right font-semibold px-3 py-2.5 whitespace-nowrap">Δ MoM</th>
+              <th class="text-right font-semibold px-5 py-2.5 whitespace-nowrap">
                 Kontribusi
               </th>
             </tr>
@@ -386,7 +386,7 @@
                     <!-- Import notes are meant to be seen: the uang saku line
                          carries the Rp104jt that sits outside the statement. -->
                     {#if row.note}
-                      <span class="block text-[11px] text-subtle leading-snug mt-0.5 max-w-[52ch]">
+                      <span class="block text-[12px] text-subtle leading-snug mt-0.5 max-w-[52ch]">
                         {row.note}
                       </span>
                     {/if}
@@ -442,7 +442,7 @@
         </table>
       </div>
 
-      <p class="text-[11px] text-subtle px-4 sm:px-5 py-3 leading-relaxed border-t border-border">
+      <p class="text-[12px] text-subtle px-4 sm:px-5 py-3 leading-relaxed border-t border-border">
         Perbandingan pada tabel ini adalah bulan sebelumnya (MoM). Perbandingan tahunan (YoY) ada
         di kartu terpisah di atas dan kosong sampai entitas ini punya data 12 bulan.
       </p>

@@ -36,8 +36,8 @@
 <div class="p-4 sm:p-5 space-y-4">
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <div>
-      <h1 class="text-[15px] font-semibold text-foreground">Laporan</h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">
+      <h1 class="text-[17px] font-semibold text-foreground">Laporan</h1>
+      <p class="text-[13px] text-muted-foreground mt-0.5">
         Laporan operasional · {NAMA_BULAN[data.periode.bulan - 1]} {data.periode.tahun}
       </p>
     </div>
@@ -47,11 +47,11 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
     {#each laporan as l (l.href)}
       <a href="/operasional/{l.href}?{q}" class="group bg-card border border-border rounded-lg p-4 hover:border-primary/50 hover:bg-muted/30 transition-colors">
-        <div class="flex items-center gap-2 text-[13px] font-semibold text-foreground group-hover:text-primary">
+        <div class="flex items-center gap-2 text-[14px] font-semibold text-foreground group-hover:text-primary">
           <l.icon size={15} class="text-muted-foreground group-hover:text-primary" />
           {l.title}
         </div>
-        <p class="text-[12px] text-muted-foreground mt-1.5 leading-relaxed">{l.desc}</p>
+        <p class="text-[13px] text-muted-foreground mt-1.5 leading-relaxed">{l.desc}</p>
       </a>
     {/each}
   </div>
