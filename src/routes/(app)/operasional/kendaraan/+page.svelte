@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ImporExcel from '$lib/operasional/ImporExcel.svelte';
   import Pencil from 'lucide-svelte/icons/pencil';
   import Plus from 'lucide-svelte/icons/plus';
   import Search from 'lucide-svelte/icons/search';
@@ -88,6 +89,7 @@
           class="{FIELD} pl-8 w-[220px]"
         />
       </div>
+      <ImporExcel jenis="kendaraan" label="Kendaraan" bolehImpor={data.canWrite} />
       {#if data.canWrite}
         <button
           type="button"

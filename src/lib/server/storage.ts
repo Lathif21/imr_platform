@@ -12,7 +12,9 @@ import { env } from '$env/dynamic/private';
 
 export class StorageNotConfigured extends Error {
   constructor() {
-    super('Penyimpanan dokumen belum dikonfigurasi (AWS_* / S3_BUCKET).');
+    // The user sees this sentence; the variable names go to the server log.
+    super('Penyimpanan dokumen belum disiapkan di server. Hubungi admin sistem.');
+    console.error('[storage] AWS_ENDPOINT_URL_S3 / AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / S3_BUCKET belum diisi.');
   }
 }
 

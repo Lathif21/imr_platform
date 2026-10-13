@@ -7,6 +7,7 @@
   import { page } from '$app/state';
   import FormModal from '$lib/components/FormModal.svelte';
   import { withFeedback } from '$lib/form-feedback';
+  import UnduhExcel from '$lib/operasional/UnduhExcel.svelte';
   import PilihPeriode from '$lib/operasional/PilihPeriode.svelte';
   import { NAMA_BULAN, ton } from '$lib/operasional/kegiatan';
   import { BTN_ICON, BTN_PRIMARY, BTN_SOFT, FIELD, LABEL, TEXTAREA, rupiah } from '$lib/operasional/ui';
@@ -59,6 +60,7 @@
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
+      <UnduhExcel laporan="gaji" />
       <label class="sr-only" for="pilih-karyawan">Karyawan</label>
       <select id="pilih-karyawan" value={data.dipilih?.id ?? ''} onchange={pilih} class="h-[30px] px-2 bg-background border border-border rounded-md text-[13px] text-foreground focus:outline-none focus:border-primary max-w-[240px]">
         <option value="">Rekap semua karyawan</option>

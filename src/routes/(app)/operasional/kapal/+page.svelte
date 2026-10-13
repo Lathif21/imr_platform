@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ImporExcel from '$lib/operasional/ImporExcel.svelte';
   import Pencil from 'lucide-svelte/icons/pencil';
   import Plus from 'lucide-svelte/icons/plus';
   import Search from 'lucide-svelte/icons/search';
@@ -82,6 +83,7 @@
           class="{FIELD} pl-8 w-[240px]"
         />
       </div>
+      <ImporExcel jenis="kapal" label="Kapal" bolehImpor={data.canWrite} />
       {#if data.canWrite}
         <button type="button" onclick={openCreate} class={BTN_PRIMARY}>
           <Plus size={14} /> Tambah Kapal

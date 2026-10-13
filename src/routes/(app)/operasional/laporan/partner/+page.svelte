@@ -4,6 +4,7 @@
   import Wallet from 'lucide-svelte/icons/wallet';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
+  import UnduhExcel from '$lib/operasional/UnduhExcel.svelte';
   import PilihPeriode from '$lib/operasional/PilihPeriode.svelte';
   import { NAMA_BULAN, rentangTanggal, ton } from '$lib/operasional/kegiatan';
   import { BTN_SOFT, rupiah } from '$lib/operasional/ui';
@@ -40,6 +41,7 @@
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
+      <UnduhExcel laporan="partner" />
       <label class="sr-only" for="pilih-pemilik">Pemilik</label>
       <select id="pilih-pemilik" value={data.dipilih?.id ?? ''} onchange={pilih} class="h-[30px] px-2 bg-background border border-border rounded-md text-[13px] text-foreground focus:outline-none focus:border-primary max-w-[240px]">
         <option value="">Semua pemilik / rekanan</option>
