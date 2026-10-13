@@ -43,7 +43,9 @@ const OPERATIONAL_TABLES = [
   'laporan_pendapatan',
   'laporan_kumpulan',
   // 20250119000000_lampiran.sql — same policy pair, written out there.
-  'lampiran_operasional'
+  'lampiran_operasional',
+  // 20250127000000_pajak_partner.sql — likewise.
+  'pajak_partner'
 ];
 
 let admin: SupabaseClient;

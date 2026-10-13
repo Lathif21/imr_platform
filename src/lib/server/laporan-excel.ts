@@ -21,6 +21,8 @@ import {
   muatRekapPendapatan,
   muatRekapPengeluaran
 } from './laporan-operasional';
+import { judulKapal, labelPajakInvoice } from '$lib/operasional/laporan-kapal';
+import { muatLaporanKapal } from './laporan-kapal';
 import { failLoad } from './operasional';
 import { muatPartner } from './partner';
 
@@ -292,7 +294,9 @@ export const LAPORAN_EXCEL: Record<string, { label: string; lembar: (k: Konteks)
                 { judul: 'Transaksi', kunci: 'transaksi', jenis: 'angka', total: true },
                 { judul: 'Beban Rekanan', kunci: 'pendapatan', jenis: 'rp', total: true },
                 { judul: 'Biaya', kunci: 'biaya', jenis: 'rp', total: true },
-                { judul: 'Bersih', kunci: 'bersih', jenis: 'rp', total: true }
+                { judul: 'Potongan Pajak (%)', kunci: 'persen_pajak', jenis: 'persen', lebar: 10 },
+                { judul: 'Nominal Pajak', kunci: 'pajak', jenis: 'rp', total: true },
+                { judul: 'Bersih (setelah pajak)', kunci: 'bersih', jenis: 'rp', total: true }
               ],
               baris: ringkas
             },
@@ -310,7 +314,7 @@ export const LAPORAN_EXCEL: Record<string, { label: string; lembar: (k: Konteks)
                 { judul: 'Beban Rekanan', kunci: 'pendapatan', jenis: 'rp', total: true },
                 { judul: 'Saku Supir', kunci: 'sangu_supir', jenis: 'rp', total: true },
                 { judul: 'Terpal', kunci: 'terpal', jenis: 'rp', total: true },
-                { judul: 'Bersih', kunci: 'bersih', jenis: 'rp', total: true }
+                { judul: 'Bersih (sebelum pajak)', kunci: 'bersih', jenis: 'rp', total: true }
               ],
               baris: rincian
             }
@@ -417,6 +421,103 @@ export const LAPORAN_EXCEL: Record<string, { label: string; lembar: (k: Konteks)
           ]
         }
       ];
+    }
+  },
+
+  kapal: {
+    label: 'Laporan per Kapal',
+    lembar: async ({ db, entityId, periode }) => {
+      const { laporan } = await muatLaporanKapal(db, entityId, periode);
+      // A workbook without a sheet does not open; a month without ships still gets one.
+      if (!laporan.length) return [{ nama: 'Per Kapal', judul: 'LAPORAN PER KAPAL', tabel: [{ kolom: [{ judul: 'Kapal', kunci: 'kapal' }], baris: [] }] }];
+      const dipakai = new Set<string>();
+      return laporan.map((l): Lembar => {
+        // One sheet per ship; Excel refuses two sheets with the same name.
+        let nama = l.nama_kapal.replace(/[[\]:*?/\\]/g, ' ').slice(0, 31);
+        for (let i = 2; dipakai.has(nama.toLowerCase()); i++) nama = `${l.nama_kapal.slice(0, 27)} (${i})`;
+        dipakai.add(nama.toLowerCase());
+        return {
+          nama,
+          judul: `RINCIAN KEGIATAN OPERASIONAL — ${judulKapal(l).toUpperCase()}`,
+          tabel: [
+            {
+              judul: 'Invoice',
+              kolom: [
+                { judul: 'No. Invoice', kunci: 'no_invoice', lebar: 22 },
+                { judul: 'No. SPO/SPK', kunci: 'no_spo', lebar: 14 },
+                { judul: 'Rute', kunci: 'rute', lebar: 24 },
+                { judul: 'Tonase (MT)', kunci: 'tonase', jenis: 'ton', total: true },
+                { judul: 'Harga OA', kunci: 'harga', jenis: 'rp' },
+                { judul: 'Tagihan Wilmar', kunci: 'tagihan', jenis: 'rp', total: true },
+                { judul: labelPajakInvoice(l.invoice), kunci: 'pajak', jenis: 'rp', total: true },
+                { judul: 'Pajak PPN', kunci: 'ppn', jenis: 'rp' },
+                { judul: 'Pencairan', kunci: 'pencairan', jenis: 'rp', total: true }
+              ],
+              baris: l.invoice
+            },
+            {
+              judul: 'Biaya operasional',
+              kolom: [
+                { judul: 'Jenis Operasional', kunci: 'jenis', lebar: 24 },
+                { judul: 'Jumlah Biaya', kunci: 'jumlah', jenis: 'rp' }
+              ],
+              baris: [
+                { jenis: 'Operasional Telly', jumlah: l.biaya.operasional },
+                { jenis: 'PBM', jumlah: l.biaya.pbm },
+                { jenis: 'Rekanan', jumlah: l.biaya.rekanan },
+                { jenis: 'TOTAL', jumlah: l.biaya.total },
+                { jenis: 'NET PENDAPATAN', jumlah: l.net_pendapatan },
+                ...l.catatan.map((c) => ({ jenis: `Catatan: ${c}` }))
+              ]
+            },
+            ...l.rute.map(
+              (r): Tabel => ({
+                judul: `Rute ${r.rute}${r.no_spo ? ` (SPO/SPK.${r.no_spo})` : ''}`,
+                kolom: [
+                  { judul: 'Rekanan', kunci: 'pemilik', lebar: 24 },
+                  { judul: 'Nopol', kunci: 'nopol', lebar: 14 },
+                  { judul: 'Muat', kunci: 'muat', jenis: 'ton', total: true },
+                  { judul: 'Rit', kunci: 'rit', jenis: 'angka', total: true },
+                  { judul: 'Biaya Angkut', kunci: 'biaya_angkut', jenis: 'rp' },
+                  { judul: 'Jumlah', kunci: 'jumlah', jenis: 'rp', total: true },
+                  { judul: 'Saku', kunci: 'saku', jenis: 'rp', total: true },
+                  { judul: 'Terpal', kunci: 'terpal', jenis: 'rp', total: true }
+                ],
+                baris: r.pemilik.flatMap((g) => g.truk.map((t) => ({ pemilik: g.nama, ...t })))
+              })
+            ),
+            {
+              judul: 'Pembayaran rekanan',
+              kolom: [
+                { judul: 'Rekanan', kunci: 'nama', lebar: 24 },
+                { judul: 'Rute Pengiriman', kunci: 'rute', lebar: 24 },
+                { judul: 'Muatan', kunci: 'muat', jenis: 'ton', total: true },
+                { judul: 'Rit', kunci: 'rit', jenis: 'angka', total: true },
+                { judul: 'Jumlah Bruto', kunci: 'bruto', jenis: 'rp', total: true },
+                { judul: 'Uang Saku', kunci: 'saku', jenis: 'rp', total: true },
+                { judul: 'Terpal', kunci: 'terpal', jenis: 'rp', total: true }
+              ],
+              baris: l.pembayaran.flatMap((p) => p.rute.map((r) => ({ nama: p.nama, ...r })))
+            },
+            {
+              judul: 'Net pembayaran rekanan (pajak = bruto × persen potongan pajak rekanan bulan ini)',
+              kolom: [
+                { judul: 'Nama Rekanan', kunci: 'nama', lebar: 24 },
+                { judul: 'Jumlah Bruto', kunci: 'bruto', jenis: 'rp', total: true },
+                { judul: 'Uang Saku', kunci: 'saku', jenis: 'rp', total: true },
+                { judul: 'Terpal', kunci: 'terpal', jenis: 'rp', total: true },
+                { judul: 'Pajak (%)', kunci: 'persen_pajak', jenis: 'persen' },
+                { judul: 'Pajak', kunci: 'pajak', jenis: 'rp', total: true },
+                { judul: 'Net Pembayaran', kunci: 'net', jenis: 'rp', total: true },
+                { judul: 'Atas Nama', kunci: 'rekening_atas_nama', lebar: 22 },
+                { judul: 'No. Rekening', kunci: 'no_rekening', lebar: 20 },
+                { judul: 'Nama Bank', kunci: 'nama_bank', lebar: 12 }
+              ],
+              baris: l.pembayaran
+            }
+          ]
+        };
+      });
     }
   },
 

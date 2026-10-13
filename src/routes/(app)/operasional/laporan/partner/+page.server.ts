@@ -1,7 +1,8 @@
-import type { PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import { periodeDari } from '$lib/operasional/kegiatan';
+import { bacaPersen, labelPersen } from '$lib/operasional/pajak';
 import { jumlahPartner, muatPartner, type BarisPartner, type RingkasPartner } from '$lib/server/partner';
-import { failLoad } from '$lib/server/operasional';
+import { explainDbError, failLoad, idFrom, invalid, refuse, requiredText } from '$lib/server/operasional';
 
 export const load: PageServerLoad = async ({ locals, parent, url }) => {
   const { opEntity } = await parent();
@@ -59,4 +60,41 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
       }))
       .sort((a, b) => a.nama_kapal.localeCompare(b.nama_kapal, 'id'))
   };
+};
+
+export const actions: Actions = {
+  /**
+   * Potongan pajak rate of one owner for one month. Only the rate is
+   * stored; the nominal is computed wherever it is shown (20250127).
+   */
+  pajak: async ({ locals, request }) => {
+    const form = await request.formData();
+    const pemilikId = idFrom(form, 'pemilik_id');
+    const bulan = Number(form.get('bulan'));
+    const tahun = Number(form.get('tahun'));
+    const persen = bacaPersen(String(form.get('persen') ?? ''));
+
+    const details: string[] = [];
+    if (pemilikId === null) details.push('Pemilik tidak dikenali. Muat ulang halaman lalu coba lagi.');
+    if (!Number.isInteger(bulan) || bulan < 1 || bulan > 12 || !Number.isInteger(tahun)) details.push('Periode tidak sah.');
+    if (persen === null) details.push('Potongan pajak harus persentase 0 sampai 100, paling banyak 2 angka di belakang koma, mis. 0,5 atau 2.');
+    if (details.length) return invalid(details);
+
+    const { data, error } = await locals.supabase
+      .from('pajak_partner')
+      .upsert(
+        { entity_id: requiredText(form, 'entity_id'), pemilik_id: pemilikId, bulan, tahun, persen },
+        { onConflict: 'pemilik_id,bulan,tahun' }
+      )
+      .select('id');
+    if (error) {
+      return refuse(
+        explainDbError('upsert pajak_partner', error, {
+          fallback: 'Potongan pajak gagal disimpan.'
+        })
+      );
+    }
+    if (!data?.length) return refuse('Pemilik tidak ditemukan, atau Anda tidak berwenang mengubahnya.');
+    return { title: 'Berhasil disimpan', message: `Potongan pajak ${labelPersen(persen!)} disimpan untuk bulan ini.` };
+  }
 };
