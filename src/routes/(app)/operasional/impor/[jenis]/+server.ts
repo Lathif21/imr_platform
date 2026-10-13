@@ -11,6 +11,8 @@ import type { RequestHandler } from './$types';
  * Impor Excel for one kind of data.
  *
  *   GET                         the template for the entity (and month) on screen
+ *   GET ?isi=1                  "Ekspor": the same template filled with the
+ *                               screen's data, ready to edit and upload back
  *   POST langkah=pratinjau      check every row of the uploaded file
  *   POST langkah=simpan         check again — nothing from the browser's
  *                               preview is trusted — then save all rows in
@@ -31,9 +33,12 @@ export const GET: RequestHandler = async ({ locals, params, url }) => {
   const def = IMPOR[params.jenis];
   const k = await konteks(locals, url);
 
-  const isi = await buatTemplate(params.jenis, def, k);
-  const bulan = def.perBulan ? ` ${k.periode.tahun}-${String(k.periode.bulan).padStart(2, '0')}` : '';
-  const berkas = `Template ${def.label} ${k.entity.code}${bulan}.xlsx`.replace(/[()]/g, '');
+  const ekspor = url.searchParams.get('isi') === '1';
+  const baris = ekspor ? await def.ekspor(k) : [];
+  const isi = await buatTemplate(params.jenis, def, k, baris);
+  const perBulan = def.perBulan || (ekspor && def.eksporBulanan);
+  const bulan = perBulan ? ` ${k.periode.tahun}-${String(k.periode.bulan).padStart(2, '0')}` : '';
+  const berkas = `${ekspor ? 'Data' : 'Template'} ${def.label} ${k.entity.code}${bulan}.xlsx`.replace(/[()]/g, '');
   return new Response(new Uint8Array(isi), {
     headers: {
       'content-type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

@@ -7,7 +7,7 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BarisPratinjau, JenisImpor, PilihanDuplikat } from '$lib/impor';
-import { NAMA_BULAN, susunRute, type Periode } from '$lib/operasional/kegiatan';
+import { NAMA_BULAN, pecahRute, rentangBulan, susunRute, type Periode } from '$lib/operasional/kegiatan';
 import { STATUS_ENTRY, TARIF_PAJAK } from '$lib/operasional/pendapatan';
 import { rupiah as rp } from '$lib/operasional/ui';
 import type { OperationalEntity } from '../operasional';
@@ -55,7 +55,18 @@ export interface DefImpor {
   /** Pendapatan is for the month on screen; the others carry their own dates. */
   perBulan?: boolean;
   periksa: (rows: BarisMentah[], k: Konteks) => Promise<HasilPeriksa>;
+  /**
+   * "Ekspor": the data on the screen as template rows (values by Kolom.kunci,
+   * dates as 'YYYY-MM-DD'), so the file can be edited and uploaded again.
+   */
+  ekspor: (k: Konteks) => Promise<BarisEkspor[]>;
+  /** The screen shows one month, and so does its export. */
+  eksporBulanan?: boolean;
 }
+
+export type BarisEkspor = Record<string, string | number | null>;
+
+const angka = (v: string | number | null) => (v === null ? null : Number(v));
 
 const tgl = (iso: string | null) => (iso ? iso.split('-').reverse().join('/') : '');
 const MAKS = 255;
@@ -136,6 +147,20 @@ const pengeluaran: DefImpor = {
     const jenis = new Set([...(a.data ?? []).map((r) => r.jenis), ...(b.data ?? []).map((r) => r.jenis)]);
     return { jenis: [...jenis].filter(Boolean).sort((x, y) => x.localeCompare(y, 'id')) };
   },
+  eksporBulanan: true,
+  async ekspor({ db, entity, periode }) {
+    const { dari, sampai } = rentangBulan(periode);
+    const { data } = await db
+      .from('pengeluaran')
+      .select('tanggal, jenis, nama_kegiatan, penerima, jumlah, keterangan')
+      .eq('entity_id', entity.id)
+      .gte('tanggal', dari)
+      .lt('tanggal', sampai)
+      .order('tanggal')
+      .order('id')
+      .returns<{ tanggal: string; jenis: string; nama_kegiatan: string | null; penerima: string | null; jumlah: string; keterangan: string | null }[]>();
+    return (data ?? []).map((r) => ({ ...r, jumlah: angka(r.jumlah) }));
+  },
   async periksa(rows, { db, entity }) {
     const data = rows.map((row) => {
       const galat: string[] = [];
@@ -189,6 +214,10 @@ const pemilik: DefImpor = {
   rpc: 'impor_pemilik',
   kolom: [{ judul: 'Nama Pemilik', kunci: 'nama_pemilik', tipe: 'teks', wajib: true, contoh: 'H. Ahmad', lebar: 30 }],
   petunjuk: ['Satu baris = satu pemilik kendaraan.', 'Nama yang sudah terdaftar dilewati (tidak dibuat dua kali).'],
+  async ekspor({ db, entity }) {
+    const { data } = await db.from('pemilik').select('nama_pemilik').eq('entity_id', entity.id).order('nama_pemilik').returns<{ nama_pemilik: string }[]>();
+    return data ?? [];
+  },
   async periksa(rows, { db, entity }) {
     const data = rows.map((row) => {
       const galat: string[] = [];
@@ -222,6 +251,15 @@ const kendaraan: DefImpor = {
     { judul: 'NPWP', kunci: 'npwp', tipe: 'teks', contoh: '00.000.000.0-000.000', lebar: 24 }
   ],
   petunjuk: ['Satu baris = satu truk.', 'Pemilik yang belum terdaftar otomatis ditambahkan ke menu Pemilik.'],
+  async ekspor({ db, entity }) {
+    const { data } = await db
+      .from('v_kendaraan_ringkasan')
+      .select('nopol, nama_pemilik, npwp')
+      .eq('entity_id', entity.id)
+      .order('nopol')
+      .returns<{ nopol: string; nama_pemilik: string | null; npwp: string | null }[]>();
+    return (data ?? []).map((r) => ({ nopol: r.nopol, pemilik: r.nama_pemilik, npwp: r.npwp }));
+  },
   daftar: async ({ db, entity }) => {
     const { data } = await db.from('pemilik').select('nama_pemilik').eq('entity_id', entity.id).order('nama_pemilik').returns<{ nama_pemilik: string }[]>();
     return { pemilik: (data ?? []).map((p) => p.nama_pemilik) };
@@ -238,10 +276,10 @@ const kendaraan: DefImpor = {
       return { v, galat };
     });
     const { data: ada } = await db
-      .from('kendaraan')
-      .select('id, nopol, pemilik:pemilik_id(nama_pemilik)')
+      .from('v_kendaraan_ringkasan')
+      .select('id, nopol, nama_pemilik')
       .eq('entity_id', entity.id)
-      .returns<{ id: number; nopol: string; pemilik: { nama_pemilik: string } | null }[]>();
+      .returns<{ id: number; nopol: string; nama_pemilik: string | null }[]>();
     const peta = new Map((ada ?? []).map((k) => [normalNopol(k.nopol), k]));
     const timpa = new Map<number, number>();
     const baris = data.map(({ v, galat }) => {
@@ -249,7 +287,7 @@ const kendaraan: DefImpor = {
       const lama = peta.get(v.nopol);
       if (lama && !galat.length) {
         timpa.set(v.baris, lama.id);
-        b.duplikat = { keterangan: `Sudah terdaftar milik ${lama.pemilik?.nama_pemilik ?? '—'}.`, bisaTimpa: true };
+        b.duplikat = { keterangan: `Sudah terdaftar milik ${lama.nama_pemilik ?? '—'}.`, bisaTimpa: true };
       }
       return b;
     });
@@ -268,6 +306,10 @@ const kapal: DefImpor = {
     { judul: 'Perusahaan Pemilik Kapal', kunci: 'pemilik_kapal', tipe: 'teks', contoh: 'PT Pelayaran Nusantara', lebar: 30 }
   ],
   petunjuk: ['Satu baris = satu kapal.', 'Nama kapal dibandingkan tanpa memedulikan huruf besar-kecil dan spasi.'],
+  async ekspor({ db, entity }) {
+    const { data } = await db.from('kapal').select('nama_kapal, pemilik_kapal').eq('entity_id', entity.id).order('nama_kapal').returns<{ nama_kapal: string; pemilik_kapal: string | null }[]>();
+    return data ?? [];
+  },
   async periksa(rows, { db, entity }) {
     const data = rows.map((row) => {
       const galat: string[] = [];
@@ -310,6 +352,16 @@ const karyawan: DefImpor = {
   ],
   petunjuk: ['Satu baris = satu karyawan.', 'Nama yang sudah terdaftar ditandai sebagai duplikat.'],
   daftar: async () => ({ status: ['aktif', 'nonaktif'] }),
+  async ekspor({ db, entity }) {
+    const { data } = await db
+      .from('karyawan')
+      .select('nama, jabatan, no_hp, tanggal_bergabung, ktp, npwp, alamat, status')
+      .eq('entity_id', entity.id)
+      .order('status')
+      .order('nama')
+      .returns<BarisEkspor[]>();
+    return data ?? [];
+  },
   async periksa(rows, { db, entity }) {
     const data = rows.map((row) => {
       const galat: string[] = [];
@@ -374,6 +426,24 @@ const pendapatan: DefImpor = {
     'No. invoice yang sudah ada ditandai sebagai duplikat; invoice yang sudah dibayar tidak bisa ditimpa.'
   ],
   daftar: async () => ({ tarif: TARIF_TEKS, status: [...STATUS_ENTRY] }),
+  eksporBulanan: true,
+  async ekspor({ db, entity, periode }) {
+    const { data } = await db
+      .from('laporan_pendapatan')
+      .select('kegiatan, no_invoice, no_faktur_pajak, no_sto_spo, lokasi, tanggal_kegiatan, party_kg, harga, tarif_pajak, status_entry, tanggal_entry, payment_date, keterangan')
+      .eq('entity_id', entity.id)
+      .eq('bulan', periode.bulan)
+      .eq('tahun', periode.tahun)
+      .order('no_urut', { ascending: true, nullsFirst: false })
+      .order('id')
+      .returns<BarisEkspor[]>();
+    return (data ?? []).map((r) => ({
+      ...r,
+      party_kg: angka(r.party_kg),
+      harga: angka(r.harga),
+      tarif_pajak: r.tarif_pajak === null ? null : String(Number(r.tarif_pajak)).replace('.', ',')
+    }));
+  },
   async periksa(rows, { db, entity, periode }) {
     const data = rows.map((row) => {
       const galat: string[] = [];
@@ -490,6 +560,65 @@ const kegiatan: DefImpor = {
       telly: (ky.data ?? []).map((r) => r.nama),
       asal: ['Gudang Veteran', 'KIG', 'Manyar', 'Pabrik Wilmar']
     };
+  },
+  eksporBulanan: true,
+  async ekspor({ db, entity, periode }) {
+    type Rekap = { id: number; kapal_id: number; rute: string | null; operasional: string | null; telly_id: number | null; tanggal_kegiatan: string | null; tanggal_selesai: string | null; keterangan: string | null };
+    type Truk = { operasional_rekap_id: number; kendaraan_id: number | null; ritase: number | null; tonase: string | null; ongkos_angkut: string | null; sangu_supir: string | null; terpal: string | null };
+    const { data: rekap } = await db
+      .from('operasional_rekap')
+      .select('id, kapal_id, rute, operasional, telly_id, tanggal_kegiatan, tanggal_selesai, keterangan')
+      .eq('entity_id', entity.id)
+      .eq('bulan', periode.bulan)
+      .eq('tahun', periode.tahun)
+      .order('tanggal_kegiatan', { nullsFirst: false })
+      .order('id')
+      .returns<Rekap[]>();
+    if (!rekap?.length) return [];
+    const [kp, ky, kd, tr] = await Promise.all([
+      db.from('kapal').select('id, nama_kapal').eq('entity_id', entity.id).returns<{ id: number; nama_kapal: string }[]>(),
+      db.from('karyawan').select('id, nama').eq('entity_id', entity.id).returns<{ id: number; nama: string }[]>(),
+      db.from('v_kendaraan_ringkasan').select('id, nopol, nama_pemilik').eq('entity_id', entity.id).returns<{ id: number; nopol: string; nama_pemilik: string | null }[]>(),
+      db
+        .from('transaksi_operasional')
+        .select('operasional_rekap_id, kendaraan_id, ritase, tonase, ongkos_angkut, sangu_supir, terpal')
+        .in('operasional_rekap_id', rekap.map((r) => r.id))
+        .order('id')
+        .returns<Truk[]>()
+    ]);
+    const kapal = new Map((kp.data ?? []).map((k) => [k.id, k.nama_kapal]));
+    const telly = new Map((ky.data ?? []).map((k) => [k.id, k.nama]));
+    const kendaraan = new Map((kd.data ?? []).map((k) => [k.id, k]));
+    const trukPer = new Map<number, Truk[]>();
+    for (const t of tr.data ?? []) trukPer.set(t.operasional_rekap_id, [...(trukPer.get(t.operasional_rekap_id) ?? []), t]);
+
+    // One row per truck, the kegiatan's own fields on its first row only (as
+    // the template asks). A kegiatan without trucks still gets a row.
+    return rekap.flatMap((r) => {
+      const { asal, tujuan } = pecahRute(r.rute);
+      const kegiatan: BarisEkspor = {
+        tanggal_kegiatan: r.tanggal_kegiatan,
+        tanggal_selesai: r.tanggal_selesai,
+        nama_kapal: kapal.get(r.kapal_id) ?? null,
+        rute_asal: asal || null,
+        rute_tujuan: tujuan || null,
+        operasional: angka(r.operasional),
+        telly: r.telly_id ? (telly.get(r.telly_id) ?? null) : null,
+        keterangan: r.keterangan
+      };
+      const truk = trukPer.get(r.id) ?? [];
+      if (!truk.length) return [kegiatan];
+      return truk.map((t, i) => ({
+        ...(i === 0 ? kegiatan : { tanggal_kegiatan: r.tanggal_kegiatan, tanggal_selesai: r.tanggal_selesai, nama_kapal: kegiatan.nama_kapal }),
+        nopol: (t.kendaraan_id && kendaraan.get(t.kendaraan_id)?.nopol) || null,
+        pemilik: (t.kendaraan_id && kendaraan.get(t.kendaraan_id)?.nama_pemilik) || null,
+        ritase: t.ritase,
+        tonase: angka(t.tonase),
+        ongkos_angkut: angka(t.ongkos_angkut),
+        sangu_supir: angka(t.sangu_supir),
+        terpal: angka(t.terpal)
+      }));
+    });
   },
   async periksa(rows, { db, entity }) {
     const [kd, ky, kp] = await Promise.all([

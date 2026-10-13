@@ -89,8 +89,8 @@
           class="{FIELD} pl-8 w-[220px]"
         />
       </div>
+      <ImporExcel jenis="kendaraan" label="Kendaraan" bolehImpor={data.canWrite} />
       {#if data.canWrite}
-        <ImporExcel jenis="kendaraan" label="Kendaraan" />
         <button
           type="button"
           onclick={openCreate}

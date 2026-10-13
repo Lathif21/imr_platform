@@ -138,6 +138,7 @@
       <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
       <UnduhExcel laporan="pendapatan" />
       <a href="/cetak/operasional/pendapatan?{periodeQuery}" target="_blank" rel="noopener" class={BTN_SOFT}><Printer size={14} /> Cetak</a>
+      <ImporExcel jenis="pendapatan" label="Pendapatan" bolehImpor={data.canWrite} />
       {#if data.canWrite}
         <form method="POST" action="?/generate" use:enhance={aksi('Generate gagal')}>
           <input type="hidden" name="entity_id" value={data.opEntity?.id} />
@@ -163,7 +164,6 @@
           <input type="hidden" name="tahun" value={data.periode.tahun} />
           <button type="submit" disabled={saving} class={BTN_SOFT}><ListOrdered size={14} /> Rapikan Nomor</button>
         </form>
-        <ImporExcel jenis="pendapatan" label="Pendapatan" />
         <button type="button" onclick={() => ((party = ''), (harga = '34.500'), (tambahOpen = true))} class={BTN_PRIMARY}>
           <Plus size={14} /> Tambah Baris
         </button>

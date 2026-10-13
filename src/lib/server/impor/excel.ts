@@ -3,6 +3,8 @@
  *
  *   Data       the sheet the admin fills: one header row, required columns
  *              marked "*", dropdowns where the value comes from a list.
+ *              "Ekspor" is this same file with the screen's data already in
+ *              it, so it can be edited and uploaded back.
  *   Petunjuk   what each column means, its format and an example — kept off
  *              the Data sheet so an example row can never be imported.
  *   Daftar     (hidden) the dropdown lists.
@@ -12,7 +14,7 @@
 import ExcelJS from 'exceljs';
 import type { JenisImpor } from '$lib/impor';
 import { NAMA_BULAN } from '$lib/operasional/kegiatan';
-import type { BarisMentah, DefImpor, Konteks } from './jenis';
+import type { BarisEkspor, BarisMentah, DefImpor, Konteks } from './jenis';
 import { mentah, teks } from './sel';
 
 const DATA = 'Data';
@@ -29,7 +31,7 @@ const FORMAT: Record<string, string | undefined> = {
 
 const judulKolom = (k: { judul: string; wajib?: boolean }) => (k.wajib ? `${k.judul} *` : k.judul);
 
-export async function buatTemplate(jenis: JenisImpor, def: DefImpor, k: Konteks): Promise<Buffer> {
+export async function buatTemplate(jenis: JenisImpor, def: DefImpor, k: Konteks, isi: BarisEkspor[] = []): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
   wb.creator = 'IMR Platform';
   const daftar = def.daftar ? await def.daftar(k) : {};
@@ -51,13 +53,23 @@ export async function buatTemplate(jenis: JenisImpor, def: DefImpor, k: Konteks)
       .join('\n');
   });
 
+  isi.forEach((baris, j) => {
+    def.kolom.forEach((c, i) => {
+      const v = baris[c.kunci];
+      if (v === null || v === undefined || v === '') return;
+      // Real date cells (UTC midnight), so the dd/mm/yyyy format applies.
+      ws.getCell(j + 2, i + 1).value = c.tipe === 'tanggal' && typeof v === 'string' ? new Date(`${v}T00:00:00Z`) : v;
+    });
+  });
+  const disiapkan = Math.max(BARIS_DISIAPKAN, isi.length + 500);
+
   // --- Daftar (hidden lists) + dropdowns ------------------------------------
   const wd = wb.addWorksheet('Daftar', { state: 'hidden' });
   let kolDaftar = 0;
   def.kolom.forEach((c, i) => {
     const fmt = FORMAT[c.tipe];
     const col = ws.getColumn(i + 1);
-    if (fmt) for (let r = 2; r <= BARIS_DISIAPKAN; r++) ws.getCell(r, i + 1).numFmt = fmt;
+    if (fmt) for (let r = 2; r <= disiapkan; r++) ws.getCell(r, i + 1).numFmt = fmt;
     if (c.tipe === 'teks' || c.tipe === 'tanggal') col.alignment = { vertical: 'top' };
 
     const isi = c.daftar ? (daftar[c.daftar.kunci] ?? []) : [];
@@ -67,7 +79,7 @@ export async function buatTemplate(jenis: JenisImpor, def: DefImpor, k: Konteks)
     wd.getCell(1, kolDaftar).value = c.judul;
     isi.forEach((v, j) => (wd.getCell(j + 2, kolDaftar).value = v));
     const rumus = `Daftar!$${huruf}$2:$${huruf}$${isi.length + 1}`;
-    for (let r = 2; r <= BARIS_DISIAPKAN; r++) {
+    for (let r = 2; r <= disiapkan; r++) {
       ws.getCell(r, i + 1).dataValidation = {
         type: 'list',
         allowBlank: true,
@@ -84,10 +96,17 @@ export async function buatTemplate(jenis: JenisImpor, def: DefImpor, k: Konteks)
   // --- Petunjuk -------------------------------------------------------------
   const wp = wb.addWorksheet('Petunjuk');
   wp.columns = [{ width: 28 }, { width: 12 }, { width: 16 }, { width: 22 }, { width: 50 }];
-  wp.addRow([`Template Impor — ${def.label}`]).font = { bold: true, size: 13 };
+  const ekspor = isi.length > 0;
+  const bulan = def.perBulan || (ekspor && def.eksporBulanan);
+  wp.addRow([`${ekspor ? 'Ekspor Data' : 'Template Impor'} — ${def.label}`]).font = { bold: true, size: 13 };
   wp.addRow([
-    `${k.entity.legal_name}${def.perBulan ? ` · ${NAMA_BULAN[k.periode.bulan - 1]} ${k.periode.tahun}` : ''}`
+    `${k.entity.legal_name}${bulan ? ` · ${NAMA_BULAN[k.periode.bulan - 1]} ${k.periode.tahun}` : ''}`
   ]).font = { color: { argb: 'FF4B5563' } };
+  if (ekspor) {
+    wp.addRow([
+      `Sheet "Data" berisi ${isi.length} baris dari sistem. File ini bisa diubah lalu diunggah kembali: baris yang sudah ada ditandai sebagai duplikat, dan Anda memilih data lama atau data baru.`
+    ]);
+  }
   wp.addRow([]);
   wp.addRow(['Cara mengisi']).font = { bold: true };
   for (const p of [

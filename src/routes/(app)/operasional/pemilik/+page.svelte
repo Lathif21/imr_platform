@@ -84,8 +84,8 @@
           class="{FIELD} pl-8 w-[200px]"
         />
       </div>
+      <ImporExcel jenis="pemilik" label="Pemilik" bolehImpor={data.canWrite} />
       {#if data.canWrite}
-        <ImporExcel jenis="pemilik" label="Pemilik" />
         <button type="button" onclick={openCreate} class={BTN_PRIMARY}>
           <Plus size={14} /> Tambah Pemilik
         </button>

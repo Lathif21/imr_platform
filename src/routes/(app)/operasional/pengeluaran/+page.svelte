@@ -101,8 +101,8 @@
       >
         <Printer size={14} /> Cetak
       </a>
+      <ImporExcel jenis="pengeluaran" label="Pengeluaran" bolehImpor={data.canWrite} />
       {#if data.canWrite}
-        <ImporExcel jenis="pengeluaran" label="Pengeluaran" />
         <button type="button" onclick={openCreate} class={BTN_PRIMARY}><Plus size={14} /> Tambah Pengeluaran</button>
       {/if}
     </div>

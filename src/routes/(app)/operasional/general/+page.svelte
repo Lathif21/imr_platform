@@ -114,8 +114,8 @@
           class="{FIELD} pl-8 w-[220px]"
         />
       </div>
+      <ImporExcel jenis="kegiatan" label="Kegiatan Kapal & Truk" bolehImpor={data.canWrite} />
       {#if data.canWrite}
-        <ImporExcel jenis="kegiatan" label="Kegiatan Kapal & Truk" />
         <button type="button" onclick={openCreate} class={BTN_PRIMARY}>
           <Plus size={14} /> Tambah Data General
         </button>

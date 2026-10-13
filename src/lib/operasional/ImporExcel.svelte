@@ -1,12 +1,15 @@
 <script lang="ts">
   /**
-   * "Template" and "Unggah Excel" for one kind of data, next to the screen's
-   * Tambah button. Upload shows a preview of every row: errors in red (the
+   * "Ekspor", "Template" and "Unggah Excel" for one kind of data, next to the
+   * screen's Tambah button. Ekspor is the template filled with the screen's
+   * data, so it can be edited and uploaded back; read-only roles get Ekspor
+   * only (bolehImpor = false). Upload shows a preview of every row: errors in red (the
    * file must be fixed — nothing is saved while any row is wrong), and rows
    * that match existing data with a choice between the old and the new.
    * Saving is all or nothing (/operasional/impor/[jenis]).
    */
   import Download from 'lucide-svelte/icons/download';
+  import FileSpreadsheet from 'lucide-svelte/icons/file-spreadsheet';
   import FileUp from 'lucide-svelte/icons/file-up';
   import { invalidateAll } from '$app/navigation';
   import { page } from '$app/state';
@@ -15,7 +18,7 @@
   import type { JenisImpor, PilihanDuplikat, Pratinjau } from '$lib/impor';
   import { BTN_PRIMARY, BTN_SOFT } from './ui';
 
-  let { jenis, label }: { jenis: JenisImpor; label: string } = $props();
+  let { jenis, label, bolehImpor = true }: { jenis: JenisImpor; label: string; bolehImpor?: boolean } = $props();
 
   let terbuka = $state(false);
   let berkas = $state<File | null>(null);
@@ -94,12 +97,17 @@
   }
 </script>
 
-<a href="/operasional/impor/{jenis}?{query}" download class={BTN_SOFT} title="Unduh template Excel {label}, isi, lalu unggah kembali">
-  <Download size={14} /> Template
+<a href="/operasional/impor/{jenis}?{query ? `${query}&` : ''}isi=1" download class={BTN_SOFT} title="Unduh data {label} di layar ini sebagai Excel — bisa diubah lalu diunggah kembali">
+  <FileSpreadsheet size={14} /> Ekspor
 </a>
-<button type="button" onclick={buka} class={BTN_SOFT} title="Unggah template {label} yang sudah diisi">
-  <FileUp size={14} /> Unggah Excel
-</button>
+{#if bolehImpor}
+  <a href="/operasional/impor/{jenis}?{query}" download class={BTN_SOFT} title="Unduh template Excel {label}, isi, lalu unggah kembali">
+    <Download size={14} /> Template
+  </a>
+  <button type="button" onclick={buka} class={BTN_SOFT} title="Unggah template {label} yang sudah diisi">
+    <FileUp size={14} /> Unggah Excel
+  </button>
+{/if}
 
 <FormModal bind:open={terbuka} title="Impor {label} dari Excel" wide>
   <div class="space-y-4">
