@@ -379,9 +379,9 @@ truthful rather than on an error page.
 
 ### 6.5 Open policies are surfaced, not defaulted
 
-Expect `5 kebijakan akuntansi belum diputuskan` listing
-`revenue_presentation_trucking, uang_saku_treatment, profit_sharing_65_35,
-accounting_basis, accounting_standard`, and the comparability warning
+Expect `5 aturan pencatatan belum diputuskan — angka masih sementara` listing
+`Cara mencatat omset angkutan, Uang saku supir, Bagi hasil 65/35, Waktu
+pencatatan (kas atau akrual), Standar akuntansi`, and the comparability warning
 `Basis pelaporan sebagian entitas belum ditetapkan, sehingga angka di bawah
 ini belum dapat dibandingkan antar entitas.`
 
