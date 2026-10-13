@@ -1,15 +1,31 @@
 <script lang="ts">
+  import Building2 from 'lucide-svelte/icons/building-2';
   import ChartColumn from 'lucide-svelte/icons/chart-column';
+  import Check from 'lucide-svelte/icons/check';
   import ChevronLeft from 'lucide-svelte/icons/chevron-left';
   import ChevronRight from 'lucide-svelte/icons/chevron-right';
+  import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
   import CircleCheckBig from 'lucide-svelte/icons/circle-check-big';
   import ClipboardList from 'lucide-svelte/icons/clipboard-list';
+  import Database from 'lucide-svelte/icons/database';
+  import Eye from 'lucide-svelte/icons/eye';
+  import FileChartColumn from 'lucide-svelte/icons/file-chart-column';
+  import FileSpreadsheet from 'lucide-svelte/icons/file-spreadsheet';
   import FileText from 'lucide-svelte/icons/file-text';
+  import HandCoins from 'lucide-svelte/icons/hand-coins';
+  import IdCard from 'lucide-svelte/icons/id-card';
+  import Landmark from 'lucide-svelte/icons/landmark';
   import LayoutDashboard from 'lucide-svelte/icons/layout-dashboard';
   import LogOut from 'lucide-svelte/icons/log-out';
+  import Receipt from 'lucide-svelte/icons/receipt';
   import Settings from 'lucide-svelte/icons/settings';
   import Ship from 'lucide-svelte/icons/ship';
+  import Split from 'lucide-svelte/icons/split';
+  import Truck from 'lucide-svelte/icons/truck';
+  import UserRound from 'lucide-svelte/icons/user-round';
+  import Users from 'lucide-svelte/icons/users';
   import X from 'lucide-svelte/icons/x';
+  import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
   import type { Theme } from '$lib/theme';
@@ -50,49 +66,194 @@
     label: string;
     icon: typeof LayoutDashboard;
     href: string;
-    visible: boolean;
+    visible?: boolean;
+    /** Active only on `href` itself, not on the screens below it. */
+    exact?: boolean;
     /**
      * Path prefix that counts as "you are here", when it is wider than `href`.
-     * Administrasi links to one of three tabs, so without this the item goes
-     * dark the moment you switch to Template or Pengguna.
      */
     match?: string;
   };
 
-  // Screens come from the table in CLAUDE.md. "Tampilan Mobile" is not here:
-  // it was a device-frame preview in the prototype, not a route.
-  //
-  // `visible` is UX only. Hiding a nav item is not access control — RLS is.
-  const items = $derived<NavItem[]>([
+  type NavGroup = { heading?: string; items: NavItem[] };
+
+  type ModuleKey = 'keuangan' | 'operasional' | 'admin';
+
+  type Module = {
+    key: ModuleKey;
+    label: string;
+    description: string;
+    icon: typeof LayoutDashboard;
+    groups: NavGroup[];
+  };
+
+  /**
+   * One sidebar, one module at a time. The module switcher sits on the logo at
+   * the top — the place every admin tool keeps it — and the screens of the
+   * chosen module are listed right below, so no screen is ever more than one
+   * click away and there is no second row of tabs to look for.
+   *
+   * `visible` is UX only. Hiding a nav item is not access control — RLS is.
+   */
+  const modules = $derived<Module[]>([
     {
-      label: 'Dasbor Eksekutif',
-      icon: LayoutDashboard,
-      href: '/',
-      // Consolidated figures are group figures. Since manajer and auditor
-      // became entity-scoped, only direksi can be shown a group total.
-      visible: canReadAllEntities(role)
+      key: 'keuangan',
+      label: 'Keuangan',
+      description: 'Laporan P&L entitas',
+      icon: FileText,
+      groups: [
+        {
+          items: [
+            {
+              label: 'Dasbor Eksekutif',
+              icon: LayoutDashboard,
+              href: '/',
+              exact: true,
+              // Consolidated figures are group figures. Since manajer and
+              // auditor became entity-scoped, only direksi can be shown a
+              // group total.
+              visible: canReadAllEntities(role)
+            },
+            { label: 'Laporan P&L', icon: FileText, href: '/entities', visible: canReadReports(role) },
+            { label: 'Input Laporan', icon: ClipboardList, href: '/entry', visible: canEnterReports(role) },
+            { label: 'Persetujuan', icon: CircleCheckBig, href: '/approval', visible: canApprove(role) }
+          ]
+        }
+      ]
     },
-    { label: 'Laporan P&L', icon: FileText, href: '/entities', visible: canReadReports(role) },
-    { label: 'Input Laporan', icon: ClipboardList, href: '/entry', visible: canEnterReports(role) },
-    { label: 'Persetujuan', icon: CircleCheckBig, href: '/approval', visible: canApprove(role) },
-    // The ported operational system (docs/PENGGABUNGAN.md). One item; its
-    // screens are tabs inside /operasional, like Administrasi.
+    // The ported operational system (docs/PENGGABUNGAN.md). Every Laravel
+    // screen is here; new ones join this list when they exist — never as
+    // disabled items.
     {
+      key: 'operasional',
       label: 'Operasional',
+      description: 'Kegiatan kapal, biaya & laporan',
       icon: Ship,
-      href: '/operasional',
-      match: '/operasional',
-      visible: canReadOperational(role)
+      groups: canReadOperational(role)
+        ? [
+            { items: [{ label: 'Dasbor', icon: LayoutDashboard, href: '/operasional', exact: true }] },
+            {
+              heading: 'Kegiatan',
+              items: [
+                { label: 'Database General', icon: Database, href: '/operasional/general' },
+                { label: 'Detail Kegiatan Kapal', icon: ClipboardList, href: '/operasional/kegiatan' }
+              ]
+            },
+            {
+              heading: 'Keuangan',
+              items: [
+                { label: 'Pengeluaran', icon: Receipt, href: '/operasional/pengeluaran' },
+                { label: 'Pencairan', icon: HandCoins, href: '/operasional/pencairan' },
+                { label: 'Pendapatan', icon: Landmark, href: '/operasional/pendapatan' },
+                { label: 'Laporan', icon: FileChartColumn, href: '/operasional/laporan' }
+              ]
+            },
+            {
+              heading: 'Data Master',
+              items: [
+                { label: 'Pemilik', icon: UserRound, href: '/operasional/pemilik' },
+                { label: 'Kendaraan', icon: Truck, href: '/operasional/kendaraan' },
+                { label: 'Kapal', icon: Ship, href: '/operasional/kapal' },
+                { label: 'Karyawan', icon: IdCard, href: '/operasional/karyawan' }
+              ]
+            }
+          ]
+        : []
     },
-    // One item for three admin screens; the tabs inside /admin do the rest.
     {
+      key: 'admin',
       label: 'Administrasi',
+      description: 'Entitas, template & pengguna',
       icon: Settings,
-      href: '/admin/entities',
-      match: '/admin',
-      visible: isDirector(role)
+      groups: isDirector(role)
+        ? [
+            {
+              items: [
+                { label: 'Entitas', icon: Building2, href: '/admin/entities' },
+                { label: 'Template', icon: FileSpreadsheet, href: '/admin/templates' },
+                { label: 'Pengguna', icon: Users, href: '/admin/users' },
+                { label: 'Pemetaan Biaya', icon: Split, href: '/admin/pemetaan-biaya' }
+              ]
+            }
+          ]
+        : []
     }
   ]);
+
+  const visibleItems = (m: Module) => m.groups.flatMap((g) => g.items).filter((i) => i.visible !== false);
+
+  /** Modules this role has at least one screen in. */
+  const available = $derived(modules.filter((m) => visibleItems(m).length > 0));
+
+  const currentKey = $derived<ModuleKey>(
+    page.url.pathname.startsWith('/operasional')
+      ? 'operasional'
+      : page.url.pathname.startsWith('/admin')
+        ? 'admin'
+        : 'keuangan'
+  );
+  const current = $derived(available.find((m) => m.key === currentKey) ?? available[0]);
+
+  function isActive(item: NavItem) {
+    const base = item.match ?? item.href;
+    if (item.exact) return page.url.pathname === base;
+    return page.url.pathname === base || page.url.pathname.startsWith(base + '/');
+  }
+
+  // ---- Operasional context: entity and period ride along between screens ---
+  //
+  // Read from `page.data` because they come from the /operasional layout,
+  // which sits below the one rendering this sidebar.
+
+  type OpEntity = { id: string; code: string; legal_name: string };
+  const opEntities = $derived((page.data.opEntities ?? []) as OpEntity[]);
+  const opEntity = $derived((page.data.opEntity ?? null) as OpEntity | null);
+  const opReadOnly = $derived(currentKey === 'operasional' && page.data.canWrite === false);
+
+  /**
+   * The chosen entity and month follow the admin from screen to screen, so
+   * picking Oktober on Database General and then opening Pengeluaran shows
+   * Oktober too. Screen-specific filters (?kapal, ?pemilik) do not.
+   */
+  const opQuery = $derived.by(() => {
+    if (currentKey !== 'operasional') return '';
+    const q = new URLSearchParams();
+    if (opEntity) q.set('entitas', opEntity.code);
+    for (const key of ['bulan', 'tahun']) {
+      const value = page.url.searchParams.get(key);
+      if (value) q.set(key, value);
+    }
+    const s = q.toString();
+    return s ? `?${s}` : '';
+  });
+
+  const hrefFor = (item: NavItem) => (item.href.startsWith('/operasional') ? item.href + opQuery : item.href);
+
+  function chooseEntity(event: Event) {
+    const code = (event.currentTarget as HTMLSelectElement).value;
+    // One kegiatan belongs to one entity; switching goes back to its list.
+    const path = page.url.pathname.replace(/^(\/operasional\/kegiatan)\/\d+.*$/, '$1');
+    goto(`${path}?entitas=${encodeURIComponent(code)}`);
+  }
+
+  // ---- Module switcher -----------------------------------------------------
+
+  let switcherOpen = $state(false);
+  let switcherEl = $state<HTMLDivElement>();
+  const canSwitch = $derived(available.length > 1);
+
+  function closeAll() {
+    switcherOpen = false;
+    onclose?.();
+  }
+
+  function onWindowClick(event: MouseEvent) {
+    if (switcherOpen && switcherEl && !switcherEl.contains(event.target as Node)) switcherOpen = false;
+  }
+
+  function onWindowKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape' && switcherOpen) switcherOpen = false;
+  }
 
   const initials = $derived(
     (fullName ?? '?')
@@ -111,10 +272,12 @@
    */
   function toggleCollapsed() {
     collapsed = !collapsed;
+    switcherOpen = false;
     document.cookie = `sidebar=${collapsed ? 'rail' : 'full'}; path=/; max-age=31536000; samesite=lax`;
   }
-
 </script>
+
+<svelte:window onclick={onWindowClick} onkeydown={onWindowKeydown} />
 
 <!-- Backdrop. Mobile only; the desktop sidebar never covers anything. -->
 {#if open}
@@ -137,23 +300,44 @@
 <aside
   class="fixed inset-y-0 left-0 z-50 w-[260px] shrink-0 flex flex-col h-screen
          border-r border-border bg-background transition-[transform,width] duration-200
-         md:relative md:z-auto md:translate-x-0 md:visible
+         md:relative md:z-30 md:translate-x-0 md:visible
          {open ? 'translate-x-0 visible' : '-translate-x-full invisible'}
          {collapsed ? 'md:w-[60px]' : 'md:w-[214px]'}"
 >
+  <!-- Module switcher: the logo and the module name are one button. -->
   <div
-    class="h-12 flex items-center gap-2.5 border-b border-border shrink-0
-           {collapsed ? 'md:justify-center md:px-0 px-4' : 'px-4'}"
+    bind:this={switcherEl}
+    class="relative h-12 flex items-center gap-1 border-b border-border shrink-0
+           {collapsed ? 'md:justify-center md:px-0 px-2' : 'px-2'}"
   >
-    <div class="w-6 h-6 rounded-md bg-primary flex items-center justify-center shrink-0">
-      <ChartColumn size={13} class="text-primary-foreground" />
-    </div>
-    <div class="min-w-0 flex-1 {collapsed ? 'md:hidden' : ''}">
-      <p class="text-[12px] font-semibold text-foreground leading-tight truncate">
-        IMR Platform
-      </p>
-      <p class="text-[10px] text-muted-foreground truncate">Keuangan &amp; Operasional</p>
-    </div>
+    <button
+      type="button"
+      onclick={() => canSwitch && (switcherOpen = !switcherOpen)}
+      aria-haspopup={canSwitch ? 'menu' : undefined}
+      aria-expanded={canSwitch ? switcherOpen : undefined}
+      title={canSwitch ? 'Ganti modul' : undefined}
+      class="min-w-0 flex-1 flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors
+             {collapsed ? 'md:flex-none md:justify-center md:px-1.5' : ''}
+             {canSwitch ? 'hover:bg-card cursor-pointer' : 'cursor-default'}
+             {switcherOpen ? 'bg-card' : ''}"
+    >
+      <div class="w-7 h-7 rounded-md bg-primary flex items-center justify-center shrink-0">
+        {#if current}
+          <current.icon size={14} class="text-primary-foreground" />
+        {:else}
+          <ChartColumn size={14} class="text-primary-foreground" />
+        {/if}
+      </div>
+      <div class="min-w-0 flex-1 {collapsed ? 'md:hidden' : ''}">
+        <p class="text-[10px] text-muted-foreground leading-tight truncate">IMR Platform</p>
+        <p class="text-[13px] font-semibold text-foreground leading-tight truncate">
+          {current?.label ?? 'IMR Platform'}
+        </p>
+      </div>
+      {#if canSwitch}
+        <ChevronsUpDown size={14} class="shrink-0 text-muted-foreground {collapsed ? 'md:hidden' : ''}" />
+      {/if}
+    </button>
 
     <!-- Mobile: close. Desktop: nothing — the rail toggle lives at the foot. -->
     <button
@@ -164,29 +348,123 @@
     >
       <X size={16} />
     </button>
+
+    {#if switcherOpen}
+      <div
+        role="menu"
+        class="absolute z-50 w-[248px] p-1 rounded-lg border border-border bg-popover shadow-lg
+               top-[calc(100%-4px)] left-2
+               {collapsed ? 'md:top-1.5 md:left-[calc(100%+6px)]' : ''}"
+      >
+        <p class="px-2.5 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wide text-subtle">Modul</p>
+        {#each available as m (m.key)}
+          {@const first = visibleItems(m)[0]}
+          <a
+            role="menuitem"
+            href={first.href}
+            onclick={closeAll}
+            aria-current={m.key === current?.key ? 'page' : undefined}
+            class="flex items-center gap-2.5 px-2.5 py-2 rounded-md transition-colors
+                   {m.key === current?.key ? 'bg-primary/10' : 'hover:bg-card'}"
+          >
+            <div
+              class="w-7 h-7 rounded-md flex items-center justify-center shrink-0
+                     {m.key === current?.key ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}"
+            >
+              <m.icon size={14} />
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-[13px] font-medium truncate {m.key === current?.key ? 'text-primary' : 'text-foreground'}">
+                {m.label}
+              </p>
+              <p class="text-[11px] text-muted-foreground truncate">{m.description}</p>
+            </div>
+            {#if m.key === current?.key}<Check size={14} class="shrink-0 text-primary" />{/if}
+          </a>
+        {/each}
+      </div>
+    {/if}
   </div>
 
-  <nav class="flex-1 p-2 space-y-px overflow-y-auto">
-    {#each items as item (item.label)}
-      {#if item.visible}
-        {@const base = item.match ?? item.href}
-        {@const active =
-          page.url.pathname === base ||
-          (base !== '/' && page.url.pathname.startsWith(base + '/'))}
-        <a
-          href={item.href}
-          aria-current={active ? 'page' : undefined}
-          title={collapsed ? item.label : undefined}
-          onclick={() => onclose?.()}
-          class="w-full flex items-center gap-2.5 px-3 py-[7px] rounded-md text-[13px] transition-colors
-                 {collapsed ? 'md:justify-center md:px-0' : ''}
-                 {active
-            ? 'bg-primary/10 text-primary font-medium'
-            : 'text-muted-foreground hover:bg-card hover:text-foreground'}"
+  <!-- Operasional context: which entity, and whether this role may write. -->
+  {#if currentKey === 'operasional' && opEntity}
+    <div class="px-3 pt-3 pb-1 shrink-0 {collapsed ? 'md:px-2' : ''}">
+      {#if opEntities.length > 1}
+        <label
+          for="op-entity"
+          class="block text-[10px] font-medium uppercase tracking-wide text-subtle mb-1 {collapsed ? 'md:sr-only' : ''}"
         >
-          <item.icon size={14} class="shrink-0" />
-          <span class="truncate {collapsed ? 'md:hidden' : ''}">{item.label}</span>
-        </a>
+          Entitas
+        </label>
+        <select
+          id="op-entity"
+          value={opEntity.code}
+          onchange={chooseEntity}
+          title={opEntity.legal_name}
+          class="w-full h-[30px] px-2 bg-background border border-border rounded-md text-[12px] text-foreground
+                 focus:outline-none focus:border-primary {collapsed ? 'md:px-0.5 md:text-[11px]' : ''}"
+        >
+          {#each opEntities as entity (entity.id)}
+            <option value={entity.code}>{entity.code}</option>
+          {/each}
+        </select>
+      {:else}
+        <div
+          class="flex items-center gap-2 px-2 py-1.5 rounded-md bg-card border border-border {collapsed ? 'md:justify-center md:px-0' : ''}"
+          title={opEntity.legal_name}
+        >
+          <Building2 size={13} class="shrink-0 text-muted-foreground" />
+          <span class="text-[12px] font-medium text-foreground truncate">{opEntity.code}</span>
+          <span class="text-[11px] text-muted-foreground truncate {collapsed ? 'md:hidden' : ''}">
+            {opEntity.legal_name}
+          </span>
+        </div>
+      {/if}
+      {#if opReadOnly}
+        <p
+          class="mt-1.5 flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted text-[11px] text-muted-foreground
+                 {collapsed ? 'md:justify-center md:px-0' : ''}"
+          title="Peran Anda membaca data operasional tanpa mengubahnya."
+        >
+          <Eye size={12} class="shrink-0" />
+          <span class={collapsed ? 'md:hidden' : ''}>Mode baca</span>
+        </p>
+      {/if}
+    </div>
+  {/if}
+
+  <nav class="flex-1 p-2 overflow-y-auto" aria-label={current ? `Menu ${current.label}` : 'Menu'}>
+    {#each current?.groups ?? [] as group, g (group.heading ?? g)}
+      {@const items = group.items.filter((i) => i.visible !== false)}
+      {#if items.length}
+        {#if group.heading}
+          <p
+            class="px-3 pt-3 pb-1 text-[10px] font-medium uppercase tracking-wide text-subtle truncate
+                   {collapsed ? 'md:hidden' : ''}"
+          >
+            {group.heading}
+          </p>
+          {#if collapsed}<div class="hidden md:block mx-2 my-2 border-t border-border"></div>{/if}
+        {/if}
+        <div class="space-y-px">
+          {#each items as item (item.href)}
+            {@const active = isActive(item)}
+            <a
+              href={hrefFor(item)}
+              aria-current={active ? 'page' : undefined}
+              title={collapsed ? item.label : undefined}
+              onclick={() => onclose?.()}
+              class="w-full flex items-center gap-2.5 px-3 py-[7px] rounded-md text-[13px] transition-colors
+                     {collapsed ? 'md:justify-center md:px-0' : ''}
+                     {active
+                ? 'bg-primary/10 text-primary font-medium'
+                : 'text-muted-foreground hover:bg-card hover:text-foreground'}"
+            >
+              <item.icon size={14} class="shrink-0" />
+              <span class="truncate {collapsed ? 'md:hidden' : ''}">{item.label}</span>
+            </a>
+          {/each}
+        </div>
       {/if}
     {/each}
   </nav>

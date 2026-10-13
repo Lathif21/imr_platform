@@ -1,50 +1,11 @@
 <script lang="ts">
-  import ClipboardList from 'lucide-svelte/icons/clipboard-list';
-  import Database from 'lucide-svelte/icons/database';
-  import Eye from 'lucide-svelte/icons/eye';
-  import FileChartColumn from 'lucide-svelte/icons/file-chart-column';
-  import HandCoins from 'lucide-svelte/icons/hand-coins';
-  import Receipt from 'lucide-svelte/icons/receipt';
-  import IdCard from 'lucide-svelte/icons/id-card';
-  import Landmark from 'lucide-svelte/icons/landmark';
-  import LayoutDashboard from 'lucide-svelte/icons/layout-dashboard';
-  import Ship from 'lucide-svelte/icons/ship';
-  import Truck from 'lucide-svelte/icons/truck';
-  import UserRound from 'lucide-svelte/icons/user-round';
-  import { goto } from '$app/navigation';
-  import { page } from '$app/state';
   import { toast } from '$lib/feedback.svelte';
   import type { LayoutData } from './$types';
 
   let { data, children }: { data: LayoutData; children: import('svelte').Snippet } = $props();
 
-  // Port order: docs/PENGGABUNGAN.md. Every Laravel screen is here; new
-  // ones join this list when they exist — never as disabled tabs.
-  const tabs = [
-    { href: '/operasional', label: 'Dasbor', icon: LayoutDashboard, exact: true },
-    { href: '/operasional/general', label: 'Database General', icon: Database },
-    { href: '/operasional/kegiatan', label: 'Detail Kegiatan Kapal', icon: ClipboardList },
-    { href: '/operasional/pengeluaran', label: 'Pengeluaran', icon: Receipt },
-    { href: '/operasional/pencairan', label: 'Pencairan', icon: HandCoins },
-    { href: '/operasional/pendapatan', label: 'Pendapatan', icon: Landmark },
-    { href: '/operasional/laporan', label: 'Laporan', icon: FileChartColumn },
-    { href: '/operasional/pemilik', label: 'Pemilik', icon: UserRound },
-    { href: '/operasional/kendaraan', label: 'Kendaraan', icon: Truck },
-    { href: '/operasional/kapal', label: 'Kapal', icon: Ship },
-    { href: '/operasional/karyawan', label: 'Karyawan', icon: IdCard }
-  ];
-
-  /** Tabs carry the chosen entity along; a filter like ?pemilik does not. */
-  const entityQuery = $derived(
-    data.opEntity ? `?entitas=${encodeURIComponent(data.opEntity.code)}` : ''
-  );
-
-  function chooseEntity(event: Event) {
-    const code = (event.currentTarget as HTMLSelectElement).value;
-    // One kegiatan belongs to one entity; switching goes back to its list.
-    const path = page.url.pathname.replace(/^(\/operasional\/kegiatan)\/\d+.*$/, '$1');
-    goto(`${path}?entitas=${encodeURIComponent(code)}`);
-  }
+  // The screen list, the entity picker and the read-only badge live in the
+  // sidebar (Sidebar.svelte), so every screen is one click from any other.
 
   /**
    * Collaboration toasts: what other people changed in this entity since the
@@ -86,54 +47,6 @@
 </script>
 
 <div class="flex flex-col h-full overflow-hidden">
-  <div
-    class="h-12 shrink-0 flex items-center gap-1 px-4 sm:px-5 border-b border-border overflow-x-auto"
-  >
-    <span class="text-[13px] font-semibold text-foreground mr-3 shrink-0">Operasional</span>
-    {#each tabs as tab (tab.href)}
-      {@const active = 'exact' in tab ? page.url.pathname === tab.href : page.url.pathname.startsWith(tab.href)}
-      <a
-        href="{tab.href}{entityQuery}"
-        aria-current={active ? 'page' : undefined}
-        class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] shrink-0 transition-colors
-               {active
-          ? 'bg-primary/10 text-primary font-medium'
-          : 'text-muted-foreground hover:bg-card hover:text-foreground'}"
-      >
-        <tab.icon size={13} />
-        {tab.label}
-      </a>
-    {/each}
-
-    <div class="ml-auto flex items-center gap-2 shrink-0 pl-3">
-      {#if !data.canWrite}
-        <span
-          class="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted text-[11px]
-                 text-muted-foreground"
-          title="Peran Anda membaca data operasional tanpa mengubahnya."
-        >
-          <Eye size={12} /> Mode baca
-        </span>
-      {/if}
-      {#if data.opEntities.length > 1}
-        <label class="sr-only" for="op-entity">Entitas</label>
-        <select
-          id="op-entity"
-          value={data.opEntity?.code}
-          onchange={chooseEntity}
-          class="h-[28px] px-2 bg-background border border-border rounded-md text-[12px] text-foreground
-                 focus:outline-none focus:border-primary"
-        >
-          {#each data.opEntities as entity (entity.id)}
-            <option value={entity.code}>{entity.code}</option>
-          {/each}
-        </select>
-      {:else if data.opEntity}
-        <span class="text-[12px] text-muted-foreground">{data.opEntity.code}</span>
-      {/if}
-    </div>
-  </div>
-
   <div class="flex-1 min-h-0 overflow-y-auto">
     {#if data.opEntity}
       {@render children()}
