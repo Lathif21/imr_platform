@@ -58,7 +58,7 @@ const FORMAT: Record<Jenis, string | undefined> = {
   teks: undefined,
   rp: '"Rp" #,##0;[Red]-"Rp" #,##0',
   angka: '#,##0',
-  ton: '#,##0.00',
+  ton: '#,##0.00#',
   tanggal: 'dd/mm/yyyy',
   persen: '0.0#"%"'
 };

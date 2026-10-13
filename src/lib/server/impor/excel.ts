@@ -28,7 +28,7 @@ const FORMAT: Record<string, string | undefined> = {
   // reaches the server as typed and is read dd/mm/yy (sel.ts tanggal()).
   tanggal: '@',
   rupiah: '#,##0',
-  desimal: '#,##0.##',
+  desimal: '#,##0.###',
   bulat: '0'
 };
 
@@ -171,7 +171,7 @@ export async function bacaBerkas(jenis: JenisImpor, def: DefImpor, isi: ArrayBuf
     const judul = teks(mentah(cell.value)).replace(/\s*\*$/, '').toLowerCase();
     if (judul) posisi.set(judul, i);
   });
-  const hilang = def.kolom.filter((c) => !posisi.has(c.judul.toLowerCase())).map((c) => c.judul);
+  const hilang = def.kolom.filter((c) => !c.bolehTidakAda && !posisi.has(c.judul.toLowerCase())).map((c) => c.judul);
   if (hilang.length) {
     return { rows: [], galatBerkas: [`Kolom tidak ditemukan di baris 1: ${hilang.join(', ')}. Gunakan template dari layar ini tanpa mengubah judul kolom.`] };
   }
@@ -182,7 +182,9 @@ export async function bacaBerkas(jenis: JenisImpor, def: DefImpor, isi: ArrayBuf
     const nilai: Record<string, unknown> = {};
     let ada = false;
     for (const c of def.kolom) {
-      const v = mentah(row.getCell(posisi.get(c.judul.toLowerCase())!).value);
+      const kolom = posisi.get(c.judul.toLowerCase());
+      if (kolom === undefined) continue;
+      const v = mentah(row.getCell(kolom).value);
       nilai[c.kunci] = v;
       if (teks(v) !== '') ada = true;
     }

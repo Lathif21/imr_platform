@@ -3,7 +3,7 @@
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
-  const n = (v: number, d = 0) => new Intl.NumberFormat('id-ID', { minimumFractionDigits: d, maximumFractionDigits: d }).format(v);
+  const n = (v: number, d = 0, maks = d) => new Intl.NumberFormat('id-ID', { minimumFractionDigits: d, maximumFractionDigits: maks }).format(v);
   const bulan = $derived(`${NAMA_BULAN[data.periode.bulan - 1]} ${data.periode.tahun}`);
 </script>
 
@@ -25,7 +25,7 @@
       {#each data.rincian as r, i (i)}
         <tr>
           <td class="c">{i + 1}</td><td class="b">{r.nopol}</td><td>{r.kapal}</td><td>{r.rute}</td>
-          <td class="r">{r.ritase}</td><td class="r">{n(r.tonase, 2)}</td><td class="r">{n(r.ongkos_angkut)}</td>
+          <td class="r">{r.ritase}</td><td class="r">{n(r.tonase, 2, 3)}</td><td class="r">{n(r.ongkos_angkut)}</td>
           <td class="r">{n(r.pendapatan)}</td><td class="r">{n(r.sangu_supir)}</td><td class="r">{n(r.terpal)}</td><td class="r b">{n(r.bersih)}</td>
         </tr>
       {:else}
@@ -34,7 +34,7 @@
     </tbody>
     <tfoot>
       <tr>
-        <td colspan="4" class="c">TOTAL</td><td class="r">{data.jumlah.ritase}</td><td class="r">{n(data.jumlah.tonase, 2)}</td><td></td>
+        <td colspan="4" class="c">TOTAL</td><td class="r">{data.jumlah.ritase}</td><td class="r">{n(data.jumlah.tonase, 2, 3)}</td><td></td>
         <td class="r">{n(data.jumlah.pendapatan)}</td><td class="r">{n(data.jumlah.sangu_supir)}</td><td class="r">{n(data.jumlah.terpal)}</td><td class="r">{n(data.jumlah.bersih)}</td>
       </tr>
     </tfoot>

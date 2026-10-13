@@ -46,7 +46,7 @@ async function kegiatanLengkap(nama: string, bulan: number): Promise<number> {
   const [t] = await sql<{ id: number }>('select id::int as id from transaksi_operasional where operasional_rekap_id = $1', [id]);
   const bayar = await admin.rpc('simpan_pembayaran_truk', {
     p_rekap_id: id,
-    p_truk: [{ id: t.id, ritase: 2, tonase: 10, ongkos_angkut: 20000, sangu_supir: 150000, terpal: 50000 }]
+    p_truk: [{ id: t.id, ritase: 2, tonase: 10, ongkos_angkut: 20000, sangu_supir: 150000, terpal: 50000, paguyuban: 5000 }]
   });
   expect(bayar.error).toBeNull();
   return id;

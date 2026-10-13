@@ -26,6 +26,8 @@ export interface DetailRow {
   sangu_supir: number;
   terpal: number;
   operasional: number;
+  /** False while Lengkapi Data has not set it; `operasional` is then 0. */
+  operasional_diisi: boolean;
   total: number;
   telly: string | null;
   tanggal_kegiatan: string | null;
@@ -42,7 +44,7 @@ interface RekapRecord {
   tonase: string | null;
   sangu_supir: string | null;
   terpal: string | null;
-  operasional: string;
+  operasional: string | null;
   telly_id: number | null;
   tanggal_kegiatan: string | null;
   tanggal_selesai: string | null;
@@ -68,7 +70,7 @@ export async function muatDetailKegiatan(db: SupabaseClient, entityId: string, p
       .gte('tanggal', dari)
       .lt('tanggal', sampai)
       .not('operasional_rekap_id', 'is', null)
-      .returns<{ operasional_rekap_id: number; ritase: number; tonase: string; sangu_supir: string; terpal: string }[]>(),
+      .returns<{ operasional_rekap_id: number; ritase: number; tonase: string; sangu_supir: string; terpal: string | null }[]>(),
     db.from('kapal').select('id, nama_kapal').eq('entity_id', entityId).returns<{ id: number; nama_kapal: string }[]>(),
     db.from('karyawan').select('id, nama').eq('entity_id', entityId).returns<{ id: number; nama: string }[]>()
   ]);
@@ -110,6 +112,7 @@ export async function muatDetailKegiatan(db: SupabaseClient, entityId: string, p
       sangu_supir: sangu,
       terpal,
       operasional,
+      operasional_diisi: r.operasional !== null,
       total: sangu + terpal + operasional,
       telly: r.telly_id === null ? null : (namaKaryawan.get(r.telly_id) ?? null),
       tanggal_kegiatan: r.tanggal_kegiatan,

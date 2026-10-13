@@ -7,7 +7,7 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BarisPratinjau, JenisImpor, PilihanDuplikat } from '$lib/impor';
-import { NAMA_BULAN, pecahRute, rentangBulan, susunRute, type Periode } from '$lib/operasional/kegiatan';
+import { NAMA_BULAN, pecahRute, rentangBulan, susunRute, tonaseSah, type Periode } from '$lib/operasional/kegiatan';
 import { STATUS_ENTRY, TARIF_PAJAK } from '$lib/operasional/pendapatan';
 import { rupiah as rp } from '$lib/operasional/ui';
 import type { OperationalEntity } from '../operasional';
@@ -25,6 +25,11 @@ export interface Kolom {
   lebar?: number;
   /** Dropdown in the template. `ketat` refuses anything else; otherwise it only suggests. */
   daftar?: { kunci: string; ketat?: boolean };
+  /**
+   * Added after templates were already in use: a file without this column is
+   * still read, and the row then has no value for it at all (not even null).
+   */
+  bolehTidakAda?: boolean;
 }
 
 export interface Konteks {
@@ -571,7 +576,8 @@ const kegiatan: DefImpor = {
     { judul: 'Tonase (MT)', kunci: 'tonase', tipe: 'desimal', contoh: 10 },
     { judul: 'Ongkos Angkut /Ton (Rp)', kunci: 'ongkos_angkut', tipe: 'rupiah', contoh: 20000 },
     { judul: 'Saku Supir (Rp)', kunci: 'sangu_supir', tipe: 'rupiah', contoh: 150000 },
-    { judul: 'Terpal (Rp)', kunci: 'terpal', tipe: 'rupiah', contoh: 50000 }
+    { judul: 'Terpal (Rp)', kunci: 'terpal', tipe: 'rupiah', contoh: 50000 },
+    { judul: 'Paguyuban (Rp)', kunci: 'paguyuban', tipe: 'rupiah', contoh: 5000, catatan: 'Iuran paguyuban truk ini, diisi manual. Kosong = belum diisi.', bolehTidakAda: true }
   ],
   petunjuk: [
     'Satu baris = satu truk. Baris dengan nama kapal dan tanggal mulai yang sama menjadi satu kegiatan.',
@@ -597,7 +603,7 @@ const kegiatan: DefImpor = {
   eksporBulanan: true,
   async ekspor({ db, entity, periode }) {
     type Rekap = { id: number; kapal_id: number; rute: string | null; operasional: string | null; telly_id: number | null; tanggal_kegiatan: string | null; tanggal_selesai: string | null; keterangan: string | null };
-    type Truk = { operasional_rekap_id: number; kendaraan_id: number | null; ritase: number | null; tonase: string | null; ongkos_angkut: string | null; sangu_supir: string | null; terpal: string | null };
+    type Truk = { id: number; operasional_rekap_id: number; kendaraan_id: number | null; ritase: number | null; tonase: string | null; ongkos_angkut: string | null; sangu_supir: string | null; terpal: string | null };
     const { data: rekap } = await db
       .from('operasional_rekap')
       .select('id, kapal_id, rute, operasional, telly_id, tanggal_kegiatan, tanggal_selesai, keterangan')
@@ -614,11 +620,17 @@ const kegiatan: DefImpor = {
       db.from('v_kendaraan_ringkasan').select('id, nopol, nama_pemilik').eq('entity_id', entity.id).returns<{ id: number; nopol: string; nama_pemilik: string | null }[]>(),
       db
         .from('transaksi_operasional')
-        .select('operasional_rekap_id, kendaraan_id, ritase, tonase, ongkos_angkut, sangu_supir, terpal')
+        .select('id, operasional_rekap_id, kendaraan_id, ritase, tonase, ongkos_angkut, sangu_supir, terpal')
         .in('operasional_rekap_id', rekap.map((r) => r.id))
         .order('id')
         .returns<Truk[]>()
     ]);
+    const { data: pag } = await db
+      .from('paguyuban')
+      .select('transaksi_id, total_bayar')
+      .in('transaksi_id', (tr.data ?? []).map((t) => t.id))
+      .returns<{ transaksi_id: number; total_bayar: string }[]>();
+    const paguyuban = new Map((pag ?? []).map((p) => [p.transaksi_id, p.total_bayar]));
     const kapal = new Map((kp.data ?? []).map((k) => [k.id, k.nama_kapal]));
     const telly = new Map((ky.data ?? []).map((k) => [k.id, k.nama]));
     const kendaraan = new Map((kd.data ?? []).map((k) => [k.id, k]));
@@ -649,7 +661,8 @@ const kegiatan: DefImpor = {
         tonase: angka(t.tonase),
         ongkos_angkut: angka(t.ongkos_angkut),
         sangu_supir: angka(t.sangu_supir),
-        terpal: angka(t.terpal)
+        terpal: angka(t.terpal),
+        paguyuban: angka(paguyuban.get(t.id) ?? null)
       }));
     });
   },
@@ -662,14 +675,14 @@ const kegiatan: DefImpor = {
     const terdaftar = new Set((kd.data ?? []).map((k) => normalNopol(k.nopol)));
     const telly = new Map((ky.data ?? []).map((k) => [banding(k.nama), k.id]));
 
-    type Truk = { baris: number; nopol: string; pemilik_baru: string; ritase: number; tonase: number; ongkos_angkut: number; sangu_supir: number; terpal: number };
+    type Truk = { baris: number; nopol: string; pemilik_baru: string; ritase: number; tonase: number; ongkos_angkut: number; sangu_supir: number; terpal: number | null; paguyuban?: number | null };
     type Keg = {
       baris: number;
       nama_kapal: string;
       tanggal_kegiatan: string;
       tanggal_selesai: string | null;
       rute: string | null;
-      operasional: number;
+      operasional: number | null;
       telly_id: number | null;
       keterangan: string | null;
       truk: Truk[];
@@ -689,11 +702,14 @@ const kegiatan: DefImpor = {
       if (nopol && !terdaftar.has(nopol) && !pemilikBaru) galat.push(`Truk ${nopol} belum terdaftar: isi kolom Pemilik Truk.`);
       const ritase = bulat(row.nilai.ritase);
       if (ritase === undefined) galat.push('Ritase harus bilangan bulat 0 atau lebih.');
-      const tonase = desimal(row.nilai.tonase);
-      if (tonase === undefined) galat.push('Tonase harus angka 0 atau lebih, mis. 12,5.');
+      const tonaseMentah = desimal(row.nilai.tonase);
+      const tonase = tonaseMentah === undefined || tonaseMentah === null ? tonaseMentah : (tonaseSah(tonaseMentah) ?? undefined);
+      if (tonase === undefined) galat.push('Tonase harus angka 0 atau lebih, paling banyak 3 angka di belakang koma, mis. 12,125.');
       const ongkos = bacaRupiahKol(row, 'ongkos_angkut', 'Ongkos angkut', galat);
       const saku = bacaRupiahKol(row, 'sangu_supir', 'Saku supir', galat);
       const terpal = bacaRupiahKol(row, 'terpal', 'Terpal', galat);
+      // Absent column (older template): leave the saved iuran alone.
+      const paguyuban = 'paguyuban' in row.nilai ? bacaRupiahKol(row, 'paguyuban', 'Paguyuban', galat) : undefined;
       const operasional = bacaRupiahKol(row, 'operasional', 'Biaya operasional', galat);
       const asal = teks(row.nilai.rute_asal);
       const tujuan = teks(row.nilai.rute_tujuan);
@@ -720,7 +736,7 @@ const kegiatan: DefImpor = {
           tanggal_kegiatan: tglMulai ?? '',
           tanggal_selesai: tglSelesai,
           rute: asal || tujuan ? susunRute(asal, tujuan) : null,
-          operasional: operasional ?? 0,
+          operasional,
           telly_id: tellyId,
           keterangan,
           truk: [],
@@ -739,7 +755,7 @@ const kegiatan: DefImpor = {
         beda('Tanggal selesai', g.tanggal_selesai, tglSelesai);
         if (g.truk.some((t) => t.nopol === nopol)) galat.push(`Truk ${nopol} tercantum dua kali pada kegiatan ini.`);
       }
-      g.truk.push({ baris: row.baris, nopol, pemilik_baru: pemilikBaru, ritase: ritase ?? 0, tonase: tonase ?? 0, ongkos_angkut: ongkos ?? 0, sangu_supir: saku ?? 0, terpal: terpal ?? 0 });
+      g.truk.push({ baris: row.baris, nopol, pemilik_baru: pemilikBaru, ritase: ritase ?? 0, tonase: tonase ?? 0, ongkos_angkut: ongkos ?? 0, sangu_supir: saku ?? 0, terpal, paguyuban });
       baris.push(b);
     }
 

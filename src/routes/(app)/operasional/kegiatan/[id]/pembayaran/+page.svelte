@@ -4,6 +4,7 @@
   import Wallet from 'lucide-svelte/icons/wallet';
   import { untrack } from 'svelte';
   import { enhance } from '$app/forms';
+  import { goto } from '$app/navigation';
   import { withFeedback } from '$lib/form-feedback';
   import { NAMA_BULAN, bacaAngka, bacaRupiah, ton } from '$lib/operasional/kegiatan';
   import { BTN_PRIMARY, BTN_SOFT, FIELD, SAVE_BAR, rupiah } from '$lib/operasional/ui';
@@ -18,12 +19,13 @@
       id: t.id,
       nopol: t.nopol,
       pemilik: t.pemilik,
-      tarif: t.tarif_paguyuban,
       ritase: String(t.ritase),
       tonase: t.tonase ? String(t.tonase).replace('.', ',') : '',
       ongkos_angkut: angkaRp(t.ongkos_angkut),
       sangu_supir: angkaRp(t.sangu_supir),
-      terpal: angkaRp(t.terpal)
+      // 0 shows as "0": only a terpal never filled in stays blank.
+      terpal: t.terpal === null ? '' : new Intl.NumberFormat('id-ID').format(t.terpal),
+      paguyuban: t.paguyuban === null ? '' : new Intl.NumberFormat('id-ID').format(t.paguyuban)
     }));
   }
 
@@ -36,27 +38,19 @@
     `/operasional/kegiatan?${entityQuery}&bulan=${data.kegiatan.bulan}&tahun=${data.kegiatan.tahun}`
   );
 
-  // Same formulas as simpan_pembayaran_truk(), shown before saving.
-  const hitung = $derived(
-    baris.map((b) => {
-      const tonase = bacaAngka(b.tonase) ?? 0;
-      return {
-        beban: tonase * (bacaRupiah(b.ongkos_angkut) ?? 0),
-        paguyuban: tonase > 0 ? tonase * b.tarif : 0
-      };
-    })
-  );
+  // Same formula as simpan_pembayaran_truk(), shown before saving.
+  const beban = $derived(baris.map((b) => (bacaAngka(b.tonase) ?? 0) * (bacaRupiah(b.ongkos_angkut) ?? 0)));
 
   const jumlah = $derived({
     ritase: baris.reduce((n, b) => n + (Number(b.ritase) || 0), 0),
     tonase: baris.reduce((n, b) => n + (bacaAngka(b.tonase) ?? 0), 0),
-    beban: hitung.reduce((n, h) => n + h.beban, 0),
+    beban: beban.reduce((n, x) => n + x, 0),
     sangu: baris.reduce((n, b) => n + (bacaRupiah(b.sangu_supir) ?? 0), 0),
     terpal: baris.reduce((n, b) => n + (bacaRupiah(b.terpal) ?? 0), 0),
-    paguyuban: hitung.reduce((n, h) => n + h.paguyuban, 0)
+    paguyuban: baris.reduce((n, b) => n + (bacaRupiah(b.paguyuban) ?? 0), 0)
   });
 
-  const trukJson = $derived(JSON.stringify(baris.map(({ pemilik: _p, tarif: _t, ...rest }) => rest)));
+  const trukJson = $derived(JSON.stringify(baris.map(({ pemilik: _p, ...rest }) => rest)));
 
   /** Rupiah fields show thousands separators as they are typed. */
   function rp(value: string): string {
@@ -71,7 +65,7 @@
 
   const save = withFeedback({
     failTitle: 'Rincian pembayaran gagal disimpan',
-    onSuccess: () => (baris = dariData()),
+    onSuccess: () => goto(kembaliHref),
     onPending: (pending) => (saving = pending)
   });
 
@@ -137,7 +131,7 @@
                 <th class="{TH} text-right">Beban Rekanan</th>
                 <th class="{TH} text-right w-[130px]">Saku Supir</th>
                 <th class="{TH} text-right w-[120px]">Terpal</th>
-                <th class="{TH} text-right">Paguyuban</th>
+                <th class="{TH} text-right w-[120px]">Paguyuban</th>
               </tr>
             </thead>
             <tbody>
@@ -157,7 +151,7 @@
                       class={INPUT}
                     />
                   </td>
-                  <td class="py-1.5 px-2 text-right num whitespace-nowrap">{rupiah(hitung[i].beban)}</td>
+                  <td class="py-1.5 px-2 text-right num whitespace-nowrap">{rupiah(beban[i])}</td>
                   <td class="py-1.5 px-2">
                     <input
                       value={b.sangu_supir}
@@ -173,10 +167,20 @@
                       oninput={(e) => (b.terpal = rp(e.currentTarget.value))}
                       inputmode="numeric"
                       aria-label="Terpal {b.nopol}"
+                      placeholder="Belum diisi"
                       class={INPUT}
                     />
                   </td>
-                  <td class="py-1.5 px-2 text-right num whitespace-nowrap text-muted-foreground">{rupiah(hitung[i].paguyuban)}</td>
+                  <td class="py-1.5 px-2">
+                    <input
+                      value={b.paguyuban}
+                      oninput={(e) => (b.paguyuban = rp(e.currentTarget.value))}
+                      inputmode="numeric"
+                      aria-label="Iuran paguyuban {b.nopol}"
+                      placeholder="Belum diisi"
+                      class={INPUT}
+                    />
+                  </td>
                 </tr>
               {:else}
                 <tr>
@@ -206,8 +210,8 @@
         </fieldset>
       </div>
       <p class="px-4 py-2.5 text-[12px] text-muted-foreground border-t border-border">
-        Beban rekanan = tonase × ongkos angkut per ton, dibayarkan ke pemilik truk. Iuran paguyuban = tonase × tarif
-        (Rp 500/ton bila belum disesuaikan) dan masih bisa dikoreksi di laporan keuangan.
+        Beban rekanan = tonase × ongkos angkut per ton, dibayarkan ke pemilik truk. Iuran paguyuban diisi manual per
+        truk dalam rupiah; kosongkan bila belum diketahui.
       </p>
     </div>
 

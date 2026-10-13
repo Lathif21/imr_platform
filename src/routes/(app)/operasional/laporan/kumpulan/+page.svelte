@@ -29,7 +29,7 @@
   const q = $derived(`entitas=${encodeURIComponent(data.opEntity?.code ?? '')}&bulan=${data.periode.bulan}&tahun=${data.periode.tahun}`);
   const namaBulan = $derived(`${NAMA_BULAN[data.periode.bulan - 1]} ${data.periode.tahun}`);
 
-  const fmt = (n: number) => (n ? new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(n) : '');
+  const fmt = (n: number) => (n ? new Intl.NumberFormat('id-ID', { maximumFractionDigits: 3 }).format(n) : '');
   const baca = (v: string) => Number(v.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '')) || 0;
 
   const RUPIAH_KARTU: { key: keyof KartuKapal; label: string }[] = [

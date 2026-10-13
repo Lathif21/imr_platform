@@ -118,7 +118,7 @@
               <td class={TD_NUM}>{rupiah(row.sangu_supir)}</td>
               <td class={TD_NUM}>{rupiah(row.terpal)}</td>
               <td class={TD_NUM}>
-                {#if row.operasional > 0 || row.tonase === 0}
+                {#if row.operasional_diisi || row.tonase === 0}
                   {rupiah(row.operasional)}
                 {:else}
                   <span class="text-warning" title="Belum diisi di Lengkapi Data. Perkiraan lama: tonase × Rp 1.000 = {rupiah(row.tonase * 1000)}">

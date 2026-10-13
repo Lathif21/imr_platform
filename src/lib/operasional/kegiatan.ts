@@ -122,6 +122,25 @@ export function bacaAngka(raw: string): number | null {
   return Number(text);
 }
 
+/** Decimal places a tonnage keeps — the tonase columns are numeric(12,3). */
+export const DESIMAL_TONASE = 3;
+
+/**
+ * `n` when it has at most three decimals, `null` otherwise, so a tonnage is
+ * never silently rounded by the database. Float noise from an Excel formula
+ * (12.299999999999999) still reads as 12.3.
+ */
+export function tonaseSah(n: number): number | null {
+  const ribuan = Math.round(n * 1000);
+  return Math.abs(n * 1000 - ribuan) < 1e-6 ? ribuan / 1000 : null;
+}
+
+/** bacaAngka() for a tonnage: `null` also when it has more than three decimals. */
+export function bacaTonase(raw: string): number | null {
+  const n = bacaAngka(raw);
+  return n === null ? null : tonaseSah(n);
+}
+
 /** "12/09/2026", or "12/09/2026 s/d 14/09/2026" for a range — the list column. */
 export function rentangTanggal(mulai: string | null, selesai: string | null): string {
   const fmt = (iso: string) => {
@@ -133,7 +152,7 @@ export function rentangTanggal(mulai: string | null, selesai: string | null): st
   return fmt(mulai);
 }
 
-/** "12,5" — tonnage the way the operational screens printed it. */
+/** "12,5" or "12,125" — tonnage with every decimal it was entered with. */
 export function ton(value: string | number | null | undefined): string {
-  return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(Number(value ?? 0));
+  return new Intl.NumberFormat('id-ID', { maximumFractionDigits: DESIMAL_TONASE }).format(Number(value ?? 0));
 }
