@@ -1,6 +1,5 @@
 <script lang="ts">
   import ArrowRight from 'lucide-svelte/icons/arrow-right';
-  import HandCoins from 'lucide-svelte/icons/hand-coins';
   import Landmark from 'lucide-svelte/icons/landmark';
   import Receipt from 'lucide-svelte/icons/receipt';
   import PilihPeriode from '$lib/operasional/PilihPeriode.svelte';
@@ -15,11 +14,6 @@
   const namaBulan = $derived(`${NAMA_BULAN[data.periode.bulan - 1]} ${data.periode.tahun}`);
   const d = $derived(data.dasbor);
 
-  const STATUS: Record<string, string> = {
-    Approved: 'bg-positive/10 text-positive',
-    Rejected: 'bg-destructive/10 text-destructive',
-    Pending: 'bg-warning/10 text-warning'
-  };
   const KARTU = 'bg-card border border-border rounded-lg p-4';
 </script>
 
@@ -49,7 +43,7 @@
       {/each}
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-3 items-start">
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-3 items-start">
       <!-- 1. Pendapatan -->
       <section class={KARTU}>
         <div class="flex items-center justify-between">
@@ -82,28 +76,6 @@
             </div>
           {/each}
         </dl>
-      </section>
-
-      <!-- 3. Pencairan -->
-      <section class={KARTU}>
-        <div class="flex items-center justify-between">
-          <h2 class="text-[14px] font-semibold text-foreground inline-flex items-center gap-2"><HandCoins size={14} class="text-muted-foreground" /> Pencairan</h2>
-          <a href="/operasional/pencairan?{q}" class="text-[12px] text-primary hover:underline inline-flex items-center gap-1">Pencairan <ArrowRight size={11} /></a>
-        </div>
-        <div class="text-[24px] font-semibold text-foreground num mt-3">{rupiah(d.pencairan.nominal)}</div>
-        <div class="text-[12px] text-muted-foreground">
-          {d.pencairan.jumlah} invoice · disetujui {d.pencairan.approved} · pending {d.pencairan.pending}{d.pencairan.rejected ? ` · ditolak ${d.pencairan.rejected}` : ''}
-        </div>
-        <ul class="mt-3 space-y-1.5 text-[13px]">
-          {#each d.pencairan.daftar as c (c.id)}
-            <li class="flex items-center justify-between gap-2">
-              <span class="truncate"><span class="num text-foreground">{c.nomor_invoice}</span> <span class="text-muted-foreground">· {c.kapal}</span></span>
-              <span class="shrink-0 px-1.5 py-0.5 rounded text-[11px] font-medium {STATUS[c.status] ?? ''}">{c.status}</span>
-            </li>
-          {:else}
-            <li class="text-muted-foreground">Belum ada invoice pencairan bulan ini.</li>
-          {/each}
-        </ul>
       </section>
     </div>
 

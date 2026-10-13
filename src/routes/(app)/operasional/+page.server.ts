@@ -7,8 +7,9 @@ import { failLoad } from '$lib/server/operasional';
 import { muatPartner } from '$lib/server/partner';
 
 /**
- * Dasbor Operasional — DashboardController, in the three parts named in
- * docs/PENGGABUNGAN.md: pendapatan, pengeluaran kotor, pencairan.
+ * Dasbor Operasional — DashboardController: pendapatan and pengeluaran
+ * kotor (docs/PENGGABUNGAN.md). The pencairan part is gone with the
+ * Pencairan menu; Laporan Pendapatan carries the invoice status.
  *
  * Laravel's dashboard took transaksi.pendapatan as revenue and showed
  * "Laba Bersih = pendapatan − biaya". That column is the payment to truck
@@ -26,7 +27,7 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
   const entityId = opEntity.id;
   const { dari, sampai } = rentangBulan(periode);
 
-  const [kegiatan, gaji, partner, lpResult, trxResult, keluarResult, cairResult, masterResults] = await Promise.all([
+  const [kegiatan, gaji, partner, lpResult, trxResult, keluarResult, masterResults] = await Promise.all([
     muatDetailKegiatan(db, entityId, periode),
     muatGaji(db, entityId, periode),
     muatPartner(db, entityId, periode),
@@ -51,14 +52,6 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
       .gte('tanggal', dari)
       .lt('tanggal', sampai)
       .returns<{ jenis: string; jumlah: string }[]>(),
-    db
-      .from('pencairan')
-      .select('id, nomor_invoice, kapal_id, nominal_invoice, status')
-      .eq('entity_id', entityId)
-      .eq('bulan', periode.bulan)
-      .eq('tahun', periode.tahun)
-      .order('created_at', { ascending: false })
-      .returns<{ id: number; nomor_invoice: string; kapal_id: number; nominal_invoice: string; status: string }[]>(),
     Promise.all(
       (['pemilik', 'kendaraan', 'kapal', 'karyawan'] as const).map((t) =>
         db.from(t).select('id', { count: 'exact', head: true }).eq('entity_id', entityId)
@@ -68,7 +61,6 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
   if (lpResult.error) failLoad('dasbor pendapatan', lpResult.error);
   if (trxResult.error) failLoad('dasbor transaksi', trxResult.error);
   if (keluarResult.error) failLoad('dasbor pengeluaran', keluarResult.error);
-  if (cairResult.error) failLoad('dasbor pencairan', cairResult.error);
 
   const trx = trxResult.data ?? [];
   const { data: pag, error: pagError } = await db
@@ -104,13 +96,6 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
   ];
   const totalPengeluaran = pengeluaran.reduce((s, p) => s + p.nilai, 0);
 
-  const cair = cairResult.data ?? [];
-  const { data: kapalRows } = await db
-    .from('kapal')
-    .select('id, nama_kapal')
-    .in('id', [...new Set(cair.map((c) => c.kapal_id))])
-    .returns<{ id: number; nama_kapal: string }[]>();
-  const namaKapal = new Map((kapalRows ?? []).map((k) => [k.id, k.nama_kapal]));
   const [pemilik, kendaraan, kapal, karyawan] = masterResults.map((r) => r.count ?? 0);
 
   // Ranked lists, as Laravel's "teratas" cards.
@@ -135,20 +120,6 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
       pengeluaran,
       totalPengeluaran,
       selisih: pendapatan.semua.total - pendapatan.semua.pajak - totalPengeluaran,
-      pencairan: {
-        jumlah: cair.length,
-        nominal: cair.reduce((s, c) => s + n(c.nominal_invoice), 0),
-        approved: cair.filter((c) => c.status === 'Approved').length,
-        pending: cair.filter((c) => c.status === 'Pending').length,
-        rejected: cair.filter((c) => c.status === 'Rejected').length,
-        daftar: cair.slice(0, 6).map((c) => ({
-          id: c.id,
-          nomor_invoice: c.nomor_invoice,
-          kapal: namaKapal.get(c.kapal_id) ?? '',
-          nominal: n(c.nominal_invoice),
-          status: c.status
-        }))
-      },
       master: { pemilik, kendaraan, kapal, karyawan },
       kapalTeratas: [...perKapal.values()].sort((a, b) => b.tonase - a.tonase).slice(0, 5),
       partnerTeratas: partner.ringkas

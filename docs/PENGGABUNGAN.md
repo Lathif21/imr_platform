@@ -210,6 +210,10 @@ sebaiknya menautkannya ke kegiatan dengan (kapal, rute, bulan) yang sama.
   Jetty/Gudang/Accounting dengan preview BA, status final. Fungsi
   `simpan_pencairan`, `setujui_pencairan`, `hapus_pencairan`
   (`20250114000000_pencairan.sql`). Tes: `tests/operasional-pencairan.test.ts`.
+  **Menu ini sudah dihapus** (`20250125000000_hapus_menu_pencairan.sql`):
+  status invoice cukup di Laporan Pendapatan. Tabel, fungsi, dan datanya
+  tetap ada; layar, kartu dasbor, ekspor Excel, dan jenis lampirannya hilang,
+  dan hapus kapal tidak lagi ditolak karena pencairan (ikut terhapus).
 
 Alur Laravel dipertahankan: invoice baru → tiga persetujuan Pending + baris
 Laporan Pendapatan `PENDING` (total = nominal, net = nominal − pajak, tarif

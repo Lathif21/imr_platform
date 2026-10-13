@@ -107,8 +107,8 @@
       title: 'Hapus baris pendapatan?',
       message: `Invoice ${b.no_invoice || '(tanpa nomor)'} — ${b.kegiatan} akan dihapus.`,
       consequence: b.tertaut
-        ? 'Baris ini dibuat dari kegiatan kapal dan akan dibuat ulang saat kegiatannya disimpan atau "Generate dari Kegiatan" ditekan. Pencairan dengan nomor invoice yang sama tidak ikut terhapus.'
-        : 'Pencairan dengan nomor invoice yang sama tidak ikut terhapus. Tidak bisa dikembalikan.',
+        ? 'Baris ini dibuat dari kegiatan kapal dan akan dibuat ulang saat kegiatannya disimpan atau "Generate dari Kegiatan" ditekan.'
+        : 'Tidak bisa dikembalikan.',
       confirmLabel: 'Ya, hapus',
       tone: 'danger'
     });
@@ -155,7 +155,7 @@
             title: 'Rapikan nomor urut?',
             message: `Nomor urut ${namaBulan} menjadi 1, 2, 3, … menurut urutan sekarang.`,
             consequence:
-              'Nomor invoice berpola otomatis (n/PT.IMR-…) ikut berganti, termasuk di pencairan. Invoice yang diketik manual atau sudah dibayar tidak berubah. Simpan perubahan di tabel lebih dulu.',
+              'Nomor invoice berpola otomatis (n/PT.IMR-…) ikut berganti. Invoice yang diketik manual atau sudah dibayar tidak berubah. Simpan perubahan di tabel lebih dulu.',
             confirmLabel: 'Ya, rapikan'
           })}
         >

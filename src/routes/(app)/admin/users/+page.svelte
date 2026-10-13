@@ -63,7 +63,7 @@
       auditor:
         'Membaca entitas yang ditautkan di bawah beserta jejak audit, tidak dapat menulis apa pun. Tidak melihat dasbor konsolidasi grup.',
       admin_operasional:
-        'Menginput data operasional (kapal, transaksi, rekap, pencairan) untuk entitas yang ditautkan di bawah. Tidak membaca maupun mengisi laporan laba rugi.'
+        'Menginput data operasional (kapal, transaksi, rekap, pendapatan) untuk entitas yang ditautkan di bawah. Tidak membaca maupun mengisi laporan laba rugi.'
     };
     const ok = confirm(
       `Ubah peran ${editing.full_name} dari ${ROLE_LABEL[editing.role]} menjadi ` +

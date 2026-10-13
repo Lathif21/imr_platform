@@ -4,7 +4,7 @@
  * before a byte is sent. The server checks again; this copy is UX.
  */
 
-export const JENIS_LAMPIRAN = ['kegiatan', 'pendapatan', 'pencairan', 'pengeluaran', 'periode'] as const;
+export const JENIS_LAMPIRAN = ['kegiatan', 'pendapatan', 'pengeluaran', 'periode'] as const;
 export type JenisLampiran = (typeof JENIS_LAMPIRAN)[number];
 
 export const isJenisLampiran = (v: string): v is JenisLampiran =>

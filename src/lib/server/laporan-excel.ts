@@ -149,43 +149,6 @@ function tulisLembar(wb: ExcelJS.Workbook, l: Lembar, entitas: string, periode: 
 
 const rentang = (a: string | null, b: string | null) => (a && b && a !== b ? `${a} s/d ${b}` : (a ?? ''));
 
-async function muatPencairan({ db, entityId, periode }: Konteks) {
-  const [cair, kapal] = await Promise.all([
-    db
-      .from('pencairan')
-      .select('id, kapal_id, nomor_invoice, nominal_invoice, besaran_pajak, status')
-      .eq('entity_id', entityId)
-      .eq('bulan', periode.bulan)
-      .eq('tahun', periode.tahun)
-      .order('nomor_invoice')
-      .returns<{ id: number; kapal_id: number; nomor_invoice: string; nominal_invoice: string; besaran_pajak: string; status: string }[]>(),
-    db.from('kapal').select('id, nama_kapal').eq('entity_id', entityId).returns<{ id: number; nama_kapal: string }[]>()
-  ]);
-  if (cair.error) failLoad('excel pencairan', cair.error);
-  const rows = cair.data ?? [];
-  const { data: appr, error } = await db
-    .from('pencairan_approval')
-    .select('pencairan_id, departemen, status, tanggal_ttd')
-    .in('pencairan_id', rows.map((r) => r.id))
-    .returns<{ pencairan_id: number; departemen: string; status: string; tanggal_ttd: string | null }[]>();
-  if (error) failLoad('excel pencairan approval', error);
-  const nama = new Map((kapal.data ?? []).map((k) => [k.id, k.nama_kapal]));
-  const a = (id: number, d: string) => (appr ?? []).find((x) => x.pencairan_id === id && x.departemen === d);
-  return rows.map((r) => ({
-    nomor_invoice: r.nomor_invoice,
-    kapal: nama.get(r.kapal_id) ?? '—',
-    nominal: Number(r.nominal_invoice),
-    pajak: Number(r.besaran_pajak),
-    status: r.status,
-    ...Object.fromEntries(
-      ['Jetty', 'Gudang', 'Accounting'].flatMap((d) => [
-        [`${d}_status`, a(r.id, d)?.status ?? 'Pending'],
-        [`${d}_tgl`, a(r.id, d)?.tanggal_ttd ?? null]
-      ])
-    )
-  }));
-}
-
 export const LAPORAN_EXCEL: Record<string, { label: string; lembar: (k: Konteks) => Promise<Lembar[]> }> = {
   kegiatan: {
     label: 'Detail Kegiatan Kapal',
@@ -307,34 +270,6 @@ export const LAPORAN_EXCEL: Record<string, { label: string; lembar: (k: Konteks)
         }
       ];
     }
-  },
-
-  pencairan: {
-    label: 'Pencairan',
-    lembar: async (k) => [
-      {
-        nama: 'Pencairan',
-        judul: 'PENCAIRAN — PERSETUJUAN JETTY, GUDANG, ACCOUNTING',
-        tabel: [
-          {
-            kolom: [
-              { judul: 'No. Invoice', kunci: 'nomor_invoice', lebar: 20 },
-              { judul: 'Kapal', kunci: 'kapal', lebar: 24 },
-              { judul: 'Nominal', kunci: 'nominal', jenis: 'rp', total: true },
-              { judul: 'Pajak', kunci: 'pajak', jenis: 'rp', total: true },
-              { judul: 'Status Final', kunci: 'status', lebar: 12 },
-              { judul: 'Jetty', kunci: 'Jetty_status', lebar: 10 },
-              { judul: 'Tgl TTD Jetty', kunci: 'Jetty_tgl', jenis: 'tanggal' },
-              { judul: 'Gudang', kunci: 'Gudang_status', lebar: 10 },
-              { judul: 'Tgl TTD Gudang', kunci: 'Gudang_tgl', jenis: 'tanggal' },
-              { judul: 'Accounting', kunci: 'Accounting_status', lebar: 11 },
-              { judul: 'Tgl TTD Accounting', kunci: 'Accounting_tgl', jenis: 'tanggal' }
-            ],
-            baris: await muatPencairan(k)
-          }
-        ]
-      }
-    ]
   },
 
   partner: {
