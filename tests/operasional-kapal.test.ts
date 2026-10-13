@@ -1,14 +1,14 @@
 /**
- * Fase 1b — hapus_kapal() (migrasi 20250112).
+ * Fase 1b — hapus_kapal() (migrasi 20250112, 20250125).
  *
  * Laravel menghapus kapal beserta seluruh kegiatannya dalam satu transaksi.
- * Dua hal di skema ini tidak ikut lewat cascade dengan benar, dan keduanya
- * yang dijaga di sini:
+ * Yang dijaga di sini:
  *
  *   - honor telly per kegiatan (gaji_telly.operasional_rekap_id, SET NULL)
  *     yang tanpa langkah eksplisit akan tersisa sebagai baris tanpa induk —
  *     terbaca sebagai gaji admin;
- *   - pencairan (CASCADE) yang akan ikut terhapus diam-diam.
+ *   - pencairan lama: dulu menolak penghapusan, tetapi menu Pencairan sudah
+ *     dihapus (20250125), jadi kini ikut terhapus bersama kapalnya.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -81,7 +81,7 @@ describe('hapus_kapal', () => {
     ).toBe(0);
   });
 
-  it('menolak kapal yang punya pencairan, tanpa menghapus apa pun', async () => {
+  it('kapal yang punya pencairan lama tetap bisa dihapus; pencairannya ikut terhapus', async () => {
     const k = await kapalLengkap('KM Pencairan');
     await sql(
       "insert into pencairan (entity_id, kapal_id, bulan, nomor_invoice, nominal_invoice) values ($1, $2, 9, 'INV-UJI-1', 1000000)",
@@ -89,12 +89,11 @@ describe('hapus_kapal', () => {
     );
 
     const { error } = await admin.rpc('hapus_kapal', { p_kapal_id: k.kapal });
-    expect(error?.code).toBe('P0001');
-    expect(error?.message).toContain('pencairan');
+    expect(error).toBeNull();
 
-    expect(await count('kapal', 'id = $1', [k.kapal])).toBe(1);
-    expect(await count('gaji_telly', 'id = $1', [k.gaji])).toBe(1);
-    expect(await count('pencairan', 'kapal_id = $1', [k.kapal])).toBe(1);
+    expect(await count('kapal', 'id = $1', [k.kapal])).toBe(0);
+    expect(await count('gaji_telly', 'id = $1', [k.gaji])).toBe(0);
+    expect(await count('pencairan', 'kapal_id = $1', [k.kapal])).toBe(0);
   });
 
   /** Manajer boleh membaca data operasional, tidak boleh menghapusnya. */

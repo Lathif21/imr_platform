@@ -18,7 +18,6 @@ interface Konfig {
 export const KONFIG: Record<JenisLampiran, Konfig> = {
   kegiatan: { tabel: 'lampiran_operasional', kolom: 'operasional_rekap_id', induk: 'operasional_rekap', refUuid: false },
   pendapatan: { tabel: 'lampiran_operasional', kolom: 'laporan_pendapatan_id', induk: 'laporan_pendapatan', refUuid: false },
-  pencairan: { tabel: 'lampiran_operasional', kolom: 'pencairan_id', induk: 'pencairan', refUuid: false },
   pengeluaran: { tabel: 'lampiran_operasional', kolom: 'pengeluaran_id', induk: 'pengeluaran', refUuid: false },
   periode: { tabel: 'lampiran_periode', kolom: 'period_id', induk: 'periods', refUuid: true }
 };

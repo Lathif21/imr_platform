@@ -17,7 +17,7 @@ export interface KapalRow {
   jumlah_kegiatan: number;
   /** Baris truk (transaksi_operasional) yang ikut terhapus. */
   jumlah_transaksi: number;
-  /** Pencairan yang membuat kapal ini tidak bisa dihapus. */
+  /** Pencairan lama (menu sudah dihapus) yang ikut terhapus. */
   jumlah_pencairan: number;
 }
 
@@ -120,8 +120,8 @@ export const actions: Actions = {
    * Sama seperti Laravel: kapal dihapus beserta seluruh detail kegiatan dan
    * rincian truknya. Lewat hapus_kapal() (migrasi 20250112) supaya honor
    * telly per kegiatan ikut terhapus dalam transaksi yang sama — FK-nya
-   * SET NULL dan baris tanpa induk akan terbaca sebagai gaji admin — dan
-   * supaya kapal yang punya pencairan ditolak, bukan ikut menghapusnya.
+   * SET NULL dan baris tanpa induk akan terbaca sebagai gaji admin. Pencairan
+   * lamanya ikut terhapus (20250125: menu Pencairan dihapus).
    */
   hapus: async ({ locals, request }) => {
     const form = await request.formData();

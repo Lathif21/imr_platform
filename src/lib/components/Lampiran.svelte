@@ -4,7 +4,7 @@
    *
    * `bagian`: a section on the page (Lengkapi Data, Laporan P&L).
    * `tombol`: a 📎 button with the count, opening the same list in a dialog
-   * (a row in Pengeluaran, Pendapatan, Pencairan).
+   * (a row in Pengeluaran, Pendapatan).
    *
    * Upload goes browser → storage through a presigned URL from /lampiran,
    * then /lampiran records it (see that route). Several files at once; each

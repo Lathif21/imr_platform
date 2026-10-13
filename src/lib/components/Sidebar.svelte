@@ -12,7 +12,6 @@
   import FileChartColumn from 'lucide-svelte/icons/file-chart-column';
   import FileSpreadsheet from 'lucide-svelte/icons/file-spreadsheet';
   import FileText from 'lucide-svelte/icons/file-text';
-  import HandCoins from 'lucide-svelte/icons/hand-coins';
   import IdCard from 'lucide-svelte/icons/id-card';
   import Landmark from 'lucide-svelte/icons/landmark';
   import LayoutDashboard from 'lucide-svelte/icons/layout-dashboard';
@@ -143,7 +142,6 @@
               heading: 'Keuangan',
               items: [
                 { label: 'Pengeluaran', icon: Receipt, href: '/operasional/pengeluaran' },
-                { label: 'Pencairan', icon: HandCoins, href: '/operasional/pencairan' },
                 { label: 'Pendapatan', icon: Landmark, href: '/operasional/pendapatan' },
                 { label: 'Laporan', icon: FileChartColumn, href: '/operasional/laporan' }
               ]

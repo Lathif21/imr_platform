@@ -39,14 +39,12 @@
 
   /** Apa saja yang ikut terhapus, dalam kalimat — sama seperti peringatan Laravel. */
   function consequence(row: KapalRow): string {
-    if (row.jumlah_pencairan > 0) {
-      return `Kapal ini punya ${row.jumlah_pencairan} pencairan, jadi penghapusan akan ditolak. Selesaikan pencairannya lebih dulu.`;
-    }
     const parts: string[] = [];
     if (row.jumlah_kegiatan > 0) parts.push(`${row.jumlah_kegiatan} detail kegiatan kapal`);
     if (row.jumlah_transaksi > 0) parts.push(`${row.jumlah_transaksi} rincian pembayaran truk`);
+    if (row.jumlah_pencairan > 0) parts.push(`${row.jumlah_pencairan} invoice pencairan lama`);
     return parts.length
-      ? `Seluruh ${parts.join(' dan ')} pada kapal ini, beserta honor telly-nya, akan ikut terhapus dan tidak bisa dikembalikan.`
+      ? `Seluruh ${parts.length > 1 ? `${parts.slice(0, -1).join(', ')} dan ${parts.at(-1)}` : parts[0]} pada kapal ini, beserta honor telly-nya, akan ikut terhapus dan tidak bisa dikembalikan.`
       : 'Data yang dihapus tidak bisa dikembalikan.';
   }
 
