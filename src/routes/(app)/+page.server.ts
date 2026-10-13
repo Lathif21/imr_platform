@@ -1,4 +1,4 @@
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { PostgrestError } from '@supabase/supabase-js';
 import type {
   GroupConsolidated,
@@ -55,14 +55,6 @@ function fail(context: string, cause: PostgrestError): never {
  * non-null assertions.
  */
 const EMPTY = {
-  scoped: false,
-  /**
-   * Where a scoped caller should have gone instead. Filled in only on the
-   * scoped branch — the empty state used to hardcode /entry, which was true
-   * while entity staff were the only scoped role and became wrong the moment
-   * manajer and auditor joined them: neither of those can enter a report.
-   */
-  scopedNext: null as { href: string; label: string } | null,
   periods: [] as PeriodCompleteness[],
   range: null as PeriodRange | null,
   prior: null as PeriodRange | null,
@@ -84,18 +76,15 @@ export const load: PageServerLoad = async ({ locals, url }) => {
    * A group total read under entity-scoped RLS is a different number, not a
    * smaller one (CONTEXT.md, "Kelengkapan"). Entity staff see only their own
    * entity, so rendering a "consolidated" figure for them would quietly show
-   * one entity's revenue as the group's. Refuse instead.
+   * one entity's revenue as the group's. Refuse — by sending each role
+   * straight to the screen it works in, so logging in lands an operational
+   * admin in their own PT's Operasional rather than on a dead end.
    */
   if (!canReadAllEntities(locals.role)) {
-    return {
-      ...EMPTY,
-      scoped: true,
-      scopedNext: canEnterReports(locals.role)
-        ? { href: '/entry', label: 'Input Laporan' }
-        : canWriteOperational(locals.role)
-          ? { href: '/operasional', label: 'Data Operasional' }
-          : { href: '/entities', label: 'Laporan P&L' }
-    };
+    redirect(
+      303,
+      canEnterReports(locals.role) ? '/entry' : canWriteOperational(locals.role) ? '/operasional' : '/entities'
+    );
   }
 
   const { supabase } = locals;

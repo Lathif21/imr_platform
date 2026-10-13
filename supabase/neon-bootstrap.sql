@@ -17,6 +17,10 @@ insert into entities (id, code, legal_name, npwp, business_line, icon_key, theme
   ('e0000000-0000-4000-a000-000000000004', 'GARAM',   '(nama badan hukum belum dikonfirmasi) - lini garam',   null, 'salt',     'waves',   '#22C55E')
 on conflict (id) do nothing;
 
+-- Invoice ILJ selama ini tercetak "PT.IMR" (PT Indo Moda Raya); entitas lain
+-- memakai "PT.<kode>" (20250118000000_awalan_invoice_entitas.sql).
+update entities set invoice_prefix = 'PT.IMR' where code = 'ILJ' and invoice_prefix is null;
+
 -- Hanya ILJ yang punya sistem operasional. Token tidak di sini, tetapi di
 -- OPERATIONAL_SYNC_TOKEN pada env Vercel.
 insert into operational_sync_config (entity_id, base_url) values

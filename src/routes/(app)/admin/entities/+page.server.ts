@@ -8,6 +8,7 @@ export interface AdminEntity {
   code: string;
   legal_name: string;
   npwp: string | null;
+  invoice_prefix: string | null;
   business_line: string;
   icon_key: string;
   theme_color: string;
@@ -56,6 +57,8 @@ function duplicateMessage(cause: PostgrestError): string | null {
 }
 
 const CODE_PATTERN = /^[A-Z0-9]{1,10}$/;
+/** Same rule as the column check in 20250118000000_awalan_invoice_entitas.sql. */
+const PREFIX_PATTERN = /^[A-Za-z0-9.]{1,20}$/;
 
 /** Reads the shared fields; `null` when something is wrong with them. */
 function readEntityForm(form: FormData): { values: Record<string, unknown>; message?: string } {
@@ -63,12 +66,16 @@ function readEntityForm(form: FormData): { values: Record<string, unknown>; mess
   const legalName = String(form.get('legal_name') ?? '').trim();
   const businessLine = String(form.get('business_line') ?? '').trim();
   const npwp = String(form.get('npwp') ?? '').trim();
+  const invoicePrefix = String(form.get('invoice_prefix') ?? '').trim();
 
   if (!CODE_PATTERN.test(code)) {
     return { values: {}, message: 'Kode wajib diisi, huruf/angka kapital, maksimal 10 karakter.' };
   }
   if (legalName === '') return { values: {}, message: 'Nama badan hukum wajib diisi.' };
   if (businessLine === '') return { values: {}, message: 'Lini usaha wajib diisi.' };
+  if (invoicePrefix !== '' && !PREFIX_PATTERN.test(invoicePrefix)) {
+    return { values: {}, message: 'Awalan invoice hanya huruf, angka, dan titik, maksimal 20 karakter (mis. PT.ILA).' };
+  }
 
   return {
     values: {
@@ -76,6 +83,7 @@ function readEntityForm(form: FormData): { values: Record<string, unknown>; mess
       legal_name: legalName,
       business_line: businessLine,
       npwp: npwp === '' ? null : npwp,
+      invoice_prefix: invoicePrefix === '' ? null : invoicePrefix,
       icon_key: String(form.get('icon_key') ?? 'building'),
       theme_color: String(form.get('theme_color') ?? '#64748b')
     }
@@ -87,7 +95,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     locals.supabase
       .from('entities')
       .select(
-        'id, code, legal_name, npwp, business_line, icon_key, theme_color, ownership_pct, fiscal_year_start_month, reporting_basis, revenue_presentation, is_active'
+        'id, code, legal_name, npwp, invoice_prefix, business_line, icon_key, theme_color, ownership_pct, fiscal_year_start_month, reporting_basis, revenue_presentation, is_active'
       )
       .order('is_active', { ascending: false })
       .order('code')

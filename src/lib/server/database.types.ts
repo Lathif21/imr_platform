@@ -191,6 +191,7 @@ export type Database = {
           fiscal_year_start_month: number
           icon_key: string
           id: string
+          invoice_prefix: string | null
           is_active: boolean
           legal_name: string
           npwp: string | null
@@ -207,6 +208,7 @@ export type Database = {
           fiscal_year_start_month?: number
           icon_key?: string
           id?: string
+          invoice_prefix?: string | null
           is_active?: boolean
           legal_name: string
           npwp?: string | null
@@ -223,6 +225,7 @@ export type Database = {
           fiscal_year_start_month?: number
           icon_key?: string
           id?: string
+          invoice_prefix?: string | null
           is_active?: boolean
           legal_name?: string
           npwp?: string | null
