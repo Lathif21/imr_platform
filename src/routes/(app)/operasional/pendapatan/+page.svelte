@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ImporExcel from '$lib/operasional/ImporExcel.svelte';
   import FileText from 'lucide-svelte/icons/file-text';
   import ListOrdered from 'lucide-svelte/icons/list-ordered';
   import Plus from 'lucide-svelte/icons/plus';
@@ -162,6 +163,7 @@
           <input type="hidden" name="tahun" value={data.periode.tahun} />
           <button type="submit" disabled={saving} class={BTN_SOFT}><ListOrdered size={14} /> Rapikan Nomor</button>
         </form>
+        <ImporExcel jenis="pendapatan" label="Pendapatan" />
         <button type="button" onclick={() => ((party = ''), (harga = '34.500'), (tambahOpen = true))} class={BTN_PRIMARY}>
           <Plus size={14} /> Tambah Baris
         </button>

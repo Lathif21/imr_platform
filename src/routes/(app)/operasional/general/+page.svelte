@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ImporExcel from '$lib/operasional/ImporExcel.svelte';
   import ClipboardList from 'lucide-svelte/icons/clipboard-list';
   import Pencil from 'lucide-svelte/icons/pencil';
   import Plus from 'lucide-svelte/icons/plus';
@@ -114,6 +115,7 @@
         />
       </div>
       {#if data.canWrite}
+        <ImporExcel jenis="kegiatan" label="Kegiatan Kapal & Truk" />
         <button type="button" onclick={openCreate} class={BTN_PRIMARY}>
           <Plus size={14} /> Tambah Data General
         </button>

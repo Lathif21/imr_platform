@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ImporExcel from '$lib/operasional/ImporExcel.svelte';
   import Pencil from 'lucide-svelte/icons/pencil';
   import Plus from 'lucide-svelte/icons/plus';
   import Printer from 'lucide-svelte/icons/printer';
@@ -101,6 +102,7 @@
         <Printer size={14} /> Cetak
       </a>
       {#if data.canWrite}
+        <ImporExcel jenis="pengeluaran" label="Pengeluaran" />
         <button type="button" onclick={openCreate} class={BTN_PRIMARY}><Plus size={14} /> Tambah Pengeluaran</button>
       {/if}
     </div>
