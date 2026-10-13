@@ -113,11 +113,11 @@ Klik kartu **ILJ**. Anda mendarat di
 
 ### Banner kebijakan (amber, di atas kartu)
 
-- [ ] Berbunyi: *Sebagian kebijakan akuntansi belum ditetapkan — angka
-      bersifat sementara.*
-- [ ] Menyebut kelimanya:
-      `revenue_presentation_trucking, uang_saku_treatment,
-      profit_sharing_65_35, accounting_basis, accounting_standard`
+- [ ] Berbunyi: *Angka laporan ini masih sementara. 5 aturan pencatatan
+      belum diputuskan, sehingga angkanya bisa berubah setelah diputuskan.*
+- [ ] "Lihat rincian" membuka kelimanya dalam bahasa awam, masing-masing
+      dengan pertanyaannya: Cara mencatat omset angkutan, Uang saku supir,
+      Bagi hasil 65/35, Waktu pencatatan (kas atau akrual), Standar akuntansi
 
 Banner ini muncul karena kelima baris `accounting_policies` masih `NULL`.
 Menghilangkannya berarti menyajikan angka sementara sebagai angka final.

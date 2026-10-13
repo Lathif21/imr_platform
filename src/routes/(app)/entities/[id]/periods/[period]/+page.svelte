@@ -10,8 +10,10 @@
     LINE_SECTION_LABEL,
     LINE_SECTION_SIGN,
     PERIOD_STATUS_LABEL,
+    POLICY_LABEL,
     REPORTING_BASIS_LABEL,
     REVENUE_PRESENTATION_LABEL,
+    policyLabel,
     type LineSection,
     type Numeric
   } from '$lib/domain';
@@ -268,14 +270,27 @@
         role="status"
       >
         <TriangleAlert size={14} class="text-warning shrink-0 mt-px" />
-        <p class="text-[14px] text-warning flex-1 leading-relaxed">
-          Sebagian kebijakan akuntansi belum ditetapkan — angka bersifat sementara.
-          <!-- `revenue_presentation_trucking` is one unbreakable word; without
-               this it runs straight off the side of a phone. -->
-          <span class="font-semibold break-words">
-            {data.openPolicies.map((policy) => policy.policy_key).join(', ')}
-          </span>
-        </p>
+        <details class="flex-1 text-[14px] leading-relaxed group">
+          <summary class="cursor-pointer list-none text-warning [&::-webkit-details-marker]:hidden">
+            <span class="font-semibold">Angka laporan ini masih sementara.</span>
+            {data.openPolicies.length} aturan pencatatan belum diputuskan, sehingga angkanya bisa berubah setelah diputuskan.
+            <span class="underline underline-offset-2 whitespace-nowrap group-open:hidden">Lihat rincian</span>
+            <span class="underline underline-offset-2 whitespace-nowrap hidden group-open:inline">Tutup</span>
+          </summary>
+          <ul class="mt-2 space-y-1.5 text-foreground">
+            {#each data.openPolicies as policy (policy.policy_key)}
+              <li>
+                <span class="font-medium">{policyLabel(policy.policy_key)}</span>
+                {#if POLICY_LABEL[policy.policy_key]}
+                  <span class="text-muted-foreground"> — {POLICY_LABEL[policy.policy_key].pertanyaan}</span>
+                {/if}
+              </li>
+            {/each}
+          </ul>
+          <p class="mt-2 text-[13px] text-muted-foreground">
+            Keputusan ini diambil oleh direksi bersama akuntan. Sampai diputuskan, setiap PT mencatat seperti biasanya dan sistem tidak mengubah angkanya.
+          </p>
+        </details>
       </div>
     {/if}
 
@@ -364,8 +379,9 @@
           class="flex items-start gap-2 text-[12px] text-warning px-4 sm:px-5 py-2.5 border-b border-border leading-relaxed"
         >
           <TriangleAlert size={12} class="shrink-0 mt-px" />
-          Basis pelaporan entitas ini belum ditetapkan (ASSUMPTIONS.md A-1, A-4), sehingga angka di
-          bawah belum dapat dibandingkan dengan entitas lain.
+          <!-- ASSUMPTIONS.md A-1, A-4 -->
+          Cara pencatatan PT ini (kas atau akrual, dan cara mencatat omset) belum ditetapkan, jadi angka di
+          bawah belum bisa dibandingkan langsung dengan PT lain.
         </p>
       {/if}
 

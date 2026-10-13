@@ -14,7 +14,7 @@
     shareOf,
     toAmount
   } from '$lib/format';
-  import { REPORTING_BASIS_LABEL, PERIOD_STATUS_LABEL, type Numeric } from '$lib/domain';
+  import { REPORTING_BASIS_LABEL, PERIOD_STATUS_LABEL, policyLabel, type Numeric } from '$lib/domain';
   import { entityIcon } from '$lib/icons';
   import { comparisonTag, monthsBetween, sameCoverage, type RangeMode } from '$lib/period-range';
   import type { PageData } from './$types';
@@ -119,8 +119,8 @@
     if (data.openPolicies.length > 0) {
       out.push({
         kind: 'policy',
-        title: `${data.openPolicies.length} kebijakan akuntansi belum diputuskan`,
-        detail: data.openPolicies.map((p) => p.policy_key).join(', ')
+        title: `${data.openPolicies.length} aturan pencatatan belum diputuskan — angka masih sementara`,
+        detail: data.openPolicies.map((p) => policyLabel(p.policy_key)).join(', ')
       });
     }
 

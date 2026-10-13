@@ -100,6 +100,39 @@ export const REVENUE_PRESENTATION_LABEL: Record<RevenuePresentation, string> = {
 };
 
 /**
+ * `accounting_policies.policy_key` in words a reader of the report knows,
+ * with the question the decision answers. The keys come from
+ * docs/ASSUMPTIONS.md (A-1 to A-4) and the init seed; an unknown key falls
+ * back to itself through `policyLabel()`.
+ */
+export const POLICY_LABEL: Record<string, { judul: string; pertanyaan: string }> = {
+  revenue_presentation_trucking: {
+    judul: 'Cara mencatat omset angkutan',
+    pertanyaan: 'Omset dicatat penuh sebesar tagihan ke pelanggan, atau hanya selisihnya setelah dikurangi bagian rekanan?'
+  },
+  uang_saku_treatment: {
+    judul: 'Uang saku supir',
+    pertanyaan: 'Dihitung sebagai biaya, atau sebagai uang muka yang nanti dipertanggungjawabkan?'
+  },
+  profit_sharing_65_35: {
+    judul: 'Bagi hasil 65/35',
+    pertanyaan: 'Termasuk biaya usaha, atau pembagian laba kepada pemilik?'
+  },
+  accounting_basis: {
+    judul: 'Waktu pencatatan (kas atau akrual)',
+    pertanyaan: 'Pendapatan dan biaya dicatat saat uangnya diterima/dibayar, atau saat transaksinya terjadi?'
+  },
+  accounting_standard: {
+    judul: 'Standar akuntansi',
+    pertanyaan: 'Laporan mengikuti SAK EMKM, SAK ETAP, atau PSAK?'
+  }
+};
+
+export function policyLabel(key: string): string {
+  return POLICY_LABEL[key]?.judul ?? key;
+}
+
+/**
  * A `numeric(18,2)` column. PostgREST may serialise it as a JSON number or,
  * depending on version and column width, as a string — so treat it as either
  * and put it through `toAmount()` before any arithmetic. Never let the raw
