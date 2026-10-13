@@ -12,7 +12,7 @@
   import PilihPeriode from '$lib/operasional/PilihPeriode.svelte';
   import { NAMA_BULAN, bacaRupiah, ton } from '$lib/operasional/kegiatan';
   import { STATUS_ENTRY, TARIF_PAJAK, posisi, ringkas, sudahDibayar, type Posisi } from '$lib/operasional/pendapatan';
-  import { BTN_ICON, BTN_ICON_DANGER, BTN_PRIMARY, BTN_SOFT, FIELD, LABEL, TEXTAREA, rupiah } from '$lib/operasional/ui';
+  import { BTN_ICON, BTN_ICON_DANGER, BTN_PRIMARY, BTN_SOFT, FIELD, LABEL, SAVE_BAR, TEXTAREA, rupiah } from '$lib/operasional/ui';
   import type { PageData } from './$types';
   import type { PendapatanRow } from './+page.server';
 
@@ -111,8 +111,8 @@
     });
   }
 
-  const CELL = 'h-[28px] px-2 bg-background border border-border rounded-md text-[12px] text-foreground focus:outline-none focus:border-primary w-full';
-  const TH = 'font-medium py-2 px-2 whitespace-nowrap';
+  const CELL = 'h-[28px] px-2 bg-background border border-border rounded-md text-[13px] text-foreground focus:outline-none focus:border-primary w-full';
+  const TH = 'font-semibold py-2 px-2 whitespace-nowrap';
 
   function warnaStatus(s: string) {
     const p = posisi({ status_entry: s || null, payment_date: null });
@@ -128,8 +128,8 @@
 <div class="p-4 sm:p-5 space-y-4">
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <div>
-      <h1 class="text-[15px] font-semibold text-foreground">Laporan Pendapatan</h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">Rekap income penagihan · {namaBulan} · {data.baris.length} invoice</p>
+      <h1 class="text-[17px] font-semibold text-foreground">Laporan Pendapatan</h1>
+      <p class="text-[13px] text-muted-foreground mt-0.5">Rekap income penagihan · {namaBulan} · {data.baris.length} invoice</p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
@@ -174,16 +174,16 @@
       { label: 'Total keseluruhan piutang', j: data.keseluruhan.semua, tone: 'text-foreground' }
     ] as card (card.label)}
       <div class="bg-card border border-border rounded-lg px-4 py-3">
-        <div class="text-[11px] text-muted-foreground">{card.label}</div>
-        <div class="text-[16px] font-semibold num mt-1 {card.tone}">{rupiah(card.j.net_tagihan)}</div>
-        <div class="text-[11px] text-muted-foreground num mt-0.5">
+        <div class="text-[12px] text-muted-foreground">{card.label}</div>
+        <div class="text-[17px] font-semibold num mt-1 {card.tone}">{rupiah(card.j.net_tagihan)}</div>
+        <div class="text-[12px] text-muted-foreground num mt-0.5">
           {card.j.jumlah} invoice · {ton(card.j.party_kg)} KG · bruto {rupiah(card.j.total)}
         </div>
       </div>
     {/each}
   </div>
 
-  <div class="flex items-center gap-1.5 flex-wrap text-[12px]">
+  <div class="flex items-center gap-1.5 flex-wrap text-[13px]">
     <span class="text-muted-foreground mr-1">Posisi piutang:</span>
     <button type="button" onclick={() => (filter = 'SEMUA')} class="px-2.5 py-1 rounded-md border {filter === 'SEMUA' ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:text-foreground'}">
       Semua · {baris.length}
@@ -203,7 +203,7 @@
   <div class="bg-card border border-border rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
       <fieldset disabled={!data.canWrite}>
-        <table class="w-full min-w-[2100px] text-[12px]">
+        <table class="w-full min-w-[2100px] text-[13px]">
           <thead>
             <tr class="text-muted-foreground border-b border-border">
               <th class="{TH} text-center w-[56px]">No</th>
@@ -277,7 +277,7 @@
               </tr>
             {:else}
               <tr>
-                <td colspan="17" class="py-10 px-4 text-center text-[12px] text-muted-foreground">
+                <td colspan="17" class="py-10 px-4 text-center text-[13px] text-muted-foreground">
                   {#if filter !== 'SEMUA'}Tidak ada invoice pada posisi ini.{:else}Belum ada data pendapatan untuk {namaBulan}.{data.canWrite ? ' Tekan "Generate dari Kegiatan" atau "Tambah Baris".' : ''}{/if}
                 </td>
               </tr>
@@ -302,7 +302,7 @@
   </div>
 
   {#if data.canWrite && baris.length > 0}
-    <form method="POST" action="?/simpanSemua" use:enhance={simpan} class="flex justify-end">
+    <form method="POST" action="?/simpanSemua" use:enhance={simpan} class={SAVE_BAR}>
       <input type="hidden" name="baris" value={barisJson} />
       <button type="submit" disabled={saving} class={BTN_PRIMARY}>{saving ? 'Menyimpan…' : 'Simpan Semua Perubahan'}</button>
     </form>
@@ -333,7 +333,7 @@
       <label class="block"><span class={LABEL}>Payment date</span><input type="date" name="payment_date" class={FIELD} /></label>
     </div>
     <label class="block"><span class={LABEL}>Keterangan</span><textarea name="keterangan" class={TEXTAREA}></textarea></label>
-    <p class="text-[11px] text-muted-foreground num">
+    <p class="text-[12px] text-muted-foreground num">
       Total = party ÷ 1.000 × harga = {rupiah(Math.round(((bacaRupiah(party) ?? 0) / 1000) * (bacaRupiah(harga) ?? 0) * 100) / 100)}
     </p>
     <div class="flex justify-end gap-2 pt-1">

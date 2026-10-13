@@ -25,7 +25,7 @@
     goto(url, { keepFocus: true, noScroll: true });
   }
 
-  const TH = 'font-medium py-2.5 px-3 whitespace-nowrap';
+  const TH = 'font-semibold py-2.5 px-3 whitespace-nowrap';
   const TD = 'py-2.5 px-3 text-right num whitespace-nowrap';
 </script>
 
@@ -34,14 +34,14 @@
 <div class="p-4 sm:p-5 space-y-4">
   <div class="flex items-start justify-between gap-3 flex-wrap">
     <div>
-      <a href="/operasional/laporan?{q}" class="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground"><ArrowLeft size={13} /> Laporan</a>
-      <h1 class="text-[15px] font-semibold text-foreground mt-1">Laporan Partner</h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">Pembayaran truk per pemilik kendaraan · {namaBulan}</p>
+      <a href="/operasional/laporan?{q}" class="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground"><ArrowLeft size={13} /> Laporan</a>
+      <h1 class="text-[17px] font-semibold text-foreground mt-1">Laporan Partner</h1>
+      <p class="text-[13px] text-muted-foreground mt-0.5">Pembayaran truk per pemilik kendaraan · {namaBulan}</p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
       <label class="sr-only" for="pilih-pemilik">Pemilik</label>
-      <select id="pilih-pemilik" value={data.dipilih?.id ?? ''} onchange={pilih} class="h-[30px] px-2 bg-background border border-border rounded-md text-[12px] text-foreground focus:outline-none focus:border-primary max-w-[240px]">
+      <select id="pilih-pemilik" value={data.dipilih?.id ?? ''} onchange={pilih} class="h-[30px] px-2 bg-background border border-border rounded-md text-[13px] text-foreground focus:outline-none focus:border-primary max-w-[240px]">
         <option value="">Semua pemilik / rekanan</option>
         {#each data.ringkas as p (p.id)}<option value={p.id}>{p.nama}</option>{/each}
       </select>
@@ -53,7 +53,7 @@
 
   {#if !data.dipilih}
     <div class="bg-card border border-border rounded-lg overflow-x-auto">
-      <table class="w-full min-w-[820px] text-[12px]">
+      <table class="w-full min-w-[820px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
             <th class="{TH} text-left">Nama Pemilik / Rekanan</th>
@@ -96,20 +96,20 @@
     </div>
 
     <section class="space-y-2">
-      <h2 class="text-[13px] font-semibold text-foreground">Rincian Pembayaran Truk per kegiatan · {namaBulan}</h2>
+      <h2 class="text-[14px] font-semibold text-foreground">Rincian Pembayaran Truk per kegiatan · {namaBulan}</h2>
       <div class="flex flex-wrap gap-2">
         {#each data.kegiatan as k (k.id)}
-          <a href="/operasional/kegiatan/{k.id}/pembayaran?{q}" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-border bg-card text-[12px] hover:border-primary/50 {k.truk === 0 ? 'opacity-60' : ''}">
+          <a href="/operasional/kegiatan/{k.id}/pembayaran?{q}" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-border bg-card text-[13px] hover:border-primary/50 {k.truk === 0 ? 'opacity-60' : ''}">
             <Wallet size={13} class="text-muted-foreground" /> {k.nama_kapal} · {k.rute ?? '-'} · {k.truk} truk
           </a>
         {:else}
-          <p class="text-[12px] text-muted-foreground">Belum ada kegiatan kapal bulan ini.</p>
+          <p class="text-[13px] text-muted-foreground">Belum ada kegiatan kapal bulan ini.</p>
         {/each}
       </div>
     </section>
   {:else}
     <div class="bg-card border border-border rounded-lg overflow-x-auto">
-      <table class="w-full min-w-[1150px] text-[12px]">
+      <table class="w-full min-w-[1150px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
             <th class="{TH} text-left">Tanggal Kegiatan</th>

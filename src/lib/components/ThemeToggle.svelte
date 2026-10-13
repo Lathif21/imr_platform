@@ -40,7 +40,7 @@
   onclick={toggle}
   title={label}
   aria-label={label}
-  class="flex items-center gap-2.5 rounded-md text-[13px]
+  class="flex items-center gap-2.5 rounded-md text-[14px]
          text-muted-foreground hover:bg-card hover:text-foreground transition-colors
          {variant === 'icon'
     ? 'h-8 w-8 justify-center shrink-0'

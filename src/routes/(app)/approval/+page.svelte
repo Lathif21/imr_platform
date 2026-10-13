@@ -145,9 +145,9 @@
   <!-- header · 48px -->
   <div class="h-12 flex items-center justify-between px-4 sm:px-5 border-b border-border shrink-0 gap-3">
     <div class="flex items-center gap-3 min-w-0">
-      <h1 class="text-[13px] font-semibold text-foreground truncate">Persetujuan Laporan</h1>
+      <h1 class="text-[14px] font-semibold text-foreground truncate">Persetujuan Laporan</h1>
       {#if !data.canApprove}
-        <span class="text-[11px] text-muted-foreground truncate hidden sm:inline">
+        <span class="text-[12px] text-muted-foreground truncate hidden sm:inline">
           Hanya baca — peran Anda tidak menyetujui laporan
         </span>
       {/if}
@@ -159,7 +159,7 @@
         <select
           id="periode"
           name="periode"
-          class="h-[30px] pl-3 pr-2 bg-card border border-border rounded-lg text-[13px] text-foreground
+          class="h-[30px] pl-3 pr-2 bg-card border border-border rounded-lg text-[14px] text-foreground
                  tabular-nums hover:bg-muted transition-colors focus:outline-none focus:border-primary"
           onchange={(event) => event.currentTarget.form?.requestSubmit()}
         >
@@ -172,7 +172,7 @@
         <noscript>
           <button
             type="submit"
-            class="h-[30px] px-3 bg-card border border-border rounded-lg text-[13px] text-foreground"
+            class="h-[30px] px-3 bg-card border border-border rounded-lg text-[14px] text-foreground"
           >
             Tampilkan
           </button>
@@ -184,8 +184,8 @@
   {#if !data.month}
     <div class="flex-1 p-4 sm:p-5">
       <div class="max-w-[520px] bg-card border border-border rounded-lg p-5">
-        <h2 class="text-[13px] font-semibold text-foreground mb-2">Belum ada periode</h2>
-        <p class="text-[12px] text-muted-foreground leading-relaxed">
+        <h2 class="text-[14px] font-semibold text-foreground mb-2">Belum ada periode</h2>
+        <p class="text-[13px] text-muted-foreground leading-relaxed">
           Belum ada satu pun periode pelaporan yang dibuat, jadi tidak ada yang menunggu
           persetujuan.
         </p>
@@ -207,13 +207,13 @@
           >
             {#if complete}
               <Check size={14} class="text-positive shrink-0 mt-px" />
-              <p class="text-[13px] text-positive flex-1 leading-relaxed">
+              <p class="text-[14px] text-positive flex-1 leading-relaxed">
                 {data.completeness.reported_entities} dari {data.completeness.expected_entities}
                 entitas sudah disetujui — {monthLabel} lengkap.
               </p>
             {:else}
               <TriangleAlert size={14} class="text-warning shrink-0 mt-px" />
-              <p class="text-[13px] text-warning flex-1 leading-relaxed">
+              <p class="text-[14px] text-warning flex-1 leading-relaxed">
                 {data.completeness.reported_entities} dari {data.completeness.expected_entities}
                 entitas sudah disetujui
                 {#if missingNames.length > 0}
@@ -229,11 +229,11 @@
             class="px-4 py-2.5 bg-destructive/10 border border-destructive/25 rounded-lg"
             role="alert"
           >
-            <p class="text-[13px] text-destructive leading-relaxed">{form.message}</p>
+            <p class="text-[14px] text-destructive leading-relaxed">{form.message}</p>
           </div>
         {:else if form?.done}
           <div class="px-4 py-2.5 bg-positive/10 border border-positive/25 rounded-lg" role="status">
-            <p class="text-[13px] text-positive leading-relaxed">
+            <p class="text-[14px] text-positive leading-relaxed">
               {#if form.done === 'approve'}
                 Periode disetujui dan masuk ke angka konsolidasi.
               {:else if form.done === 'reject'}
@@ -259,23 +259,23 @@
                  takes whatever is left — 120px on a phone, which wraps every
                  legal name onto four lines. -->
             <th
-              class="py-2.5 px-4 text-left text-[11px] font-medium text-muted-foreground min-w-[210px]"
+              class="py-2.5 px-4 text-left text-[12px] font-medium text-muted-foreground min-w-[210px]"
             >
               Entitas
             </th>
-            <th class="py-2.5 px-4 text-left text-[11px] font-medium text-muted-foreground w-[130px]">
+            <th class="py-2.5 px-4 text-left text-[12px] font-semibold text-muted-foreground w-[130px]">
               Periode
             </th>
-            <th class="py-2.5 px-4 text-left text-[11px] font-medium text-muted-foreground w-[130px]">
+            <th class="py-2.5 px-4 text-left text-[12px] font-semibold text-muted-foreground w-[130px]">
               Status
             </th>
-            <th class="py-2.5 px-4 text-left text-[11px] font-medium text-muted-foreground w-[160px]">
+            <th class="py-2.5 px-4 text-left text-[12px] font-semibold text-muted-foreground w-[160px]">
               Diajukan Oleh
             </th>
-            <th class="py-2.5 px-4 text-left text-[11px] font-medium text-muted-foreground w-[130px]">
+            <th class="py-2.5 px-4 text-left text-[12px] font-semibold text-muted-foreground w-[130px]">
               Tanggal
             </th>
-            <th class="py-2.5 px-4 text-right text-[11px] font-medium text-muted-foreground w-[210px]">
+            <th class="py-2.5 px-4 text-right text-[12px] font-semibold text-muted-foreground w-[210px]">
               Aksi
             </th>
           </tr>
@@ -292,7 +292,7 @@
                        off and the open row survives an action and a reload. -->
                   <a
                     href={panelHref(row.period.id)}
-                    class="flex items-center gap-2 text-[13px] font-medium text-foreground hover:text-primary transition-colors"
+                    class="flex items-center gap-2 text-[14px] font-medium text-foreground hover:text-primary transition-colors"
                     aria-expanded={open}
                   >
                     {#if open}
@@ -307,7 +307,7 @@
                     {row.entity.legal_name}
                   </a>
                 {:else}
-                  <span class="flex items-center gap-2 text-[13px] font-medium text-muted-foreground">
+                  <span class="flex items-center gap-2 text-[14px] font-medium text-muted-foreground">
                     <span class="w-[13px] shrink-0"></span>
                     <span
                       class="w-1.5 h-1.5 rounded-full shrink-0"
@@ -318,12 +318,12 @@
                 {/if}
               </td>
 
-              <td class="py-3 px-4 text-[13px] text-muted-foreground tabular-nums">{monthLabel}</td>
+              <td class="py-3 px-4 text-[14px] text-muted-foreground tabular-nums">{monthLabel}</td>
 
               <td class="py-3 px-4">
                 {#if row.period}
                   <span
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium
+                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[12px] font-medium
                            {STATUS_CLASS[row.period.status]}"
                   >
                     {#if row.period.status === 'locked'}<Lock size={9} />{/if}
@@ -333,7 +333,7 @@
                 {:else}
                   <!-- An entity that has not started has to look like one. -->
                   <span
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium
+                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[12px] font-medium
                            bg-warning/10 text-warning"
                   >
                     <TriangleAlert size={9} />
@@ -342,11 +342,11 @@
                 {/if}
               </td>
 
-              <td class="py-3 px-4 text-[13px] text-muted-foreground truncate">
+              <td class="py-3 px-4 text-[14px] text-muted-foreground truncate">
                 {row.submitterName ?? NO_DATA}
               </td>
 
-              <td class="py-3 px-4 text-[13px] text-muted-foreground tabular-nums">
+              <td class="py-3 px-4 text-[14px] text-muted-foreground tabular-nums">
                 {formatDate(row.period?.submitted_at)}
               </td>
 
@@ -361,7 +361,7 @@
                         <button
                           type="submit"
                           class="flex items-center gap-1 px-2.5 py-1 bg-positive/15 border border-positive/30
-                                 text-positive text-[12px] font-medium rounded-md hover:bg-positive/25
+                                 text-positive text-[13px] font-medium rounded-md hover:bg-positive/25
                                  transition-colors"
                         >
                           <Check size={11} />
@@ -369,13 +369,13 @@
                         </button>
                       </form>
                     {:else}
-                      <span class="text-[11px] text-subtle">Anda pengajunya</span>
+                      <span class="text-[12px] text-subtle">Anda pengajunya</span>
                     {/if}
                     <!-- Trailing ellipsis: this asks for a reason first, it
                          does not reject on the spot. -->
                     <a
                       href={actionHref(row.period.id, 'note')}
-                      class="px-2.5 py-1 border border-border text-muted-foreground text-[12px] font-medium
+                      class="px-2.5 py-1 border border-border text-muted-foreground text-[13px] font-medium
                              rounded-md hover:bg-muted hover:text-foreground transition-colors"
                     >
                       Tolak...
@@ -388,7 +388,7 @@
                     <a
                       href={actionHref(row.period.id, 'note')}
                       class="flex items-center gap-1 px-2.5 py-1 border border-border text-muted-foreground
-                             text-[12px] font-medium rounded-md hover:bg-muted hover:text-foreground
+                             text-[13px] font-medium rounded-md hover:bg-muted hover:text-foreground
                              transition-colors"
                     >
                       Kembalikan ke draft...
@@ -399,7 +399,7 @@
                         type="submit"
                         onclick={confirmLock}
                         class="flex items-center gap-1 px-2.5 py-1 border border-border text-muted-foreground
-                               text-[12px] font-medium rounded-md hover:bg-muted hover:text-foreground
+                               text-[13px] font-medium rounded-md hover:bg-muted hover:text-foreground
                                transition-colors"
                       >
                         <Lock size={11} />
@@ -410,14 +410,14 @@
                     <a
                       href={actionHref(row.period.id, 'note')}
                       class="flex items-center gap-1 px-2.5 py-1 border border-border text-muted-foreground
-                             text-[12px] font-medium rounded-md hover:bg-muted hover:text-foreground
+                             text-[13px] font-medium rounded-md hover:bg-muted hover:text-foreground
                              transition-colors"
                     >
                       <LockOpen size={11} />
                       Buka Kunci...
                     </a>
                   {:else}
-                    <span class="text-[12px] text-subtle">{NO_DATA}</span>
+                    <span class="text-[13px] text-subtle">{NO_DATA}</span>
                   {/if}
                 </div>
               </td>
@@ -428,7 +428,7 @@
                 <td colspan="6" class="p-0">
                   <div id="panel-{row.period.id}" class="bg-background px-5 py-4 border-t border-border">
                     <div class="flex items-center justify-between gap-4 flex-wrap mb-3">
-                      <p class="text-[12px] font-semibold text-muted-foreground">
+                      <p class="text-[13px] font-semibold text-muted-foreground">
                         Perbandingan {monthLabel} vs. {previousLabel} — {row.entity.legal_name}
                       </p>
 
@@ -437,7 +437,7 @@
                            after (ASSUMPTIONS.md A-1, A-4). -->
                       <div class="flex items-center gap-2 flex-wrap">
                         <span
-                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium
+                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[12px] font-medium
                                  {row.entity.reporting_basis === 'unknown'
                             ? 'bg-warning/10 text-warning'
                             : 'bg-muted text-muted-foreground'}"
@@ -448,7 +448,7 @@
                           {REPORTING_BASIS_LABEL[row.entity.reporting_basis]}
                         </span>
                         <span
-                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium
+                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[12px] font-medium
                                  {row.entity.revenue_presentation === 'unknown'
                             ? 'bg-warning/10 text-warning'
                             : 'bg-muted text-muted-foreground'}"
@@ -464,17 +464,17 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
                       <div>
                         <div class="overflow-x-auto">
-                          <table class="w-full text-[12px]">
+                          <table class="w-full text-[13px]">
                             <thead>
                               <tr class="border-b border-border">
-                                <th class="pb-2 text-left text-[11px] font-medium text-subtle">Pos</th>
-                                <th class="pb-2 px-3 text-right text-[11px] font-medium text-subtle">
+                                <th class="pb-2 text-left text-[12px] font-semibold text-subtle">Pos</th>
+                                <th class="pb-2 px-3 text-right text-[12px] font-semibold text-subtle">
                                   {monthLabel}
                                 </th>
-                                <th class="pb-2 px-3 text-right text-[11px] font-medium text-subtle">
+                                <th class="pb-2 px-3 text-right text-[12px] font-semibold text-subtle">
                                   {previousLabel}
                                 </th>
-                                <th class="pb-2 text-right text-[11px] font-medium text-subtle">
+                                <th class="pb-2 text-right text-[12px] font-semibold text-subtle">
                                   Δ MoM
                                 </th>
                               </tr>
@@ -520,7 +520,7 @@
                         </div>
 
                         {#if !row.pnl || !row.previous}
-                          <p class="mt-2 text-[11px] text-subtle leading-relaxed">
+                          <p class="mt-2 text-[12px] text-subtle leading-relaxed">
                             {row.previous
                               ? 'Belum ada baris laporan untuk bulan ini.'
                               : `Tidak ada data ${previousLabel} untuk dibandingkan.`}
@@ -534,7 +534,7 @@
                             <input type="hidden" name="periodId" value={row.period.id} />
                             <label
                               for="note-{row.period.id}"
-                              class="text-[11px] font-medium text-muted-foreground"
+                              class="text-[12px] font-medium text-muted-foreground"
                             >
                               Catatan <span class="text-subtle">(wajib)</span>
                             </label>
@@ -547,13 +547,13 @@
                                 : row.period.status === 'approved'
                                   ? 'Tulis alasan membatalkan persetujuan...'
                                 : 'Tulis alasan penolakan...'}
-                              class="flex-1 min-h-[110px] bg-card border border-border rounded-lg p-3 text-[13px]
+                              class="flex-1 min-h-[110px] bg-card border border-border rounded-lg p-3 text-[14px]
                                      text-foreground placeholder:text-subtle resize-none focus:outline-none
                                      focus:border-primary transition-colors"
                             ></textarea>
 
                             {#if row.period.status === 'submitted'}
-                              <p class="text-[11px] text-subtle leading-relaxed">
+                              <p class="text-[12px] text-subtle leading-relaxed">
                                 Penolakan mengembalikan periode ke draft, dan catatan ini tampil di
                                 layar input staf entitas.
                               </p>
@@ -561,13 +561,13 @@
                                 type="submit"
                                 formaction="?/reject"
                                 class="self-start px-3 py-1.5 rounded-md border border-destructive/30
-                                       bg-destructive/10 text-destructive text-[12px] font-medium
+                                       bg-destructive/10 text-destructive text-[13px] font-medium
                                        hover:bg-destructive/20 transition-colors"
                               >
                                 Tolak & kembalikan ke draft
                               </button>
                             {:else if row.period.status === 'approved'}
-                              <p class="text-[11px] text-warning leading-relaxed">
+                              <p class="text-[12px] text-warning leading-relaxed">
                                 Membatalkan persetujuan mengembalikan periode ke draft supaya staf
                                 entitas bisa mengoreksinya, mengeluarkannya dari angka konsolidasi,
                                 dan tercatat di audit log. Catatan ini tampil di layar input.
@@ -576,13 +576,13 @@
                                 type="submit"
                                 formaction="?/reject"
                                 class="self-start px-3 py-1.5 rounded-md border border-warning/30
-                                       bg-warning/10 text-warning text-[12px] font-medium
+                                       bg-warning/10 text-warning text-[13px] font-medium
                                        hover:bg-warning/20 transition-colors"
                               >
                                 Kembalikan ke draft
                               </button>
                             {:else}
-                              <p class="text-[11px] text-warning leading-relaxed">
+                              <p class="text-[12px] text-warning leading-relaxed">
                                 Membuka kunci mengembalikan periode ke draft, mengeluarkannya dari
                                 angka konsolidasi, dan tercatat di audit log.
                               </p>
@@ -591,7 +591,7 @@
                                 formaction="?/unlock"
                                 onclick={confirmUnlock}
                                 class="self-start flex items-center gap-1 px-3 py-1.5 rounded-md
-                                       border border-warning/30 bg-warning/10 text-warning text-[12px]
+                                       border border-warning/30 bg-warning/10 text-warning text-[13px]
                                        font-medium hover:bg-warning/20 transition-colors"
                               >
                                 <LockOpen size={11} />
@@ -600,7 +600,7 @@
                             {/if}
                           </form>
                         {:else}
-                          <div class="text-[11px] text-subtle leading-relaxed space-y-1">
+                          <div class="text-[12px] text-subtle leading-relaxed space-y-1">
                             {#if row.period.status === 'draft'}
                               <p>Periode masih draft. Belum ada yang bisa disetujui.</p>
                             {:else if row.period.status === 'approved'}
@@ -623,7 +623,7 @@
                         {/if}
 
                         {#if row.period.rejection_note}
-                          <p class="text-[11px] text-muted-foreground leading-relaxed">
+                          <p class="text-[12px] text-muted-foreground leading-relaxed">
                             <span class="font-semibold">Catatan terakhir:</span>
                             {row.period.rejection_note}
                           </p>

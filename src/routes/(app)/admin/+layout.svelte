@@ -19,8 +19,8 @@
 <div class="h-full overflow-y-auto">
   {#if screen}
     <div class="px-4 sm:px-5 pt-4 sm:pt-5">
-      <h1 class="text-[15px] font-semibold text-foreground">{screen.title}</h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">Administrasi · {screen.desc}</p>
+      <h1 class="text-[17px] font-semibold text-foreground">{screen.title}</h1>
+      <p class="text-[13px] text-muted-foreground mt-0.5">Administrasi · {screen.desc}</p>
     </div>
   {/if}
   {@render children()}

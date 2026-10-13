@@ -45,7 +45,7 @@
     /** Seeds the light/dark toggle; the toggle owns it after first render. */
     theme,
     /**
-     * Desktop only: 214px rail of labels, or 60px of icons. Below `md` the
+     * Desktop only: 232px rail of labels, or 60px of icons. Below `md` the
      * sidebar is a drawer and this is ignored — a drawer you have opened on
      * purpose should never show you icons you cannot read.
      */
@@ -127,7 +127,7 @@
     {
       key: 'operasional',
       label: 'Operasional',
-      description: 'Kegiatan kapal, biaya & laporan',
+      description: 'Kegiatan kapal & biaya',
       icon: Ship,
       groups: canReadOperational(role)
         ? [
@@ -213,15 +213,18 @@
   /**
    * The chosen entity and month follow the admin from screen to screen, so
    * picking Oktober on Database General and then opening Pengeluaran shows
-   * Oktober too. Screen-specific filters (?kapal, ?pemilik) do not.
+   * Oktober too. Screen-specific filters (?kapal, ?pemilik) do not. A
+   * kegiatan's own screens carry no period in their URL; there the month is
+   * the kegiatan's, so leaving one lands back on the month it belongs to.
    */
   const opQuery = $derived.by(() => {
     if (currentKey !== 'operasional') return '';
     const q = new URLSearchParams();
     if (opEntity) q.set('entitas', opEntity.code);
-    for (const key of ['bulan', 'tahun']) {
-      const value = page.url.searchParams.get(key);
-      if (value) q.set(key, value);
+    const kegiatan = page.data.kegiatan as { bulan?: number; tahun?: number } | undefined;
+    for (const key of ['bulan', 'tahun'] as const) {
+      const value = page.url.searchParams.get(key) ?? kegiatan?.[key];
+      if (value) q.set(key, String(value));
     }
     const s = q.toString();
     return s ? `?${s}` : '';
@@ -302,7 +305,7 @@
          border-r border-border bg-background transition-[transform,width] duration-200
          md:relative md:z-30 md:translate-x-0 md:visible
          {open ? 'translate-x-0 visible' : '-translate-x-full invisible'}
-         {collapsed ? 'md:w-[60px]' : 'md:w-[214px]'}"
+         {collapsed ? 'md:w-[60px]' : 'md:w-[232px]'}"
 >
   <!-- Module switcher: the logo and the module name are one button. -->
   <div
@@ -329,8 +332,8 @@
         {/if}
       </div>
       <div class="min-w-0 flex-1 {collapsed ? 'md:hidden' : ''}">
-        <p class="text-[10px] text-muted-foreground leading-tight truncate">IMR Platform</p>
-        <p class="text-[13px] font-semibold text-foreground leading-tight truncate">
+        <p class="text-[11px] text-muted-foreground leading-tight truncate">IMR Platform</p>
+        <p class="text-[14px] font-semibold text-foreground leading-tight truncate">
           {current?.label ?? 'IMR Platform'}
         </p>
       </div>
@@ -356,7 +359,7 @@
                top-[calc(100%-4px)] left-2
                {collapsed ? 'md:top-1.5 md:left-[calc(100%+6px)]' : ''}"
       >
-        <p class="px-2.5 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wide text-subtle">Modul</p>
+        <p class="px-2.5 pt-1.5 pb-1 text-[11px] font-medium uppercase tracking-wide text-subtle">Modul</p>
         {#each available as m (m.key)}
           {@const first = visibleItems(m)[0]}
           <a
@@ -374,10 +377,10 @@
               <m.icon size={14} />
             </div>
             <div class="min-w-0 flex-1">
-              <p class="text-[13px] font-medium truncate {m.key === current?.key ? 'text-primary' : 'text-foreground'}">
+              <p class="text-[14px] font-medium truncate {m.key === current?.key ? 'text-primary' : 'text-foreground'}">
                 {m.label}
               </p>
-              <p class="text-[11px] text-muted-foreground truncate">{m.description}</p>
+              <p class="text-[12px] text-muted-foreground truncate">{m.description}</p>
             </div>
             {#if m.key === current?.key}<Check size={14} class="shrink-0 text-primary" />{/if}
           </a>
@@ -392,7 +395,7 @@
       {#if opEntities.length > 1}
         <label
           for="op-entity"
-          class="block text-[10px] font-medium uppercase tracking-wide text-subtle mb-1 {collapsed ? 'md:sr-only' : ''}"
+          class="block text-[11px] font-medium uppercase tracking-wide text-subtle mb-1 {collapsed ? 'md:sr-only' : ''}"
         >
           Entitas
         </label>
@@ -401,8 +404,8 @@
           value={opEntity.code}
           onchange={chooseEntity}
           title={opEntity.legal_name}
-          class="w-full h-[30px] px-2 bg-background border border-border rounded-md text-[12px] text-foreground
-                 focus:outline-none focus:border-primary {collapsed ? 'md:px-0.5 md:text-[11px]' : ''}"
+          class="w-full h-[30px] px-2 bg-background border border-border rounded-md text-[13px] text-foreground
+                 focus:outline-none focus:border-primary {collapsed ? 'md:px-0.5 md:text-[12px]' : ''}"
         >
           {#each opEntities as entity (entity.id)}
             <option value={entity.code}>{entity.code}</option>
@@ -414,15 +417,15 @@
           title={opEntity.legal_name}
         >
           <Building2 size={13} class="shrink-0 text-muted-foreground" />
-          <span class="text-[12px] font-medium text-foreground truncate">{opEntity.code}</span>
-          <span class="text-[11px] text-muted-foreground truncate {collapsed ? 'md:hidden' : ''}">
+          <span class="text-[13px] font-medium text-foreground truncate">{opEntity.code}</span>
+          <span class="text-[12px] text-muted-foreground truncate {collapsed ? 'md:hidden' : ''}">
             {opEntity.legal_name}
           </span>
         </div>
       {/if}
       {#if opReadOnly}
         <p
-          class="mt-1.5 flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted text-[11px] text-muted-foreground
+          class="mt-1.5 flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted text-[12px] text-muted-foreground
                  {collapsed ? 'md:justify-center md:px-0' : ''}"
           title="Peran Anda membaca data operasional tanpa mengubahnya."
         >
@@ -439,7 +442,7 @@
       {#if items.length}
         {#if group.heading}
           <p
-            class="px-3 pt-3 pb-1 text-[10px] font-medium uppercase tracking-wide text-subtle truncate
+            class="px-3 pt-3 pb-1 text-[11px] font-medium uppercase tracking-wide text-subtle truncate
                    {collapsed ? 'md:hidden' : ''}"
           >
             {group.heading}
@@ -454,13 +457,13 @@
               aria-current={active ? 'page' : undefined}
               title={collapsed ? item.label : undefined}
               onclick={() => onclose?.()}
-              class="w-full flex items-center gap-2.5 px-3 py-[7px] rounded-md text-[13px] transition-colors
+              class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[14px] font-medium transition-colors
                      {collapsed ? 'md:justify-center md:px-0' : ''}
                      {active
-                ? 'bg-primary/10 text-primary font-medium'
+                ? 'bg-primary/10 text-primary font-semibold'
                 : 'text-muted-foreground hover:bg-card hover:text-foreground'}"
             >
-              <item.icon size={14} class="shrink-0" />
+              <item.icon size={16} class="shrink-0" />
               <span class="truncate {collapsed ? 'md:hidden' : ''}">{item.label}</span>
             </a>
           {/each}
@@ -483,7 +486,7 @@
       onclick={toggleCollapsed}
       aria-expanded={!collapsed}
       title={collapsed ? 'Lebarkan menu' : 'Ciutkan menu'}
-      class="w-full flex items-center gap-2.5 px-3 py-[7px] rounded-md text-[13px]
+      class="w-full flex items-center gap-2.5 px-3 py-[7px] rounded-md text-[14px]
              text-muted-foreground hover:bg-card hover:text-foreground transition-colors
              {collapsed ? 'justify-center px-0' : ''}"
     >
@@ -499,15 +502,15 @@
   <div class="border-t border-border shrink-0 {collapsed ? 'md:px-2 px-4 py-3' : 'px-4 py-3'}">
     <div class="flex items-center gap-2 {collapsed ? 'md:justify-center' : ''}">
       <div
-        class="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-[11px]
+        class="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-[12px]
                font-semibold text-foreground shrink-0"
         title={collapsed ? `${fullName ?? 'Tanpa nama'} · ${role ? ROLE_LABEL[role] : 'Tanpa peran'}` : undefined}
       >
         {initials}
       </div>
       <div class="min-w-0 flex-1 {collapsed ? 'md:hidden' : ''}">
-        <p class="text-[12px] font-medium text-foreground truncate">{fullName ?? 'Tanpa nama'}</p>
-        <p class="text-[11px] text-muted-foreground truncate">
+        <p class="text-[13px] font-medium text-foreground truncate">{fullName ?? 'Tanpa nama'}</p>
+        <p class="text-[12px] text-muted-foreground truncate">
           {role ? ROLE_LABEL[role] : 'Tanpa peran'}
         </p>
       </div>

@@ -411,10 +411,10 @@
         <ArrowLeft size={14} />
       </a>
       <div class="min-w-0">
-        <h1 class="text-[13px] font-semibold text-foreground truncate">
+        <h1 class="text-[14px] font-semibold text-foreground truncate">
           Input Laporan — {formatPeriod(data.period.period)}
         </h1>
-        <p class="text-[11px] text-muted-foreground truncate">
+        <p class="text-[12px] text-muted-foreground truncate">
           {data.selected.legal_name} · {PERIOD_STATUS_LABEL[data.period.status]}
         </p>
       </div>
@@ -439,7 +439,7 @@
           type="submit"
           disabled={pending !== null}
           title="Ambil angka bulan ini dari sistem operasional ILJ"
-          class="px-3 py-1.5 rounded-lg bg-card border border-border text-[12px] font-medium
+          class="px-3 py-1.5 rounded-lg bg-card border border-border text-[13px] font-medium
                  text-muted-foreground hover:text-primary hover:bg-primary/10 hover:border-primary/50
                  active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer
                  disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-card
@@ -464,7 +464,7 @@
       role="status"
     >
       <Lock size={13} class="text-muted-foreground shrink-0 mt-0.5" />
-      <p class="text-[12px] text-muted-foreground flex-1 leading-relaxed">
+      <p class="text-[13px] text-muted-foreground flex-1 leading-relaxed">
         Periode ini berstatus {PERIOD_STATUS_LABEL[data.period.status]}, jadi barisnya hanya dapat
         dibaca. Perubahan hanya mungkin setelah periode dikembalikan ke draft, dan pengembalian itu
         wajib disertai catatan alasan.
@@ -482,7 +482,7 @@
       role="alert"
     >
       <TriangleAlert size={13} class="text-destructive shrink-0 mt-0.5" />
-      <p class="text-[12px] text-destructive flex-1 leading-relaxed">
+      <p class="text-[13px] text-destructive flex-1 leading-relaxed">
         <span class="font-semibold">Dikembalikan ke draft:</span>
         {data.period.rejection_note}
       </p>
@@ -491,17 +491,17 @@
 
   {#if form?.message}
     <div class="px-5 py-2.5 bg-destructive/10 border-b border-destructive/25 shrink-0" role="alert">
-      <p class="text-[12px] text-destructive leading-relaxed">{form.message}</p>
+      <p class="text-[13px] text-destructive leading-relaxed">{form.message}</p>
     </div>
   {:else if form?.saved}
     <div class="px-5 py-2.5 bg-positive/10 border-b border-positive/25 shrink-0" role="status">
-      <p class="text-[12px] text-positive leading-relaxed">
+      <p class="text-[13px] text-positive leading-relaxed">
         Draft tersimpan. Baris bernilai 0 tanpa catatan tidak disimpan.
       </p>
     </div>
   {:else if form?.pulled}
     <div class="px-5 py-2.5 bg-positive/10 border-b border-positive/25 shrink-0" role="status">
-      <p class="text-[12px] text-positive leading-relaxed">
+      <p class="text-[13px] text-positive leading-relaxed">
         {form.lineCount} baris ditarik dari sistem operasional
         <!-- Jam dipotong dari string ISO, bukan lewat toLocaleString(). Server
              dan browser bisa berada di zona waktu berbeda, dan angka jam yang
@@ -511,7 +511,7 @@
         dan masih bisa dikoreksi sebelum diajukan.
       </p>
       {#if describeSources(form.sources)}
-        <p class="text-[11px] text-muted-foreground mt-1">
+        <p class="text-[12px] text-muted-foreground mt-1">
           Dihitung dari {describeSources(form.sources)}.
         </p>
       {/if}
@@ -526,7 +526,7 @@
         class="px-5 py-2.5 bg-warning/10 border-b border-warning/25 shrink-0"
         role="status"
       >
-        <p class="text-[12px] text-warning leading-relaxed">
+        <p class="text-[13px] text-warning leading-relaxed">
           <span class="font-semibold">Periksa Bagian Rekanan dan Iuran Paguyuban.</span>
           {form.rekapOnlyRoutes.length} rute bulan ini hanya punya rekap bulanan tanpa transaksi,
           sehingga kedua pos itu tidak terisi untuk rute tersebut:
@@ -540,7 +540,7 @@
          ditampilkan supaya pemetaannya bisa dilengkapi direksi. -->
     {#if form.unmappedExpenses && form.unmappedExpenses.length > 0}
       <div class="px-5 py-2.5 bg-warning/10 border-b border-warning/25 shrink-0" role="status">
-        <p class="text-[12px] text-warning leading-relaxed">
+        <p class="text-[13px] text-warning leading-relaxed">
           <span class="font-semibold">Masuk Beban Operasional Lain karena belum dipetakan:</span>
           {form.unmappedExpenses
             .map((b) => `${b.jenis} (Rp ${formatAmount(b.jumlah)})`)
@@ -551,7 +551,7 @@
 
     {#if form.skippedExpenses && form.skippedExpenses.length > 0}
       <div class="px-5 py-2.5 border-b border-border shrink-0" role="status">
-        <p class="text-[11px] text-muted-foreground leading-relaxed">
+        <p class="text-[12px] text-muted-foreground leading-relaxed">
           Tidak ditarik sesuai pemetaan:
           {form.skippedExpenses
             .map((b) => `${b.jenis} (Rp ${formatAmount(b.jumlah)})`)
@@ -577,13 +577,13 @@
                  (ASSUMPTIONS.md A-7) and report_template_lines.account_code
                  is empty. Showing codes that will change teaches people a
                  number that is going to be wrong. -->
-            <th class="py-2.5 px-4 text-left text-[11px] font-medium text-muted-foreground">
+            <th class="py-2.5 px-4 text-left text-[12px] font-semibold text-muted-foreground">
               Nama Pos
             </th>
-            <th class="py-2.5 px-4 text-right text-[11px] font-medium text-muted-foreground w-[200px]">
+            <th class="py-2.5 px-4 text-right text-[12px] font-semibold text-muted-foreground w-[200px]">
               Jumlah (Rp)
             </th>
-            <th class="py-2.5 px-4 text-left text-[11px] font-medium text-muted-foreground w-[240px]">
+            <th class="py-2.5 px-4 text-left text-[12px] font-semibold text-muted-foreground w-[240px]">
               Catatan
             </th>
           </tr>
@@ -594,7 +594,7 @@
               <tr class="border-t border-border">
                 <td
                   colspan="3"
-                  class="pt-4 pb-1 px-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider"
+                  class="pt-4 pb-1 px-4 text-[12px] font-semibold text-muted-foreground uppercase tracking-wider"
                 >
                   {LINE_SECTION_LABEL[row.section]}
                 </td>
@@ -604,12 +604,12 @@
                    stored: the server recomputes from the input lines. -->
               <tr class="bg-card border-t border-b border-border">
                 <td class="py-2.5 px-4">
-                  <span class="flex items-center gap-2 text-[13px] font-semibold text-muted-foreground">
+                  <span class="flex items-center gap-2 text-[14px] font-semibold text-muted-foreground">
                     <Lock size={11} class="text-subtle shrink-0" />
                     Total {LINE_SECTION_LABEL[row.section]}
                   </span>
                 </td>
-                <td class="py-2.5 px-4 text-right text-[13px] font-semibold text-muted-foreground">
+                <td class="py-2.5 px-4 text-right text-[14px] font-semibold text-muted-foreground">
                   {formatAmount(sectionTotal[row.section])}
                 </td>
                 <td></td>
@@ -628,7 +628,7 @@
                     <div class="min-w-0">
                       <label
                         for="amount-{row.line.line_code}"
-                        class="text-[13px] text-foreground block"
+                        class="text-[14px] text-foreground block"
                       >
                         {row.line.line_label}
                       </label>
@@ -637,7 +637,7 @@
                            because A-2 is undecided; a warning here never
                            blocks a submit. -->
                       {#if row.line.help_text}
-                        <p class="text-[11px] text-warning/70 mt-0.5 leading-relaxed">
+                        <p class="text-[12px] text-warning/70 mt-0.5 leading-relaxed">
                           {row.line.help_text}
                         </p>
                       {/if}
@@ -655,7 +655,7 @@
                       autocomplete="off"
                       data-amount
                       data-row={row.index}
-                      class="w-full text-right text-[13px] tabular-nums bg-transparent text-foreground
+                      class="w-full text-right text-[14px] tabular-nums bg-transparent text-foreground
                              border-b border-transparent hover:border-border focus:border-primary
                              focus:outline-none transition-colors py-0.5"
                       value={focusedCode === row.line.line_code
@@ -667,7 +667,7 @@
                       onkeydown={onEnter}
                     />
                   {:else}
-                    <span class="text-[13px] text-foreground tabular-nums">
+                    <span class="text-[14px] text-foreground tabular-nums">
                       {formatAmount(amounts[row.line.line_code] ?? 0)}
                     </span>
                   {/if}
@@ -682,14 +682,14 @@
                       data-row={row.index}
                       placeholder="Tambah catatan..."
                       aria-label="Catatan {row.line.line_label}"
-                      class="w-full text-[12px] bg-transparent text-muted-foreground
+                      class="w-full text-[13px] bg-transparent text-muted-foreground
                              placeholder:text-subtle border-b border-transparent hover:border-border
                              focus:border-primary focus:outline-none transition-colors py-0.5"
                       bind:value={notes[row.line.line_code]}
                       onkeydown={onEnter}
                     />
                   {:else if notes[row.line.line_code]}
-                    <span class="text-[12px] text-muted-foreground">
+                    <span class="text-[13px] text-muted-foreground">
                       {notes[row.line.line_code]}
                     </span>
                   {/if}
@@ -707,23 +707,23 @@
     >
       <div class="flex items-center gap-5 flex-1 min-w-0">
         <div class="border-r border-border pr-5" title="{incomeLabel}">
-          <p class="text-[10px] text-muted-foreground mb-0.5">Total Pendapatan</p>
-          <p class="text-[13px] font-semibold text-positive tabular-nums">
+          <p class="text-[11px] text-muted-foreground mb-0.5">Total Pendapatan</p>
+          <p class="text-[14px] font-semibold text-positive tabular-nums">
             Rp {formatAmount(totalIncome)}
           </p>
         </div>
         <div class="border-r border-border pr-5" title="{expenseLabel}">
-          <p class="text-[10px] text-muted-foreground mb-0.5">Total Beban</p>
-          <p class="text-[13px] font-semibold text-foreground tabular-nums">
+          <p class="text-[11px] text-muted-foreground mb-0.5">Total Beban</p>
+          <p class="text-[14px] font-semibold text-foreground tabular-nums">
             Rp {formatAmount(totalExpense)}
           </p>
         </div>
         <div>
-          <p class="text-[10px] text-muted-foreground mb-0.5">Laba Bersih</p>
+          <p class="text-[11px] text-muted-foreground mb-0.5">Laba Bersih</p>
           <!-- A loss renders in parentheses and in destructive, per app.css.
                formatAmount() already adds the parentheses. -->
           <p
-            class="text-[13px] font-semibold tabular-nums {netProfit < 0
+            class="text-[14px] font-semibold tabular-nums {netProfit < 0
               ? 'text-destructive'
               : 'text-positive'}"
           >
@@ -738,7 +738,7 @@
             type="submit"
             formaction="?/saveDraft"
             disabled={pending !== null}
-            class="px-4 py-2 rounded-lg bg-card border border-border text-[13px] font-medium
+            class="px-4 py-2 rounded-lg bg-card border border-border text-[14px] font-medium
                    text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border-strong
                    active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer
                    disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-card
@@ -756,7 +756,7 @@
             type="submit"
             formaction="?/submit"
             disabled={pending !== null}
-            class="px-4 py-2 rounded-lg bg-primary text-[13px] font-medium text-primary-foreground
+            class="px-4 py-2 rounded-lg bg-primary text-[14px] font-medium text-primary-foreground
                    hover:bg-accent hover:shadow-md hover:shadow-primary/25 active:scale-[0.98]
                    transition-all flex items-center gap-1.5 cursor-pointer
                    disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-primary
@@ -790,8 +790,8 @@
     >
       <LoaderCircle size={20} class="animate-spin text-primary shrink-0" />
       <div>
-        <p class="text-[13px] font-semibold text-foreground">{PENDING_LABEL[pending]}</p>
-        <p class="text-[11px] text-muted-foreground mt-0.5">Mohon tunggu, jangan tutup halaman ini.</p>
+        <p class="text-[14px] font-semibold text-foreground">{PENDING_LABEL[pending]}</p>
+        <p class="text-[12px] text-muted-foreground mt-0.5">Mohon tunggu, jangan tutup halaman ini.</p>
       </div>
     </div>
   </div>

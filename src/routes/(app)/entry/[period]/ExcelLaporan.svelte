@@ -90,7 +90,7 @@
     href="/entry/{month}/excel?entitas={encodeURIComponent(entity)}"
     download
     title="Unduh laporan periode ini sebagai Excel, untuk diisi atau diarsipkan"
-    class="px-3 py-1.5 rounded-lg bg-card border border-border text-[12px] font-medium
+    class="px-3 py-1.5 rounded-lg bg-card border border-border text-[13px] font-medium
            text-muted-foreground hover:text-foreground hover:bg-muted transition-colors
            flex items-center gap-1.5"
   >
@@ -103,7 +103,7 @@
       <input type="hidden" name="entitas" value={entity} />
       <label
         title="Isi laporan dari file Excel hasil Unduh Excel"
-        class="px-3 py-1.5 rounded-lg bg-card border border-border text-[12px] font-medium
+        class="px-3 py-1.5 rounded-lg bg-card border border-border text-[13px] font-medium
                text-muted-foreground hover:text-foreground hover:bg-muted transition-colors
                flex items-center gap-1.5 cursor-pointer {busy ? 'opacity-60 pointer-events-none' : ''}"
       >

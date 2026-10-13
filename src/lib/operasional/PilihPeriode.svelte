@@ -13,7 +13,7 @@
   let { bulan, tahun }: Periode = $props();
 
   const SELECT =
-    'h-[30px] px-2 bg-background border border-border rounded-md text-[12px] text-foreground ' +
+    'h-[30px] px-2 bg-background border border-border rounded-md text-[13px] text-foreground ' +
     'focus:outline-none focus:border-primary';
 
   const tahunPilihan = $derived.by(() => {

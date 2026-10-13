@@ -72,8 +72,8 @@
 <div class="p-4 sm:p-5 space-y-4">
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <div>
-      <h1 class="text-[15px] font-semibold text-foreground">Kendaraan</h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">
+      <h1 class="text-[17px] font-semibold text-foreground">Kendaraan</h1>
+      <p class="text-[13px] text-muted-foreground mt-0.5">
         Truk rekanan · {data.kendaraan.length} kendaraan
       </p>
     </div>
@@ -103,7 +103,7 @@
   </div>
 
   {#if filterName}
-    <div class="flex items-center gap-2 text-[12px]">
+    <div class="flex items-center gap-2 text-[13px]">
       <span class="text-muted-foreground">Pemilik:</span>
       <span
         class="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-0.5 rounded-md bg-primary/10 text-primary font-medium"
@@ -122,14 +122,14 @@
 
   <div class="bg-card border border-border rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[680px] text-[12px]">
+      <table class="w-full min-w-[680px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
-            <th class="text-left font-medium py-2.5 px-4 w-[160px]">Nomor Polisi</th>
-            <th class="text-left font-medium py-2.5 px-4">Pemilik Kendaraan</th>
-            <th class="text-left font-medium py-2.5 px-4 w-[200px]">NPWP</th>
-            <th class="text-right font-medium py-2.5 px-4 w-[110px]">Transaksi</th>
-            {#if data.canWrite}<th class="text-right font-medium py-2.5 px-4 w-[96px]">Aksi</th>{/if}
+            <th class="text-left font-semibold py-2.5 px-4 w-[160px]">Nomor Polisi</th>
+            <th class="text-left font-semibold py-2.5 px-4">Pemilik Kendaraan</th>
+            <th class="text-left font-semibold py-2.5 px-4 w-[200px]">NPWP</th>
+            <th class="text-right font-semibold py-2.5 px-4 w-[110px]">Transaksi</th>
+            {#if data.canWrite}<th class="text-right font-semibold py-2.5 px-4 w-[96px]">Aksi</th>{/if}
           </tr>
         </thead>
         <tbody>
@@ -170,11 +170,11 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="5" class="py-10 px-4 text-center text-[12px] text-muted-foreground">
+              <td colspan="5" class="py-10 px-4 text-center text-[13px] text-muted-foreground">
                 {#if query}
                   Tidak ada kendaraan yang cocok dengan "{query}".
                 {:else if data.daftarPemilik.length === 0}
-                  Belum ada pemilik kendaraan. Tambahkan pemilik di tab Pemilik lebih dulu.
+                  Belum ada pemilik kendaraan. Tambahkan pemilik di menu Pemilik (Data Master) lebih dulu.
                 {:else}
                   Belum ada kendaraan{filterName ? ` milik ${filterName}` : ''}.
                 {/if}

@@ -116,8 +116,8 @@
 <div class="p-4 sm:p-5 space-y-4">
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <div>
-      <h1 class="text-[15px] font-semibold text-foreground">Pencairan</h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">
+      <h1 class="text-[17px] font-semibold text-foreground">Pencairan</h1>
+      <p class="text-[13px] text-muted-foreground mt-0.5">
         Persetujuan bertahap Jetty → Gudang → Accounting · {NAMA_BULAN[data.periode.bulan - 1]}
         {data.periode.tahun} · {data.pencairan.length} invoice
       </p>
@@ -125,7 +125,7 @@
     <div class="flex items-center gap-2 flex-wrap">
       <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
       <label class="sr-only" for="filter-kapal">Kapal</label>
-      <select id="filter-kapal" bind:value={kapalFilter} class="h-[30px] px-2 bg-background border border-border rounded-md text-[12px] text-foreground focus:outline-none focus:border-primary max-w-[180px]">
+      <select id="filter-kapal" bind:value={kapalFilter} class="h-[30px] px-2 bg-background border border-border rounded-md text-[13px] text-foreground focus:outline-none focus:border-primary max-w-[180px]">
         <option value="">Semua kapal</option>
         {#each kapalBulanIni as [id, nama] (id)}<option value={String(id)}>{nama}</option>{/each}
       </select>
@@ -149,15 +149,15 @@
 
   <div class="bg-card border border-border rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[960px] text-[12px]">
+      <table class="w-full min-w-[960px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
-            <th class="text-left font-medium py-2.5 px-3">Nomor Invoice</th>
-            <th class="text-left font-medium py-2.5 px-3">Kapal / Periode</th>
-            <th class="text-right font-medium py-2.5 px-3">Nominal / Pajak</th>
-            <th class="text-center font-medium py-2.5 px-3">Approval Departemen</th>
-            <th class="text-center font-medium py-2.5 px-3">Status Final</th>
-            {#if data.canWrite}<th class="text-right font-medium py-2.5 px-3 w-[90px]">Aksi</th>{/if}
+            <th class="text-left font-semibold py-2.5 px-3">Nomor Invoice</th>
+            <th class="text-left font-semibold py-2.5 px-3">Kapal / Periode</th>
+            <th class="text-right font-semibold py-2.5 px-3">Nominal / Pajak</th>
+            <th class="text-center font-semibold py-2.5 px-3">Approval Departemen</th>
+            <th class="text-center font-semibold py-2.5 px-3">Status Final</th>
+            {#if data.canWrite}<th class="text-right font-semibold py-2.5 px-3 w-[90px]">Aksi</th>{/if}
           </tr>
         </thead>
         <tbody>
@@ -168,7 +168,7 @@
                 {#if row.status !== 'Approved'}
                   {@const hari = hariSejakBap(row)}
                   <span
-                    class="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] {hari > 14 ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}"
+                    class="inline-block mt-1 px-1.5 py-0.5 rounded text-[11px] {hari > 14 ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}"
                     title="Hari kalender sejak BAP penagihan diterbitkan ({rentangTanggal(row.laporan?.created_at ?? row.created_at, null)}); target 14 hari kerja"
                   >
                     BAP H+{hari}
@@ -177,11 +177,11 @@
               </td>
               <td class="py-2.5 px-3">
                 <div class="text-foreground">{row.nama_kapal}</div>
-                <div class="text-[11px] text-muted-foreground">Periode {NAMA_BULAN[row.bulan - 1]} {row.tahun}</div>
+                <div class="text-[12px] text-muted-foreground">Periode {NAMA_BULAN[row.bulan - 1]} {row.tahun}</div>
               </td>
               <td class="py-2.5 px-3 text-right whitespace-nowrap">
                 <div class="num font-semibold text-foreground">{rupiah(row.nominal_invoice)}</div>
-                <div class="num text-[11px] text-destructive">Pajak {rupiah(row.besaran_pajak)}</div>
+                <div class="num text-[12px] text-destructive">Pajak {rupiah(row.besaran_pajak)}</div>
               </td>
               <td class="py-2.5 px-3">
                 <div class="flex justify-center gap-2">
@@ -191,14 +191,14 @@
                         type="button"
                         disabled={!data.canWrite}
                         onclick={() => openApproval(row, a.departemen)}
-                        class="px-2 py-0.5 rounded-md border text-[11px] font-medium {CHIP[a.status]} enabled:hover:brightness-95 disabled:cursor-default"
+                        class="px-2 py-0.5 rounded-md border text-[12px] font-medium {CHIP[a.status]} enabled:hover:brightness-95 disabled:cursor-default"
                         title={data.canWrite ? `Ubah persetujuan ${a.departemen}` : a.keterangan ?? ''}
                       >
                         {a.departemen}
                       </button>
-                      <span class="text-[10px] text-muted-foreground">{a.status}</span>
+                      <span class="text-[11px] text-muted-foreground">{a.status}</span>
                       {#if a.status === 'Approved' && a.tanggal_ttd}
-                        <span class="text-[10px] text-subtle num">{rentangTanggal(a.tanggal_ttd, null)}</span>
+                        <span class="text-[11px] text-subtle num">{rentangTanggal(a.tanggal_ttd, null)}</span>
                       {/if}
                     </div>
                   {/each}
@@ -208,15 +208,15 @@
                 {#if row.status === 'Approved'}
                   <a
                     href="/operasional/pendapatan?{entityQuery}&bulan={row.bulan}&tahun={row.tahun}&status=PROSES%20PAYMENT"
-                    class="inline-block px-2 py-0.5 rounded-full bg-positive/10 text-positive text-[11px] font-medium hover:bg-positive/20"
+                    class="inline-block px-2 py-0.5 rounded-full bg-positive/10 text-positive text-[12px] font-medium hover:bg-positive/20"
                     title="Buka Laporan Pendapatan, posisi Proses Payment"
                   >
                     Approved · Proses Payment →
                   </a>
                 {:else if row.status === 'Rejected'}
-                  <span class="inline-block px-2 py-0.5 rounded-full bg-destructive/10 text-destructive text-[11px] font-medium">Rejected</span>
+                  <span class="inline-block px-2 py-0.5 rounded-full bg-destructive/10 text-destructive text-[12px] font-medium">Rejected</span>
                 {:else}
-                  <span class="inline-block px-2 py-0.5 rounded-full bg-warning/10 text-warning text-[11px] font-medium">Pending</span>
+                  <span class="inline-block px-2 py-0.5 rounded-full bg-warning/10 text-warning text-[12px] font-medium">Pending</span>
                 {/if}
               </td>
               {#if data.canWrite}
@@ -233,7 +233,7 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="6" class="py-10 px-4 text-center text-[12px] text-muted-foreground">
+              <td colspan="6" class="py-10 px-4 text-center text-[13px] text-muted-foreground">
                 {#if query || kapalFilter}Tidak ada invoice yang cocok.{:else}Belum ada invoice pencairan untuk {NAMA_BULAN[data.periode.bulan - 1]} {data.periode.tahun}.{/if}
               </td>
             </tr>
@@ -286,7 +286,7 @@
         <input name="besaran_pajak" inputmode="numeric" value={pajak} oninput={(e) => (pajak = formatRp(e.currentTarget.value))} placeholder="0" class="{FIELD} text-right num" />
       </label>
     </div>
-    <p class="text-[11px] text-muted-foreground">
+    <p class="text-[12px] text-muted-foreground">
       Disinkronkan ke Laporan Pendapatan dengan nomor invoice yang sama: total = nominal, net tagihan = nominal − pajak.
       {editing ? 'Status persetujuan tidak berubah.' : 'Ketiga persetujuan departemen dimulai dari Pending.'}
     </p>
@@ -302,29 +302,29 @@
   {#if approvalRow}
     {@const l = approvalRow.laporan}
     <div class="rounded-lg border border-border bg-muted/30 p-3 mb-4 space-y-2">
-      <div class="flex items-center gap-2 text-[12px] font-semibold text-foreground">
+      <div class="flex items-center gap-2 text-[13px] font-semibold text-foreground">
         <FileText size={14} class="text-muted-foreground" /> Preview Berita Acara · {approvalRow.nomor_invoice}
         {#if l}
-          <a href="/cetak/operasional/ba/{l.id}?{entityQuery}" target="_blank" rel="noopener" class="ml-auto text-[11px] font-medium text-primary hover:underline">
+          <a href="/cetak/operasional/ba/{l.id}?{entityQuery}" target="_blank" rel="noopener" class="ml-auto text-[12px] font-medium text-primary hover:underline">
             Lihat / cetak BA →
           </a>
         {/if}
       </div>
       {#if l}
-        <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5 text-[12px]">
-          <div><dt class="text-[10px] text-muted-foreground">Kegiatan / Kapal</dt><dd class="text-foreground truncate">{l.kegiatan || '—'}</dd></div>
-          <div><dt class="text-[10px] text-muted-foreground">Party</dt><dd class="text-foreground num">{ton(l.party_kg)} KG</dd></div>
-          <div><dt class="text-[10px] text-muted-foreground">Lokasi / Rute</dt><dd class="text-foreground truncate">{l.lokasi || '—'}</dd></div>
-          <div><dt class="text-[10px] text-muted-foreground">No. Faktur Pajak</dt><dd class="text-foreground num">{l.no_faktur_pajak || '—'}</dd></div>
-          <div><dt class="text-[10px] text-muted-foreground">No. STO / SPO</dt><dd class="text-foreground num">{l.no_sto_spo || '—'}</dd></div>
-          <div><dt class="text-[10px] text-muted-foreground">Pajak</dt><dd class="text-destructive num">{ton(l.tarif_pajak)}% · {rupiah(l.pajak)}</dd></div>
+        <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5 text-[13px]">
+          <div><dt class="text-[11px] text-muted-foreground">Kegiatan / Kapal</dt><dd class="text-foreground truncate">{l.kegiatan || '—'}</dd></div>
+          <div><dt class="text-[11px] text-muted-foreground">Party</dt><dd class="text-foreground num">{ton(l.party_kg)} KG</dd></div>
+          <div><dt class="text-[11px] text-muted-foreground">Lokasi / Rute</dt><dd class="text-foreground truncate">{l.lokasi || '—'}</dd></div>
+          <div><dt class="text-[11px] text-muted-foreground">No. Faktur Pajak</dt><dd class="text-foreground num">{l.no_faktur_pajak || '—'}</dd></div>
+          <div><dt class="text-[11px] text-muted-foreground">No. STO / SPO</dt><dd class="text-foreground num">{l.no_sto_spo || '—'}</dd></div>
+          <div><dt class="text-[11px] text-muted-foreground">Pajak</dt><dd class="text-destructive num">{ton(l.tarif_pajak)}% · {rupiah(l.pajak)}</dd></div>
         </dl>
         <div class="flex items-center justify-between rounded-md bg-primary/10 px-3 py-2">
-          <span class="text-[11px] text-muted-foreground">Total net tagihan · gross {rupiah(l.total)}</span>
-          <span class="text-[14px] font-semibold text-foreground num">{rupiah(l.net_tagihan || l.total)}</span>
+          <span class="text-[12px] text-muted-foreground">Total net tagihan · gross {rupiah(l.total)}</span>
+          <span class="text-[15px] font-semibold text-foreground num">{rupiah(l.net_tagihan || l.total)}</span>
         </div>
       {:else}
-        <p class="text-[12px] text-muted-foreground">Belum ada baris Laporan Pendapatan untuk invoice ini.</p>
+        <p class="text-[13px] text-muted-foreground">Belum ada baris Laporan Pendapatan untuk invoice ini.</p>
       {/if}
     </div>
 
@@ -338,7 +338,7 @@
             {#each ['Approved', 'Pending', 'Rejected'] as s (s)}
               <label class="flex-1 cursor-pointer">
                 <input type="radio" name="status" value={s} checked={approvalCurrent?.status === s} class="peer sr-only" />
-                <span class="block text-center h-[34px] leading-[32px] rounded-lg border border-border text-[12px] text-muted-foreground peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary">
+                <span class="block text-center h-[34px] leading-[32px] rounded-lg border border-border text-[13px] text-muted-foreground peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary">
                   {s}
                 </span>
               </label>
@@ -349,7 +349,7 @@
           <label class="block">
             <span class={LABEL}>Tanggal tanda tangan</span>
             <input type="date" name="tanggal_ttd" value={approvalCurrent?.tanggal_ttd ?? ''} class={FIELD} />
-            <span class="block text-[11px] text-subtle mt-1">Kosong = hari ini.</span>
+            <span class="block text-[12px] text-subtle mt-1">Kosong = hari ini.</span>
           </label>
           <label class="block">
             <span class={LABEL}>Keterangan <span class="text-subtle">(opsional)</span></span>

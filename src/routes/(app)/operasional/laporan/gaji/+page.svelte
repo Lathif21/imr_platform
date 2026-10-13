@@ -45,7 +45,7 @@
   const simpanTelly = withFeedback({ failTitle: 'Gaji telly gagal disimpan', onSuccess: () => (open = false), onPending: (p) => (saving = p) });
   const simpanAdmin = withFeedback({ failTitle: 'Gaji gagal disimpan', onPending: (p) => (saving = p) });
 
-  const TH = 'font-medium py-2.5 px-3';
+  const TH = 'font-semibold py-2.5 px-3';
 </script>
 
 <svelte:head><title>Laporan Gaji · Operasional · IMR Platform</title></svelte:head>
@@ -53,14 +53,14 @@
 <div class="p-4 sm:p-5 space-y-4">
   <div class="flex items-start justify-between gap-3 flex-wrap">
     <div>
-      <a href="/operasional/laporan?{q}" class="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground"><ArrowLeft size={13} /> Laporan</a>
-      <h1 class="text-[15px] font-semibold text-foreground mt-1">Laporan Gaji Karyawan</h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">Honor telly per kegiatan dan gaji admin bulanan · {namaBulan}</p>
+      <a href="/operasional/laporan?{q}" class="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground"><ArrowLeft size={13} /> Laporan</a>
+      <h1 class="text-[17px] font-semibold text-foreground mt-1">Laporan Gaji Karyawan</h1>
+      <p class="text-[13px] text-muted-foreground mt-0.5">Honor telly per kegiatan dan gaji admin bulanan · {namaBulan}</p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
       <label class="sr-only" for="pilih-karyawan">Karyawan</label>
-      <select id="pilih-karyawan" value={data.dipilih?.id ?? ''} onchange={pilih} class="h-[30px] px-2 bg-background border border-border rounded-md text-[12px] text-foreground focus:outline-none focus:border-primary max-w-[240px]">
+      <select id="pilih-karyawan" value={data.dipilih?.id ?? ''} onchange={pilih} class="h-[30px] px-2 bg-background border border-border rounded-md text-[13px] text-foreground focus:outline-none focus:border-primary max-w-[240px]">
         <option value="">Rekap semua karyawan</option>
         {#each data.daftar as k (k.id)}<option value={k.id}>{k.nama}{k.jabatan ? ` · ${k.jabatan}` : ''}</option>{/each}
       </select>
@@ -72,7 +72,7 @@
 
   {#if !data.dipilih}
     <div class="bg-card border border-border rounded-lg overflow-x-auto">
-      <table class="w-full min-w-[760px] text-[12px]">
+      <table class="w-full min-w-[760px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
             <th class="{TH} text-left">Karyawan</th>
@@ -95,7 +95,7 @@
               <td class="py-2.5 px-3 text-right num">{rupiah(r.gaji_kotor)}</td>
               <td class="py-2.5 px-3 text-right num text-destructive">{rupiah(r.pph)}</td>
               <td class="py-2.5 px-3 text-right num font-semibold text-foreground">{rupiah(r.gaji_bersih)}</td>
-              <td class="py-2 px-3 text-right"><a href="?{q}&karyawan={r.id}" class="text-[12px] text-primary hover:underline">Rincian</a></td>
+              <td class="py-2 px-3 text-right"><a href="?{q}&karyawan={r.id}" class="text-[13px] text-primary hover:underline">Rincian</a></td>
             </tr>
           {:else}
             <tr><td colspan="8" class="py-10 text-center text-muted-foreground">Belum ada honor telly atau gaji admin untuk {namaBulan}. Pilih karyawan admin untuk mengisi gaji bulanannya.</td></tr>
@@ -120,8 +120,8 @@
       <input type="hidden" name="karyawan_id" value={data.dipilih.id} />
       <input type="hidden" name="bulan" value={data.periode.bulan} />
       <input type="hidden" name="tahun" value={data.periode.tahun} />
-      <h2 class="text-[13px] font-semibold text-foreground">Gaji Admin Bulanan · {data.dipilih.nama}</h2>
-      <p class="text-[12px] text-muted-foreground">
+      <h2 class="text-[14px] font-semibold text-foreground">Gaji Admin Bulanan · {data.dipilih.nama}</h2>
+      <p class="text-[13px] text-muted-foreground">
         {data.admin.id ? 'Tercatat untuk' : 'Belum ada gaji tercatat untuk'} {namaBulan}. Satu baris per bulan.
       </p>
       <fieldset disabled={!data.canWrite} class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -130,14 +130,14 @@
         <label class="block sm:col-span-2"><span class={LABEL}>Keterangan</span><textarea name="keterangan" value={data.admin.keterangan ?? 'Gaji Admin Bulanan'} class={TEXTAREA}></textarea></label>
       </fieldset>
       <div class="flex items-center justify-between">
-        <span class="text-[12px] text-muted-foreground">Gaji bersih tersimpan: <span class="num font-semibold text-foreground">{rupiah(data.admin.gaji_bersih)}</span></span>
+        <span class="text-[13px] text-muted-foreground">Gaji bersih tersimpan: <span class="num font-semibold text-foreground">{rupiah(data.admin.gaji_bersih)}</span></span>
         {#if data.canWrite}<button type="submit" disabled={saving} class={BTN_PRIMARY}>{saving ? 'Menyimpan…' : 'Simpan Gaji'}</button>{/if}
       </div>
     </form>
   {:else}
     {@const t = total(data.honor)}
     <div class="bg-card border border-border rounded-lg overflow-x-auto">
-      <table class="w-full min-w-[900px] text-[12px]">
+      <table class="w-full min-w-[900px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
             <th class="{TH} text-left">Kegiatan</th>
@@ -185,7 +185,7 @@
         {/if}
       </table>
     </div>
-    <p class="text-[11px] text-muted-foreground">Tonase berasal dari daftar truk kegiatan; ubah lewat Lengkapi Data atau Rincian Pembayaran Truk.</p>
+    <p class="text-[12px] text-muted-foreground">Tonase berasal dari daftar truk kegiatan; ubah lewat Lengkapi Data atau Rincian Pembayaran Truk.</p>
   {/if}
 </div>
 
@@ -193,7 +193,7 @@
   {#if editing}
     <form method="POST" action="?/simpanTelly" use:enhance={simpanTelly} class="space-y-3">
       <input type="hidden" name="id" value={editing.id} />
-      <p class="text-[12px] text-muted-foreground">{editing.kegiatan} · {ton(editing.tonase)} MT</p>
+      <p class="text-[13px] text-muted-foreground">{editing.kegiatan} · {ton(editing.tonase)} MT</p>
       <div class="grid grid-cols-2 gap-3">
         <label class="block"><span class={LABEL}>Gaji per ton (Rp)</span><input name="gaji" value={rp(editing.gaji)} oninput={ketik} inputmode="numeric" class="{FIELD} text-right num" /></label>
         <label class="block"><span class={LABEL}>Potongan PPh (Rp)</span><input name="pph" value={rp(editing.pph)} oninput={ketik} inputmode="numeric" class="{FIELD} text-right num" /></label>

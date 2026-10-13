@@ -68,8 +68,8 @@
 <div class="p-4 sm:p-5 space-y-4">
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <div>
-      <h1 class="text-[15px] font-semibold text-foreground">Kapal</h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">Master data kapal · {data.kapal.length} kapal</p>
+      <h1 class="text-[17px] font-semibold text-foreground">Kapal</h1>
+      <p class="text-[13px] text-muted-foreground mt-0.5">Master data kapal · {data.kapal.length} kapal</p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       <div class="relative">
@@ -92,14 +92,14 @@
 
   <div class="bg-card border border-border rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[640px] text-[12px]">
+      <table class="w-full min-w-[640px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
-            <th class="text-left font-medium py-2.5 px-4">Nama Kapal</th>
-            <th class="text-left font-medium py-2.5 px-4">Perusahaan Pemilik Kapal</th>
-            <th class="text-right font-medium py-2.5 px-4 w-[110px]">Kegiatan</th>
-            <th class="text-right font-medium py-2.5 px-4 w-[110px]">Truk</th>
-            {#if data.canWrite}<th class="text-right font-medium py-2.5 px-4 w-[96px]">Aksi</th>{/if}
+            <th class="text-left font-semibold py-2.5 px-4">Nama Kapal</th>
+            <th class="text-left font-semibold py-2.5 px-4">Perusahaan Pemilik Kapal</th>
+            <th class="text-right font-semibold py-2.5 px-4 w-[110px]">Kegiatan</th>
+            <th class="text-right font-semibold py-2.5 px-4 w-[110px]">Truk</th>
+            {#if data.canWrite}<th class="text-right font-semibold py-2.5 px-4 w-[96px]">Aksi</th>{/if}
           </tr>
         </thead>
         <tbody>
@@ -145,7 +145,7 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="5" class="py-10 px-4 text-center text-[12px] text-muted-foreground">
+              <td colspan="5" class="py-10 px-4 text-center text-[13px] text-muted-foreground">
                 {#if query}
                   Tidak ada kapal yang cocok dengan "{query}".
                 {:else}

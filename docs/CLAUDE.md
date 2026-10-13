@@ -137,7 +137,7 @@ The sidebar has three states, and `md` (768px) is the line between them:
 
 | Viewport | Sidebar | How it is dismissed |
 |---|---|---|
-| `md` and up, expanded | 214px, labels | "Ciutkan" button at its foot |
+| `md` and up, expanded | 232px, labels | "Ciutkan" button at its foot |
 | `md` and up, collapsed | 60px, icons only | same button, now "Lebarkan" |
 | below `md` | 260px drawer over the page | backdrop, ✕, Escape, or following a link |
 

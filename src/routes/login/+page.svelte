@@ -25,8 +25,8 @@
         <ChartColumn size={17} class="text-primary-foreground" />
       </div>
       <div class="flex-1 min-w-0">
-        <p class="text-[14px] font-semibold text-foreground leading-tight">IMR Platform</p>
-        <p class="text-[11px] text-muted-foreground">Keuangan &amp; Operasional</p>
+        <p class="text-[15px] font-semibold text-foreground leading-tight">IMR Platform</p>
+        <p class="text-[12px] text-muted-foreground">Keuangan &amp; Operasional</p>
       </div>
       <!-- The one screen every user meets before there is a sidebar to put
            this in; without it the preference is unreachable until you log in. -->
@@ -45,7 +45,7 @@
       }}
       class="bg-card border border-border rounded-lg p-5 space-y-4">
       <div class="space-y-1.5">
-        <label for="email" class="block text-[12px] font-medium text-muted-foreground">Email</label>
+        <label for="email" class="block text-[13px] font-medium text-muted-foreground">Email</label>
         <input
           id="email"
           name="email"
@@ -53,15 +53,15 @@
           autocomplete="username"
           required
           value={form?.email ?? ''}
-          class="w-full h-9 px-3 rounded-md bg-background border border-border text-[13px] text-foreground
+          class="w-full h-9 px-3 rounded-md bg-background border border-border text-[14px] text-foreground
                  placeholder:text-subtle focus:outline-none focus:border-primary"
         />
       </div>
 
       <div class="space-y-1.5">
         <div class="flex items-center justify-between">
-          <label for="password" class="block text-[12px] font-medium text-muted-foreground">Kata sandi</label>
-          <a href="/login/lupa-password" class="text-[12px] text-primary hover:underline">Lupa kata sandi?</a>
+          <label for="password" class="block text-[13px] font-medium text-muted-foreground">Kata sandi</label>
+          <a href="/login/lupa-password" class="text-[13px] text-primary hover:underline">Lupa kata sandi?</a>
         </div>
         <div class="relative">
           <input
@@ -70,7 +70,7 @@
             type={showPassword ? 'text' : 'password'}
             autocomplete="current-password"
             required
-            class="w-full h-9 pl-3 pr-9 rounded-md bg-background border border-border text-[13px] text-foreground
+            class="w-full h-9 pl-3 pr-9 rounded-md bg-background border border-border text-[14px] text-foreground
                    focus:outline-none focus:border-primary"
           />
           <button
@@ -92,14 +92,14 @@
       </div>
 
       {#if page.url.searchParams.has('reset') && !form?.message}
-        <p class="flex items-start gap-2 text-[12px] text-primary" role="status">
+        <p class="flex items-start gap-2 text-[13px] text-primary" role="status">
           <CircleCheck size={13} class="shrink-0 mt-px" />
           Kata sandi berhasil diganti. Silakan masuk dengan kata sandi baru.
         </p>
       {/if}
 
       {#if form?.message}
-        <p class="flex items-start gap-2 text-[12px] text-destructive" role="alert">
+        <p class="flex items-start gap-2 text-[13px] text-destructive" role="alert">
           <TriangleAlert size={13} class="shrink-0 mt-px" />
           {form.message}
         </p>
@@ -109,7 +109,7 @@
         type="submit"
         disabled={submitting}
         aria-busy={submitting}
-        class="w-full h-9 rounded-md bg-primary text-primary-foreground text-[13px] font-medium
+        class="w-full h-9 rounded-md bg-primary text-primary-foreground text-[14px] font-medium
                flex items-center justify-center gap-2 hover:bg-accent transition-colors
                disabled:opacity-80 disabled:cursor-wait disabled:hover:bg-primary"
       >
@@ -122,7 +122,7 @@
       </button>
     </form>
 
-    <p class="mt-4 text-[11px] text-subtle leading-relaxed">
+    <p class="mt-4 text-[12px] text-subtle leading-relaxed">
       Akses diberikan oleh direksi. Hubungi administrator bila Anda belum memiliki akun.
     </p>
   </div>

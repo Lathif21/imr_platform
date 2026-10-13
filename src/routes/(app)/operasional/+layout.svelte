@@ -53,8 +53,8 @@
     {:else}
       <!-- No entity assigned: an administrative fix, so say who can make it. -->
       <div class="p-6 max-w-[520px]">
-        <p class="text-[13px] text-foreground font-medium">Belum ada entitas yang ditautkan.</p>
-        <p class="text-[12px] text-muted-foreground mt-1.5 leading-relaxed">
+        <p class="text-[14px] text-foreground font-medium">Belum ada entitas yang ditautkan.</p>
+        <p class="text-[13px] text-muted-foreground mt-1.5 leading-relaxed">
           Akun Anda belum ditugaskan ke entitas mana pun. Minta direksi menautkannya di
           Administrasi → Pengguna.
         </p>

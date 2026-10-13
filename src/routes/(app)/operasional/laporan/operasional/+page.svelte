@@ -15,7 +15,7 @@
     Object.fromEntries(KOLOM.map((k) => [k, data.ringkas.reduce((s, r) => s + r[k], 0)])) as Record<(typeof KOLOM)[number], number>
   );
 
-  const TH = 'font-medium py-2.5 px-3 whitespace-nowrap';
+  const TH = 'font-semibold py-2.5 px-3 whitespace-nowrap';
   const TD = 'py-2.5 px-3 text-right num whitespace-nowrap';
 </script>
 
@@ -24,9 +24,9 @@
 <div class="p-4 sm:p-5 space-y-4">
   <div class="flex items-start justify-between gap-3 flex-wrap">
     <div>
-      <a href="/operasional/laporan?{q}" class="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground"><ArrowLeft size={13} /> Laporan</a>
-      <h1 class="text-[15px] font-semibold text-foreground mt-1">Laporan Operasional</h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">Rekap biaya per kapal · {namaBulan}</p>
+      <a href="/operasional/laporan?{q}" class="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground"><ArrowLeft size={13} /> Laporan</a>
+      <h1 class="text-[17px] font-semibold text-foreground mt-1">Laporan Operasional</h1>
+      <p class="text-[13px] text-muted-foreground mt-0.5">Rekap biaya per kapal · {namaBulan}</p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       <PilihPeriode bulan={data.periode.bulan} tahun={data.periode.tahun} />
@@ -35,9 +35,9 @@
   </div>
 
   <section class="space-y-2">
-    <h2 class="text-[13px] font-semibold text-foreground">Ringkasan per kapal</h2>
+    <h2 class="text-[14px] font-semibold text-foreground">Ringkasan per kapal</h2>
     <div class="bg-card border border-border rounded-lg overflow-x-auto">
-      <table class="w-full min-w-[1100px] text-[12px]">
+      <table class="w-full min-w-[1100px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
             <th class="{TH} text-left">Kapal</th>
@@ -84,13 +84,13 @@
         {/if}
       </table>
     </div>
-    <p class="text-[11px] text-muted-foreground">Beban rekanan = tonase × ongkos angkut, dibayarkan ke pemilik truk. Laba rugi resmi ada di Laporan P&amp;L.</p>
+    <p class="text-[12px] text-muted-foreground">Beban rekanan = tonase × ongkos angkut, dibayarkan ke pemilik truk. Laba rugi resmi ada di Laporan P&amp;L.</p>
   </section>
 
   <section class="space-y-2">
-    <h2 class="text-[13px] font-semibold text-foreground">Rincian per kegiatan</h2>
+    <h2 class="text-[14px] font-semibold text-foreground">Rincian per kegiatan</h2>
     <div class="bg-card border border-border rounded-lg overflow-x-auto">
-      <table class="w-full min-w-[1000px] text-[12px]">
+      <table class="w-full min-w-[1000px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
             <th class="{TH} text-left">Kapal</th><th class="{TH} text-left">Rute</th><th class="{TH} text-right">Trips</th><th class="{TH} text-right">Tonnase</th>

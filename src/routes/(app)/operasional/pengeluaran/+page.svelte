@@ -77,8 +77,8 @@
 <div class="p-4 sm:p-5 space-y-4">
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <div>
-      <h1 class="text-[15px] font-semibold text-foreground">Pengeluaran</h1>
-      <p class="text-[12px] text-muted-foreground mt-0.5">
+      <h1 class="text-[17px] font-semibold text-foreground">Pengeluaran</h1>
+      <p class="text-[13px] text-muted-foreground mt-0.5">
         {NAMA_BULAN[data.periode.bulan - 1]}
         {data.periode.tahun} · {data.pengeluaran.length} transaksi · total {rupiah(total)}
       </p>
@@ -105,17 +105,17 @@
 
   <div class="bg-card border border-border rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[860px] text-[12px]">
+      <table class="w-full min-w-[860px] text-[13px]">
         <thead>
           <tr class="text-muted-foreground border-b border-border">
-            <th class="text-center font-medium py-2.5 px-3 w-[44px]">No</th>
-            <th class="text-left font-medium py-2.5 px-3">Tanggal</th>
-            <th class="text-left font-medium py-2.5 px-3">Jenis Pengeluaran</th>
-            <th class="text-left font-medium py-2.5 px-3">Nama Pengeluaran / Kegiatan</th>
-            <th class="text-right font-medium py-2.5 px-3">Jumlah</th>
-            <th class="text-left font-medium py-2.5 px-3">Penerima</th>
-            <th class="text-left font-medium py-2.5 px-3">Keterangan</th>
-            {#if data.canWrite}<th class="text-right font-medium py-2.5 px-3 w-[90px]">Aksi</th>{/if}
+            <th class="text-center font-semibold py-2.5 px-3 w-[44px]">No</th>
+            <th class="text-left font-semibold py-2.5 px-3">Tanggal</th>
+            <th class="text-left font-semibold py-2.5 px-3">Jenis Pengeluaran</th>
+            <th class="text-left font-semibold py-2.5 px-3">Nama Pengeluaran / Kegiatan</th>
+            <th class="text-right font-semibold py-2.5 px-3">Jumlah</th>
+            <th class="text-left font-semibold py-2.5 px-3">Penerima</th>
+            <th class="text-left font-semibold py-2.5 px-3">Keterangan</th>
+            {#if data.canWrite}<th class="text-right font-semibold py-2.5 px-3 w-[90px]">Aksi</th>{/if}
           </tr>
         </thead>
         <tbody>
@@ -142,7 +142,7 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="8" class="py-10 px-4 text-center text-[12px] text-muted-foreground">
+              <td colspan="8" class="py-10 px-4 text-center text-[13px] text-muted-foreground">
                 {#if query}Tidak ada pengeluaran yang cocok dengan "{query}".{:else}Belum ada pengeluaran untuk {NAMA_BULAN[data.periode.bulan - 1]} {data.periode.tahun}.{/if}
               </td>
             </tr>
@@ -193,7 +193,7 @@
         {/if}
       </div>
       {#if jenisPilihan === JENIS_BARU}
-        <span class="block text-[11px] text-subtle mt-1">
+        <span class="block text-[12px] text-subtle mt-1">
           Jenis baru masuk "Pengeluaran lain-lain" di laporan keuangan sampai dipetakan di portal keuangan.
         </span>
       {/if}

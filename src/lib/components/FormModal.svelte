@@ -61,7 +61,7 @@
              bg-popover shadow-2xl"
     >
       <div class="h-12 flex items-center justify-between gap-3 px-5 border-b border-border">
-        <h2 id="form-modal-title" class="text-[14px] font-semibold text-foreground truncate">
+        <h2 id="form-modal-title" class="text-[15px] font-semibold text-foreground truncate">
           {title}
         </h2>
         <button
