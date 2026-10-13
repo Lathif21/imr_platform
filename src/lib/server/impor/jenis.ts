@@ -96,10 +96,30 @@ function opsiTeks(row: BarisMentah, kunci: string, label: string, galat: string[
 }
 
 function bacaTanggal(row: BarisMentah, kunci: string, label: string, galat: string[], wajib = false): string | null {
-  const v = tanggal(row.nilai[kunci]);
+  const mentah = row.nilai[kunci];
+  const v = tanggal(mentah);
   if (v === undefined) galat.push(`${label} tidak sah — tulis dd/mm/yy, mis. 05/10/26.`);
   else if (v === null && wajib) galat.push(`${label} wajib diisi.`);
+  else if (v && ambigu(mentah, v)) {
+    galat.push(
+      `${label} tersimpan sebagai tanggal Excel (terbaca ${Number(v.slice(8))} ${namaBulan(v)}), bukan teks — hari dan bulannya bisa tertukar. ` +
+        'Biasanya karena disalin dari file lain. Ketik ulang sebagai teks dd/mm/yy, mis. 05/10/26.'
+    );
+  }
   return v ?? null;
+}
+
+/**
+ * A real Excel date (not text) whose day could also be a month. The template's
+ * date columns are text, so a date cell got there by paste; Excel had already
+ * parsed it by the computer's locale (US: month first), and what was typed is
+ * gone. 13 Oktober 2026: "05/10/2026" arrived as 10 Mei. Refused rather than
+ * guessed; a day above 12 (or equal to the month) cannot be swapped.
+ */
+function ambigu(mentah: unknown, iso: string): boolean {
+  if (!(mentah instanceof Date) && typeof mentah !== 'number') return false;
+  const hari = Number(iso.slice(8, 10));
+  return hari <= 12 && hari !== Number(iso.slice(5, 7));
 }
 
 function bacaRupiahKol(row: BarisMentah, kunci: string, label: string, galat: string[], wajib = false): number | null {
