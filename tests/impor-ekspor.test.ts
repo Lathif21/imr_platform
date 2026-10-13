@@ -6,6 +6,7 @@
  * terbaca di kunci yang sama.
  */
 
+import ExcelJS from 'exceljs';
 import { describe, expect, it } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { bacaBerkas, buatTemplate } from '$lib/server/impor/excel';
@@ -59,6 +60,28 @@ describe('ekspor → unggah kembali', () => {
     expect(rupiah(rows[0].nilai.operasional)).toBe(300_000);
     expect(rupiah(rows[1].nilai.operasional)).toBeNull();
     expect(teks(rows[1].nilai.nopol)).toBe('W 2 B');
+  });
+
+  it('kolom tanggal berformat teks, jadi Excel tidak menafsirkan ulang bulan/hari', async () => {
+    const buf = await buatTemplate('kegiatan', IMPOR.kegiatan, K, [{ tanggal_kegiatan: '2026-10-05', nama_kapal: 'KM Uji', nopol: 'W 1 A' }]);
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buf as unknown as ArrayBuffer);
+    const ws = wb.getWorksheet('Data')!;
+    expect(ws.getCell('A2').value).toBe('05/10/2026');
+    expect(ws.getCell('A3').numFmt).toBe('@');
+  });
+
+  it('pratinjau memperingatkan kegiatan yang jatuh di bulan lain atau terlalu panjang', async () => {
+    // Kasus 13 Oktober 2026: "5/10/2026" terbaca 10 Mei di Excel berlokal AS.
+    const { baris } = await IMPOR.kegiatan.periksa(
+      [{ baris: 2, nilai: { tanggal_kegiatan: '10/05/2026', tanggal_selesai: '10/10/2026', nama_kapal: 'KM Uji', nopol: 'W 1 A', pemilik: 'H. Ahmad' } }],
+      K
+    );
+    expect(baris[0].galat).toEqual([]);
+    expect(baris[0].tampil[1]).toBe('Mei 2026');
+    expect(baris[0].peringatan).toHaveLength(2);
+    expect(baris[0].peringatan![0]).toMatch(/bulan Mei 2026, bukan Oktober 2026/);
+    expect(baris[0].peringatan![1]).toMatch(/153 hari/);
   });
 
   it('tanpa data, hasilnya template kosong', async () => {

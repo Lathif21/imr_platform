@@ -23,7 +23,10 @@ const BARIS_DISIAPKAN = 1000;
 const MAKS_BARIS = 2000;
 
 const FORMAT: Record<string, string | undefined> = {
-  tanggal: 'dd/mm/yyyy',
+  // Text, not a date format: Excel parses a typed date by the computer's
+  // locale, so on a US-locale laptop "5/10/2026" became 10 May. As text it
+  // reaches the server as typed and is read dd/mm/yyyy (sel.ts tanggal()).
+  tanggal: '@',
   rupiah: '#,##0',
   desimal: '#,##0.##',
   bulat: '0'
@@ -57,8 +60,8 @@ export async function buatTemplate(jenis: JenisImpor, def: DefImpor, k: Konteks,
     def.kolom.forEach((c, i) => {
       const v = baris[c.kunci];
       if (v === null || v === undefined || v === '') return;
-      // Real date cells (UTC midnight), so the dd/mm/yyyy format applies.
-      ws.getCell(j + 2, i + 1).value = c.tipe === 'tanggal' && typeof v === 'string' ? new Date(`${v}T00:00:00Z`) : v;
+      // Dates as dd/mm/yyyy text, like a typed one (see FORMAT.tanggal).
+      ws.getCell(j + 2, i + 1).value = c.tipe === 'tanggal' && typeof v === 'string' ? v.split('-').reverse().join('/') : v;
     });
   });
   const disiapkan = Math.max(BARIS_DISIAPKAN, isi.length + 500);
