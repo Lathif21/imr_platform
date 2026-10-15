@@ -134,6 +134,12 @@ dan jumlah baris setiap tabel cocok dengan Neon, atau tidak ada yang tersimpan.
    Akun ikut pindah **dengan kata sandi lamanya** (format hash Neon Auth
    dipakai apa adanya). Skrip boleh diulang; setiap kali ia mengosongkan
    database VPS dulu.
+
+   Lalu buang lagi data uji coba operasional yang ikut tersalin (berdasarkan
+   ID — data asli yang diinput sesudahnya tidak tersentuh):
+   ```sh
+   docker compose exec -T db psql -U postgres -d imr -v ON_ERROR_STOP=1 < sql/bersihkan-data-uji.sql
+   ```
 3. Salin lampiran dari Neon Object Storage ke volume `berkas` (kunci dari
    Neon Console → Object storage):
    ```sh
