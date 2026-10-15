@@ -1,6 +1,5 @@
-{
-	email {$ACME_EMAIL}
-}
+# Tanpa email ACME: Let's Encrypt tidak lagi mengirim pengingat kedaluwarsa
+# (sejak 2025), dan Caddy memperbarui sertifikat sendiri.
 
 {$DOMAIN} {
 	encode zstd gzip

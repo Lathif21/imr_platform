@@ -127,7 +127,6 @@ services:
       - "443:443/udp"
     environment:
       DOMAIN: ${DOMAIN}
-      ACME_EMAIL: ${ACME_EMAIL:?isi ACME_EMAIL}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

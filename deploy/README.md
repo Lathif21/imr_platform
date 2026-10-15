@@ -90,7 +90,7 @@ git clone <url-repo> /opt/imr && cd /opt/imr/deploy
 chmod +x backup.sh
 
 cp .env.example .env && chmod 600 .env
-nano .env        # isi DOMAIN, ACME_EMAIL, dan setiap rahasia dengan: openssl rand -hex 32
+nano .env        # isi DOMAIN dan setiap rahasia dengan: openssl rand -hex 32
 ```
 
 ```sh
