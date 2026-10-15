@@ -13,7 +13,7 @@ import {
 } from '$lib/operasional/ringkasan';
 import { canReadOperational, canWriteOperational } from '$lib/roles';
 import { failLoad, loadOperationalEntities } from '$lib/server/operasional';
-import { hitungBulan } from '$lib/server/ringkasan-operasional';
+import { hitungBanyak, kunciHasil, type HasilBulan } from '$lib/server/ringkasan-operasional';
 import type { PageServerLoad } from './$types';
 
 /**
@@ -25,13 +25,13 @@ import type { PageServerLoad } from './$types';
  * assigned in Admin → Pengguna. Admin operasional works in its own module and
  * is sent there.
  *
- * The month and the one before are awaited; the six-month trend is streamed,
- * so the table is on screen while the trend is still being added up.
+ * All entities × six months come from one batch (hitungBanyak, about ten
+ * queries), so the trend costs no more than the month itself.
  */
 
 const TREN_BULAN = 6;
 
-function angka(b: Awaited<ReturnType<typeof hitungBulan>>): AngkaBulan {
+function angka(b: HasilBulan): AngkaBulan {
   return {
     pendapatan: b.pendapatan.semua.total,
     pajak: b.pendapatan.semua.pajak,
@@ -44,14 +44,15 @@ function angka(b: Awaited<ReturnType<typeof hitungBulan>>): AngkaBulan {
 }
 
 /** Unpaid invoices of every month, as of today — a position, not a flow. */
-async function muatPiutang(db: SupabaseClient, entityId: string, now: Date): Promise<Piutang> {
+async function muatPiutang(db: SupabaseClient, entityIds: string[], now: Date): Promise<Map<string, Piutang>> {
   const { data, error: err } = await db
     .from('laporan_pendapatan')
-    .select('net_tagihan, status_entry, payment_date, tanggal_entry, bulan, tahun')
-    .eq('entity_id', entityId)
+    .select('entity_id, net_tagihan, status_entry, payment_date, tanggal_entry, bulan, tahun')
+    .in('entity_id', entityIds)
     .is('payment_date', null)
     .returns<
       {
+        entity_id: string;
         net_tagihan: string | null;
         status_entry: string | null;
         payment_date: string | null;
@@ -62,9 +63,13 @@ async function muatPiutang(db: SupabaseClient, entityId: string, now: Date): Pro
     >();
   if (err) failLoad('ringkasan piutang', err);
 
-  const piutang: Piutang = { nilai: 0, jumlah: 0, tertuaHari: null, lama: { nilai: 0, jumlah: 0 } };
+  const semua = new Map<string, Piutang>(
+    entityIds.map((id) => [id, { nilai: 0, jumlah: 0, tertuaHari: null, lama: { nilai: 0, jumlah: 0 } }])
+  );
   for (const r of data ?? []) {
     if (sudahDibayar(r)) continue;
+    const piutang = semua.get(r.entity_id);
+    if (!piutang) continue;
     const nilai = Number(r.net_tagihan ?? 0) || 0;
     // Without an entry date, the first of the invoice's month: the most it
     // can be, so a missing date never hides an old invoice.
@@ -78,7 +83,7 @@ async function muatPiutang(db: SupabaseClient, entityId: string, now: Date): Pro
       piutang.lama.jumlah += 1;
     }
   }
-  return piutang;
+  return semua;
 }
 
 /** The latest operational write for an entity, across the tables admins fill. */
@@ -116,34 +121,33 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   const bulanBerjalan = periode.bulan === sekarang.bulan && periode.tahun === sekarang.tahun;
 
   const { entities } = await loadOperationalEntities(db, null);
+  const ids = entities.map((e) => e.id);
+  const bulanTren: Periode[] = Array.from({ length: TREN_BULAN }, (_, k) => geserBulan(periode, k - (TREN_BULAN - 1)));
 
-  const rows: BarisRingkasan[] = await Promise.all(
-    entities.map(async (e) => {
-      const [ini, sebelum, piutang, terakhirInput] = await Promise.all([
-        hitungBulan(db, e.id, periode),
-        hitungBulan(db, e.id, lalu),
-        muatPiutang(db, e.id, now),
-        muatTerakhirInput(db, e.id)
-      ]);
-      return { code: e.code, nama: e.legal_name, ini: angka(ini), lalu: angka(sebelum), piutang, terakhirInput };
-    })
-  );
+  const [hasil, piutang, terakhir] = await Promise.all([
+    hitungBanyak(db, ids, bulanTren),
+    muatPiutang(db, ids, now),
+    Promise.all(entities.map((e) => muatTerakhirInput(db, e.id)))
+  ]);
 
-  // The four months before those two, per entity — streamed.
-  const lebihAwal: Periode[] = Array.from({ length: TREN_BULAN - 2 }, (_, i) =>
-    geserBulan(periode, -(TREN_BULAN - 1) + i)
+  const rows: BarisRingkasan[] = entities.map((e, i) => ({
+    code: e.code,
+    nama: e.legal_name,
+    ini: angka(hasil.get(kunciHasil(e.id, periode))!),
+    lalu: angka(hasil.get(kunciHasil(e.id, lalu))!),
+    piutang: piutang.get(e.id)!,
+    terakhirInput: terakhir[i]
+  }));
+
+  const tren: Record<string, { periode: Periode; laba: number; pendapatan: number }[]> = Object.fromEntries(
+    entities.map((e) => [
+      e.code,
+      bulanTren.map((p) => {
+        const h = hasil.get(kunciHasil(e.id, p))!;
+        return { periode: p, laba: h.labaBersih, pendapatan: h.pendapatan.semua.total };
+      })
+    ])
   );
-  const tren: Promise<Record<string, { periode: Periode; laba: number; pendapatan: number }[]>> = Promise.all(
-    entities.map(async (e, i) => {
-      const awal = await Promise.all(lebihAwal.map((p) => hitungBulan(db, e.id, p)));
-      const titik = [
-        ...awal.map((b, j) => ({ periode: lebihAwal[j], laba: b.labaBersih, pendapatan: b.pendapatan.semua.total })),
-        { periode: lalu, laba: rows[i].lalu.laba, pendapatan: rows[i].lalu.pendapatan },
-        { periode, laba: rows[i].ini.laba, pendapatan: rows[i].ini.pendapatan }
-      ];
-      return [e.code, titik] as const;
-    })
-  ).then(Object.fromEntries);
 
   return {
     periode,

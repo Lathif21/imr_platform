@@ -36,7 +36,7 @@ export interface DetailRow {
   jumlah_truk: number;
 }
 
-interface RekapRecord {
+export interface RekapRecord {
   id: number;
   kapal_id: number;
   rute: string | null;
@@ -80,11 +80,33 @@ export async function muatDetailKegiatan(db: SupabaseClient, entityId: string, p
   if (kapalResult.error) failLoad('kapal', kapalResult.error);
   if (karyawanResult.error) failLoad('karyawan', karyawanResult.error);
 
-  const namaKapal = new Map((kapalResult.data ?? []).map((k) => [k.id, k.nama_kapal]));
-  const namaKaryawan = new Map((karyawanResult.data ?? []).map((k) => [k.id, k.nama]));
+  return susunDetailKegiatan({
+    rekap: rekapResult.data ?? [],
+    transaksi: transaksiResult.data ?? [],
+    kapal: kapalResult.data ?? [],
+    karyawan: karyawanResult.data ?? []
+  });
+}
+
+export interface BahanDetailKegiatan {
+  /** The month's kegiatan of one entity. */
+  rekap: RekapRecord[];
+  /** The month's trucks tied to a kegiatan (operasional_rekap_id not null). */
+  transaksi: { operasional_rekap_id: number; ritase: number; tonase: string; sangu_supir: string; terpal: string | null }[];
+  kapal: { id: number; nama_kapal: string }[];
+  karyawan: { id: number; nama: string }[];
+}
+
+/**
+ * The rows, from rows already read. Pure, so the Ringkasan Eksekutif can read
+ * many entities and months at once and still compute exactly this.
+ */
+export function susunDetailKegiatan({ rekap, transaksi, kapal, karyawan }: BahanDetailKegiatan): DetailRow[] {
+  const namaKapal = new Map(kapal.map((k) => [k.id, k.nama_kapal]));
+  const namaKaryawan = new Map(karyawan.map((k) => [k.id, k.nama]));
 
   const agregat = new Map<number, { trips: number; tonase: number; sangu: number; terpal: number; jumlah: number }>();
-  for (const t of transaksiResult.data ?? []) {
+  for (const t of transaksi) {
     const a = agregat.get(t.operasional_rekap_id) ?? { trips: 0, tonase: 0, sangu: 0, terpal: 0, jumlah: 0 };
     a.trips += t.ritase;
     a.tonase += Number(t.tonase);
@@ -97,7 +119,7 @@ export async function muatDetailKegiatan(db: SupabaseClient, entityId: string, p
   const lebihDariNol = (general: number | undefined, manual: string | number | null) =>
     general !== undefined && general > 0 ? general : Number(manual ?? 0);
 
-  const semua: DetailRow[] = (rekapResult.data ?? []).map((r) => {
+  const semua: DetailRow[] = rekap.map((r) => {
     const g = agregat.get(r.id);
     const sangu = lebihDariNol(g?.sangu, r.sangu_supir);
     const terpal = lebihDariNol(g?.terpal, r.terpal);

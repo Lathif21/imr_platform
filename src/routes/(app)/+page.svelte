@@ -156,13 +156,7 @@
                   <div class="text-[11px] text-muted-foreground">{r.ini.kegiatan} kegiatan</div>
                 </td>
                 <td class="px-3 py-2 align-middle">
-                  {#await data.tren}
-                    <div class="h-[34px] w-[104px] rounded bg-muted/50 animate-pulse" aria-label="Memuat tren"></div>
-                  {:then tren}
-                    {#if tren[r.code]}<TrenLaba titik={tren[r.code]} />{/if}
-                  {:catch}
-                    <span class="text-[11px] text-muted-foreground">Tren gagal dimuat</span>
-                  {/await}
+                  {#if data.tren[r.code]}<TrenLaba titik={data.tren[r.code]} />{/if}
                 </td>
               </tr>
             {/each}

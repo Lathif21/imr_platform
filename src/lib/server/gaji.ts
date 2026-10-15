@@ -99,12 +99,35 @@ export async function muatGaji(db: SupabaseClient, entityId: string, periode: Pe
   if (kapalResult.error) failLoad('gaji kapal', kapalResult.error);
   if (honorResult.error) failLoad('gaji honor', honorResult.error);
 
-  const namaKapal = new Map((kapalResult.data ?? []).map((k) => [k.id, k.nama_kapal]));
+  return susunGaji({
+    karyawan: karyawanResult.data ?? [],
+    rekap: rekaps,
+    admin: adminResult.data ?? [],
+    kapal: kapalResult.data ?? [],
+    honor: honorResult.data ?? []
+  });
+}
+
+export interface BahanGaji {
+  karyawan: { id: number; nama: string; jabatan: string | null; ktp: string | null; npwp: string | null; status: string }[];
+  /** The month's kegiatan of one entity that have a telly. */
+  rekap: { id: number; kapal_id: number; rute: string | null; tonase: string; trips: number | null; telly_id: number; keterangan: string | null }[];
+  /** Admin pay rows of the month (no kegiatan, no transaksi), ordered by id. */
+  admin: { id: number; karyawan_id: number; gaji_total: string; pph: string; gaji_bersih: string; keterangan: string | null }[];
+  kapal: { id: number; nama_kapal: string }[];
+  /** Honor rows of the kegiatan in `rekap`. */
+  honor: { id: number; karyawan_id: number; operasional_rekap_id: number; gaji: string; pph: string; keterangan: string | null }[];
+}
+
+/** The month's pay, from rows already read. Pure — see susunDetailKegiatan. */
+export function susunGaji(b: BahanGaji) {
+  const rekaps = b.rekap;
+  const namaKapal = new Map(b.kapal.map((k) => [k.id, k.nama_kapal]));
   const rekapById = new Map(rekaps.map((r) => [r.id, r]));
 
   /** Honor rows per telly, only for kegiatan this telly is still assigned to. */
   const honor = new Map<number, BarisHonor[]>();
-  for (const g of honorResult.data ?? []) {
+  for (const g of b.honor) {
     const r = rekapById.get(g.operasional_rekap_id);
     if (!r || r.telly_id !== g.karyawan_id) continue;
     const tonase = n(r.tonase);
@@ -121,12 +144,12 @@ export async function muatGaji(db: SupabaseClient, entityId: string, periode: Pe
   }
 
   const admin = new Map<number, BarisAdmin>();
-  for (const a of adminResult.data ?? []) {
+  for (const a of b.admin) {
     if (admin.has(a.karyawan_id)) continue; // one row per month; the first if a migration left two
     admin.set(a.karyawan_id, { id: a.id, gaji_total: n(a.gaji_total), pph: n(a.pph), gaji_bersih: n(a.gaji_bersih), keterangan: a.keterangan });
   }
 
-  const karyawan = karyawanResult.data ?? [];
+  const karyawan = b.karyawan;
   const ringkas: RingkasKaryawan[] = karyawan
     .map((k) => {
       const base = { id: k.id, nama: k.nama, jabatan: k.jabatan, ktp: k.ktp, npwp: k.npwp, admin: isAdmin(k.jabatan) };
