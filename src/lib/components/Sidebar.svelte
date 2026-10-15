@@ -113,8 +113,15 @@
               // group total.
               visible: canReadAllEntities(role)
             },
-            { label: 'Laporan P&L', icon: FileText, href: '/entities', visible: canReadReports(role) },
-            { label: 'Input Laporan', icon: ClipboardList, href: '/entry', visible: canEnterReports(role) },
+            // Admin operasional fills the P&L from inside Operasional ("Pengajuan
+            // P&L" below) — its input already is the report — so this module
+            // has nothing left for it and the switcher disappears.
+            {
+              label: 'Laporan P&L',
+              icon: FileText,
+              href: '/entities',
+              visible: canReadReports(role) && !canEnterReports(role)
+            },
             { label: 'Persetujuan', icon: CircleCheckBig, href: '/approval', visible: canApprove(role) }
           ]
         }
@@ -143,7 +150,13 @@
               items: [
                 { label: 'Pengeluaran', icon: Receipt, href: '/operasional/pengeluaran' },
                 { label: 'Pendapatan', icon: Landmark, href: '/operasional/pendapatan' },
-                { label: 'Laporan', icon: FileChartColumn, href: '/operasional/laporan' }
+                { label: 'Laporan', icon: FileChartColumn, href: '/operasional/laporan' },
+                {
+                  label: 'Pengajuan P&L',
+                  icon: ClipboardList,
+                  href: '/entry',
+                  visible: canEnterReports(role)
+                }
               ]
             },
             {
@@ -216,8 +229,14 @@
    * the kegiatan's, so leaving one lands back on the month it belongs to.
    */
   const opQuery = $derived.by(() => {
-    if (currentKey !== 'operasional') return '';
     const q = new URLSearchParams();
+    if (currentKey !== 'operasional') {
+      // Back from Pengajuan P&L: the entity whose report was open.
+      const selected = page.data.selected as { code?: string } | null | undefined;
+      if (canEnterReports(role) && selected?.code) q.set('entitas', selected.code);
+      const s = q.toString();
+      return s ? `?${s}` : '';
+    }
     if (opEntity) q.set('entitas', opEntity.code);
     const kegiatan = page.data.kegiatan as { bulan?: number; tahun?: number } | undefined;
     for (const key of ['bulan', 'tahun'] as const) {
@@ -228,7 +247,12 @@
     return s ? `?${s}` : '';
   });
 
-  const hrefFor = (item: NavItem) => (item.href.startsWith('/operasional') ? item.href + opQuery : item.href);
+  const hrefFor = (item: NavItem) => {
+    if (item.href.startsWith('/operasional')) return item.href + opQuery;
+    // The P&L of the entity on screen, not whichever one /entry defaults to.
+    if (item.href === '/entry' && opEntity) return `/entry?entitas=${encodeURIComponent(opEntity.code)}`;
+    return item.href;
+  };
 
   function chooseEntity(event: Event) {
     const code = (event.currentTarget as HTMLSelectElement).value;
