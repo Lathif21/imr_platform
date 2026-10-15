@@ -5,13 +5,11 @@
   import ChevronLeft from 'lucide-svelte/icons/chevron-left';
   import ChevronRight from 'lucide-svelte/icons/chevron-right';
   import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
-  import CircleCheckBig from 'lucide-svelte/icons/circle-check-big';
   import ClipboardList from 'lucide-svelte/icons/clipboard-list';
   import Database from 'lucide-svelte/icons/database';
   import Eye from 'lucide-svelte/icons/eye';
   import FileChartColumn from 'lucide-svelte/icons/file-chart-column';
   import FileSpreadsheet from 'lucide-svelte/icons/file-spreadsheet';
-  import FileText from 'lucide-svelte/icons/file-text';
   import IdCard from 'lucide-svelte/icons/id-card';
   import Landmark from 'lucide-svelte/icons/landmark';
   import LayoutDashboard from 'lucide-svelte/icons/layout-dashboard';
@@ -29,14 +27,7 @@
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
   import type { Theme } from '$lib/theme';
   import { ROLE_LABEL, type UserRole } from '$lib/domain';
-  import {
-    canApprove,
-    canEnterReports,
-    canReadAllEntities,
-    canReadOperational,
-    canReadReports,
-    isDirector
-  } from '$lib/roles';
+  import { canReadOperational, canWriteOperational, isDirector } from '$lib/roles';
 
   let {
     role,
@@ -76,7 +67,7 @@
 
   type NavGroup = { heading?: string; items: NavItem[] };
 
-  type ModuleKey = 'keuangan' | 'operasional' | 'admin';
+  type ModuleKey = 'operasional' | 'admin';
 
   type Module = {
     key: ModuleKey;
@@ -95,48 +86,24 @@
    * `visible` is UX only. Hiding a nav item is not access control — RLS is.
    */
   const modules = $derived<Module[]>([
-    {
-      key: 'keuangan',
-      label: 'Keuangan',
-      description: 'Laporan P&L entitas',
-      icon: FileText,
-      groups: [
-        {
-          items: [
-            {
-              label: 'Dasbor Eksekutif',
-              icon: LayoutDashboard,
-              href: '/',
-              exact: true,
-              // Consolidated figures are group figures. Since manajer
-              // became entity-scoped, only direksi can be shown a
-              // group total.
-              visible: canReadAllEntities(role)
-            },
-            // Admin operasional fills the P&L from inside Operasional ("Pengajuan
-            // P&L" below) — its input already is the report — so this module
-            // has nothing left for it and the switcher disappears.
-            {
-              label: 'Laporan P&L',
-              icon: FileText,
-              href: '/entities',
-              visible: canReadReports(role) && !canEnterReports(role)
-            },
-            { label: 'Persetujuan', icon: CircleCheckBig, href: '/approval', visible: canApprove(role) }
-          ]
-        }
-      ]
-    },
     // The ported operational system (docs/PENGGABUNGAN.md). Every Laravel
     // screen is here; new ones join this list when they exist — never as
     // disabled items.
-    {
-      key: 'operasional',
-      label: 'Operasional',
-      description: 'Kegiatan kapal & biaya',
-      icon: Ship,
-      groups: canReadOperational(role)
-        ? [
+    //
+    // Only admin operasional works in it. Direksi and manajer need the final
+    // reports and nothing else (decided 16 Oktober 2026: there is no approval
+    // step in practice), so for them the module is the Laporan screen alone,
+    // under the entity picker — direksi over every entity, manajer over the
+    // ones assigned in Admin → Pengguna. The Keuangan module (Dasbor
+    // Eksekutif, Laporan P&L, Persetujuan) is no longer in the menu; its
+    // routes still exist and RLS still guards them.
+    canWriteOperational(role)
+      ? {
+          key: 'operasional',
+          label: 'Operasional',
+          description: 'Kegiatan kapal & biaya',
+          icon: Ship,
+          groups: [
             { items: [{ label: 'Dasbor', icon: LayoutDashboard, href: '/operasional', exact: true }] },
             {
               heading: 'Kegiatan',
@@ -150,13 +117,7 @@
               items: [
                 { label: 'Pengeluaran', icon: Receipt, href: '/operasional/pengeluaran' },
                 { label: 'Pendapatan', icon: Landmark, href: '/operasional/pendapatan' },
-                { label: 'Laporan', icon: FileChartColumn, href: '/operasional/laporan' },
-                {
-                  label: 'Pengajuan P&L',
-                  icon: ClipboardList,
-                  href: '/entry',
-                  visible: canEnterReports(role)
-                }
+                { label: 'Laporan', icon: FileChartColumn, href: '/operasional/laporan' }
               ]
             },
             {
@@ -169,8 +130,16 @@
               ]
             }
           ]
-        : []
-    },
+        }
+      : {
+          key: 'operasional',
+          label: 'Laporan',
+          description: 'Laporan akhir per entitas',
+          icon: FileChartColumn,
+          groups: canReadOperational(role)
+            ? [{ items: [{ label: 'Laporan', icon: FileChartColumn, href: '/operasional/laporan' }] }]
+            : []
+        },
     {
       key: 'admin',
       label: 'Administrasi',
@@ -196,13 +165,7 @@
   /** Modules this role has at least one screen in. */
   const available = $derived(modules.filter((m) => visibleItems(m).length > 0));
 
-  const currentKey = $derived<ModuleKey>(
-    page.url.pathname.startsWith('/operasional')
-      ? 'operasional'
-      : page.url.pathname.startsWith('/admin')
-        ? 'admin'
-        : 'keuangan'
-  );
+  const currentKey = $derived<ModuleKey>(page.url.pathname.startsWith('/admin') ? 'admin' : 'operasional');
   const current = $derived(available.find((m) => m.key === currentKey) ?? available[0]);
 
   function isActive(item: NavItem) {
@@ -229,14 +192,8 @@
    * the kegiatan's, so leaving one lands back on the month it belongs to.
    */
   const opQuery = $derived.by(() => {
+    if (currentKey !== 'operasional') return '';
     const q = new URLSearchParams();
-    if (currentKey !== 'operasional') {
-      // Back from Pengajuan P&L: the entity whose report was open.
-      const selected = page.data.selected as { code?: string } | null | undefined;
-      if (canEnterReports(role) && selected?.code) q.set('entitas', selected.code);
-      const s = q.toString();
-      return s ? `?${s}` : '';
-    }
     if (opEntity) q.set('entitas', opEntity.code);
     const kegiatan = page.data.kegiatan as { bulan?: number; tahun?: number } | undefined;
     for (const key of ['bulan', 'tahun'] as const) {
@@ -247,12 +204,7 @@
     return s ? `?${s}` : '';
   });
 
-  const hrefFor = (item: NavItem) => {
-    if (item.href.startsWith('/operasional')) return item.href + opQuery;
-    // The P&L of the entity on screen, not whichever one /entry defaults to.
-    if (item.href === '/entry' && opEntity) return `/entry?entitas=${encodeURIComponent(opEntity.code)}`;
-    return item.href;
-  };
+  const hrefFor = (item: NavItem) => (item.href.startsWith('/operasional') ? item.href + opQuery : item.href);
 
   function chooseEntity(event: Event) {
     const code = (event.currentTarget as HTMLSelectElement).value;

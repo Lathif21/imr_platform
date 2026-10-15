@@ -19,7 +19,7 @@ import {
   type RangeCompleteness,
   type RangeConsolidated
 } from '$lib/period-range';
-import { canReadAllEntities, canWriteOperational } from '$lib/roles';
+import { canReadAllEntities, canReadOperational, canWriteOperational } from '$lib/roles';
 import type { PageServerLoad } from './$types';
 
 interface EntityRow {
@@ -79,12 +79,15 @@ export const load: PageServerLoad = async ({ locals, url }) => {
    * one entity's revenue as the group's. Refuse — by sending each role
    * straight to the screen it works in, so logging in lands an operational
    * admin in their own PT's Operasional rather than on a dead end.
+   *
+   * Since 16 Oktober 2026 nobody lands on this dashboard: there is no
+   * approval step in practice, so the consolidated figures it shows never
+   * fill. Direksi and manajer go to the final reports, admin operasional to
+   * its own module. The screen below stays for a role without operational
+   * read, should one ever exist.
    */
-  if (!canReadAllEntities(locals.role)) {
-    redirect(
-      303,
-      canWriteOperational(locals.role) ? '/operasional' : '/entities'
-    );
+  if (canReadOperational(locals.role) || !canReadAllEntities(locals.role)) {
+    redirect(303, canWriteOperational(locals.role) ? '/operasional' : '/operasional/laporan');
   }
 
   const { supabase } = locals;

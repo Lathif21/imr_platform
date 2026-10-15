@@ -53,11 +53,11 @@
     if (!editing || editRole === editing.role) return;
     const consequence: Record<UserRole, string> = {
       direksi:
-        'Melihat SELURUH entitas dan angka konsolidasi grup, dapat membuka periode yang sudah dikunci, dan mengelola seluruh administrasi — entitas, template, dan pengguna. Penautan entitas tidak lagi berlaku.',
+        'Membaca laporan akhir SELURUH entitas dan mengelola seluruh administrasi — entitas, template, dan pengguna. Penautan entitas tidak lagi berlaku.',
       manajer_keuangan:
-        'Menyetujui dan mengunci laporan, serta mengelola transaksi antar-perusahaan — tetapi hanya untuk entitas yang ditautkan di bawah. Tidak melihat dasbor konsolidasi grup.',
+        'Membaca laporan akhir, hanya untuk entitas yang ditautkan di bawah. Satu manajer boleh memegang beberapa entitas. Tidak menginput data.',
       admin_operasional:
-        'Menginput data operasional (kapal, transaksi, rekap, pendapatan) serta mengisi dan mengajukan laporan laba rugi, untuk entitas yang ditautkan di bawah. Tidak dapat menyetujui.'
+        'Menginput data operasional (kegiatan kapal, pendapatan, pengeluaran, data master) untuk entitas yang ditautkan di bawah; laporannya tersusun otomatis dari input itu.'
     };
     const ok = confirm(
       `Ubah peran ${editing.full_name} dari ${ROLE_LABEL[editing.role]} menjadi ` +
