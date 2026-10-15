@@ -52,7 +52,7 @@ beforeAll(async () => {
   ilj = await entityId('ILJ');
   template = await templateId();
 
-  staff = await signIn('staf.ilj');
+  staff = await signIn('admin.ilj');
   director = await signIn('direksi');
 });
 

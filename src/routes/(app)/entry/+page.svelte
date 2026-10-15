@@ -89,7 +89,7 @@
           <h2 class="text-[14px] font-semibold text-foreground">Tidak tersedia untuk peran Anda</h2>
         </div>
         <p class="text-[13px] text-muted-foreground leading-relaxed">
-          Laporan diisi oleh staf entitas. Peran Anda membaca dan menyetujui laporan yang sudah
+          Laporan diisi oleh Admin Operasional. Peran Anda membaca dan menyetujui laporan yang sudah
           diajukan, bukan mengisinya.
         </p>
       </div>

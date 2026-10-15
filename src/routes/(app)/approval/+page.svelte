@@ -317,7 +317,7 @@
               {#if form.done === 'approve'}
                 Periode disetujui dan masuk ke angka konsolidasi.
               {:else if form.done === 'reject'}
-                Periode dikembalikan ke draft. Catatan Anda tampil di layar input staf entitas.
+                Periode dikembalikan ke draft. Catatan Anda tampil di layar input Admin Operasional.
               {:else if form.done === 'lock'}
                 Periode dikunci. Hanya direksi yang dapat membukanya.
               {:else}
@@ -687,7 +687,7 @@
                             {#if row.period.status === 'submitted'}
                               <p class="text-[15px] text-muted-foreground leading-relaxed">
                                 Laporan dikembalikan ke entitas sebagai draft, dan catatan ini tampil
-                                di layar input staf entitas.
+                                di layar input Admin Operasional.
                               </p>
                               <button
                                 type="submit"
@@ -701,7 +701,7 @@
                               </button>
                             {:else if row.period.status === 'approved'}
                               <p class="text-[15px] text-warning leading-relaxed">
-                                Membatalkan persetujuan mengembalikan periode ke draft supaya staf
+                                Membatalkan persetujuan mengembalikan periode ke draft supaya Admin Operasional
                                 entitas bisa mengoreksinya, mengeluarkannya dari angka konsolidasi,
                                 dan tercatat di audit log. Catatan ini tampil di layar input.
                               </p>

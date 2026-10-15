@@ -33,6 +33,20 @@ delete from pencairan where id in (20, 21);
 -- Karyawan "Budi" (Telly) beserta gaji telly dan catatannya.
 delete from karyawan where id in (43);
 
+-- Akun uji peran yang dihapus (20250130): Uji Staf ILJ, Uji Auditor,
+-- Staf ILA (uji). Tidak pernah tercatat sebagai pelaku di audit_log atau
+-- alur kerja periode. auth.users → profiles → user_entity_access: CASCADE.
+delete from auth.users where id in (
+  '8e28fc01-c036-45e2-a27a-6f666089c250',
+  'b24ab4ad-0637-432c-931e-77e2fa86717c',
+  'a8b86976-a1b5-4076-84b8-638bd12b27e6'
+);
+
+-- Tidak ada lagi profil staf_entitas/auditor, jadi constraint dari
+-- 20250130 kini berlaku juga untuk baris lama. Gagal di sini berarti ada
+-- akun lain berperan lama: ubah perannya di Admin → Pengguna dulu.
+alter table profiles validate constraint profiles_peran_berlaku;
+
 select 'sisa ' || t || ': ' || n as hasil
   from (values
     ('kegiatan kapal',     (select count(*) from operasional_rekap)),
@@ -41,7 +55,8 @@ select 'sisa ' || t || ': ' || n as hasil
     ('laporan pendapatan', (select count(*) from laporan_pendapatan)),
     ('pencairan',          (select count(*) from pencairan)),
     ('karyawan',           (select count(*) from karyawan)),
-    ('gaji telly',         (select count(*) from gaji_telly))
+    ('gaji telly',         (select count(*) from gaji_telly)),
+    ('akun peran lama',    (select count(*) from profiles where role in ('staf_entitas', 'auditor')))
   ) as s(t, n);
 
 commit;

@@ -69,15 +69,14 @@ npm run db:reset          # apply migrations, then supabase/seed.sql
 npm test
 ```
 
-`supabase/seed.sql` creates four local accounts, one per role, all with the
+`supabase/seed.sql` creates three local accounts, one per role, all with the
 password `devpassword`:
 
 | Email | Role | Sees |
 |---|---|---|
 | `direksi@example.test` | direksi | everything; can unlock a locked period |
 | `manajer@example.test` | manajer_keuangan | everything; approves and locks |
-| `staf.ilj@example.test` | staf_entitas | ILJ only |
-| `auditor@example.test` | auditor | everything, read-only |
+| `admin.ilj@example.test` | admin_operasional | ILJ only; inputs operational data, fills and submits the P&L |
 
 These exist only in a local database. They are not printed anywhere in the UI.
 

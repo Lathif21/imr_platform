@@ -15,7 +15,7 @@ import type { RequestHandler } from './$types';
  * bacaan lewat RLS sesi pengguna itu sendiri.
  */
 export const GET: RequestHandler = async ({ locals, params, url }) => {
-  if (!canEnterReports(locals.role)) error(403, 'Laporan diisi oleh staf entitas.');
+  if (!canEnterReports(locals.role)) error(403, 'Laporan diisi oleh Admin Operasional.');
   if (!MONTH_PATTERN.test(params.period)) error(404, 'Periode tidak ditemukan.');
 
   const { selected, error: accessError } = await loadEntryAccess(

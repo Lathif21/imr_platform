@@ -108,8 +108,8 @@
               icon: LayoutDashboard,
               href: '/',
               exact: true,
-              // Consolidated figures are group figures. Since manajer and
-              // auditor became entity-scoped, only direksi can be shown a
+              // Consolidated figures are group figures. Since manajer
+              // became entity-scoped, only direksi can be shown a
               // group total.
               visible: canReadAllEntities(role)
             },

@@ -137,7 +137,7 @@ describe('draft P&L otomatis', () => {
   it('periode yang sudah diajukan tidak berubah oleh data operasional baru', async () => {
     await kegiatanLengkap('KM PnL Ajukan', 8);
     const p = await periode(8);
-    const staf = await userId('staf.ilj');
+    const staf = await userId('admin.ilj');
     await sql('begin');
     await sql(`set local request.jwt.claims = '{"sub":"${staf}","role":"authenticated"}'`);
     await sql("update periods set status = 'submitted', submitted_by = $2, submitted_at = now() where id = $1", [p.id, staf]);
@@ -171,16 +171,14 @@ describe('draft P&L otomatis', () => {
 });
 
 describe('segarkan_pnl_operasional (tombol di Input Laporan)', () => {
-  it('auditor tidak boleh memanggilnya', async () => {
-    const auditor = await signIn('auditor');
-    const { error } = await auditor.rpc('segarkan_pnl_operasional', { p_entity_id: iljId, p_periode: '2026-03-01' });
+  it('admin operasional tidak boleh memanggilnya untuk entitas lain', async () => {
+    const staf = await signIn('admin.ilj');
+    const { error } = await staf.rpc('segarkan_pnl_operasional', { p_entity_id: await entityId('AMDK'), p_periode: '2026-03-01' });
     expect(error?.message).toMatch(/tidak berwenang/);
   });
 
-  it('info untuk layar: staf membaca ringkasan entitasnya meski tidak membaca tabel operasional', async () => {
-    const staf = await signIn('staf.ilj');
-    const tabel = await staf.from('transaksi_operasional').select('id').eq('entity_id', iljId);
-    expect(tabel.data ?? []).toEqual([]);
+  it('info untuk layar: admin operasional membaca ringkasan entitasnya saja', async () => {
+    const staf = await signIn('admin.ilj');
 
     const { data, error } = await staf.rpc('info_pnl_operasional', { p_entity_id: iljId, p_periode: '2026-03-01' });
     expect(error).toBeNull();
@@ -190,8 +188,8 @@ describe('segarkan_pnl_operasional (tombol di Input Laporan)', () => {
     expect(lain.error?.message).toMatch(/tidak berwenang/);
   });
 
-  it('staf entitas bisa, dan hasilnya tidak berubah bila datanya tetap', async () => {
-    const staf = await signIn('staf.ilj');
+  it('admin operasional bisa, dan hasilnya tidak berubah bila datanya tetap', async () => {
+    const staf = await signIn('admin.ilj');
     const p = await periode(3);
     const sebelum = await baris(p.id);
     const { data, error } = await staf.rpc('segarkan_pnl_operasional', { p_entity_id: iljId, p_periode: '2026-03-01' });

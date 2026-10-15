@@ -35,7 +35,7 @@ if (!ANON_KEY || !SERVICE_KEY) {
 // ---------------------------------------------------------------------------
 
 /**
- * The four seed accounts, one per role. Credentials live in
+ * The three seed accounts, one per role. Credentials live in
  * `supabase/seed.sql` and are printed in `README.md`; they exist only in a
  * local database. Read from env with a default rather than restated here, so
  * there is still one place that decides them.
@@ -43,8 +43,8 @@ if (!ANON_KEY || !SERVICE_KEY) {
 export const SEED_EMAIL = {
   direksi: 'direksi@example.test',
   manajer: 'manajer@example.test',
-  'staf.ilj': 'staf.ilj@example.test',
-  auditor: 'auditor@example.test',
+  // Fills and submits ILJ's P&L as well as its operational data since
+  // staf_entitas and auditor were removed (20250130).
   'admin.ilj': 'admin.ilj@example.test'
 } as const;
 
@@ -257,7 +257,7 @@ export interface SeedLine {
 
 /**
  * A period built the way the seed builds one: created as draft under the
- * staff account, filled, then walked up the status ladder with a submitter
+ * admin operasional account, filled, then walked up the status ladder with a submitter
  * and an approver who are different people.
  *
  * Impersonation rather than a direct INSERT with a status column, because
@@ -274,7 +274,7 @@ export async function seedPeriod(options: {
 
   const entity = await entityId(entityCode);
   const template = await templateId();
-  const staff = await userId('staf.ilj');
+  const staff = await userId('admin.ilj');
   const manager = await userId('manajer');
 
   await sql('begin');

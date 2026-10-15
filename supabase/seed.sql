@@ -60,14 +60,6 @@ values
    'authenticated', 'authenticated', 'manajer@example.test',
    extensions.crypt('devpassword', extensions.gen_salt('bf')), now(), now(), now(),
    '{"provider":"email","providers":["email"]}', '{}', '', '', '', ''),
-  ('a0000000-0000-4000-a000-000000000003', '00000000-0000-0000-0000-000000000000',
-   'authenticated', 'authenticated', 'staf.ilj@example.test',
-   extensions.crypt('devpassword', extensions.gen_salt('bf')), now(), now(), now(),
-   '{"provider":"email","providers":["email"]}', '{}', '', '', '', ''),
-  ('a0000000-0000-4000-a000-000000000004', '00000000-0000-0000-0000-000000000000',
-   'authenticated', 'authenticated', 'auditor@example.test',
-   extensions.crypt('devpassword', extensions.gen_salt('bf')), now(), now(), now(),
-   '{"provider":"email","providers":["email"]}', '{}', '', '', '', ''),
   ('a0000000-0000-4000-a000-000000000005', '00000000-0000-0000-0000-000000000000',
    'authenticated', 'authenticated', 'admin.ilj@example.test',
    extensions.crypt('devpassword', extensions.gen_salt('bf')), now(), now(), now(),
@@ -86,8 +78,6 @@ insert into profiles (id, full_name, role, phone) values
   -- person, and so the sidebar does not print the role label twice.
   ('a0000000-0000-4000-a000-000000000001', 'Akun Dev A',  'direksi',          '+6281100000001'),
   ('a0000000-0000-4000-a000-000000000002', 'Akun Dev B',  'manajer_keuangan', '+6281100000002'),
-  ('a0000000-0000-4000-a000-000000000003', 'Akun Dev C',  'staf_entitas',     '+6281100000003'),
-  ('a0000000-0000-4000-a000-000000000004', 'Akun Dev D',  'auditor',          null),
   ('a0000000-0000-4000-a000-000000000005', 'Akun Dev E',  'admin_operasional', null);
 
 
@@ -113,23 +103,19 @@ insert into entities (id, code, legal_name, npwp, business_line, icon_key, theme
 -- memakai "PT.<kode>" (20250118000000_awalan_invoice_entitas.sql).
 update entities set invoice_prefix = 'PT.IMR' where code = 'ILJ' and invoice_prefix is null;
 
--- Sejak manajer dan auditor ikut ber-scope per entitas, tabel ini berlaku
--- untuk setiap peran KECUALI direksi. Staf dev C tetap satu entitas (ILJ)
--- supaya cakupan yang sempit benar-benar teruji; manajer dan auditor
--- ditugaskan ke keempat entitas, yaitu akses yang sama dengan yang mereka
--- miliki sebelum penyempitan, sehingga dev dan tes berangkat dari keadaan
--- yang sudah dikenal. Cabut satu baris untuk melihat scoping bekerja.
+-- Tabel ini berlaku untuk setiap peran KECUALI direksi. Admin operasional
+-- dev E tetap satu entitas (ILJ) supaya cakupan yang sempit benar-benar
+-- teruji; manajer ditugaskan ke keempat entitas. Cabut satu baris untuk
+-- melihat scoping bekerja. (staf_entitas dan auditor dihapus, 20250130.)
 insert into user_entity_access (user_id, entity_id, granted_by)
 select p.id, e.id, 'a0000000-0000-4000-a000-000000000001'
 from profiles p
 cross join entities e
-where p.role in ('manajer_keuangan', 'auditor');
+where p.role = 'manajer_keuangan';
 
--- Staf dev C dan admin operasional dev E sama-sama hanya ILJ: satu-satunya
--- entitas yang punya sistem operasional.
+-- Admin operasional dev E hanya ILJ: satu-satunya entitas yang punya
+-- sistem operasional.
 insert into user_entity_access (user_id, entity_id, granted_by) values
-  ('a0000000-0000-4000-a000-000000000003', 'e0000000-0000-4000-a000-000000000001',
-   'a0000000-0000-4000-a000-000000000001'),
   ('a0000000-0000-4000-a000-000000000005', 'e0000000-0000-4000-a000-000000000001',
    'a0000000-0000-4000-a000-000000000001');
 
@@ -139,25 +125,26 @@ insert into user_entity_access (user_id, entity_id, granted_by) values
 --  every period is created as draft, filled, then transitioned in step 4.
 --
 --  guard_period_insert() overwrites created_by with auth.uid(), so the claim
---  has to be the staff account here rather than passed as a column value.
+--  has to be the admin operasional account (who fills the P&L since
+--  20250130) rather than passed as a column value.
 
-set local request.jwt.claims = '{"sub":"a0000000-0000-4000-a000-000000000003","role":"authenticated"}';
+set local request.jwt.claims = '{"sub":"a0000000-0000-4000-a000-000000000005","role":"authenticated"}';
 
 insert into periods (id, entity_id, period, template_id, status, created_by) values
   ('d0000000-0000-4000-a000-000000000001', 'e0000000-0000-4000-a000-000000000001',
    '2025-06-01', '11111111-1111-1111-1111-111111111111', 'draft',
-   'a0000000-0000-4000-a000-000000000003'),
+   'a0000000-0000-4000-a000-000000000005'),
   ('d0000000-0000-4000-a000-000000000002', 'e0000000-0000-4000-a000-000000000001',
    '2025-07-01', '11111111-1111-1111-1111-111111111111', 'draft',
-   'a0000000-0000-4000-a000-000000000003'),
+   'a0000000-0000-4000-a000-000000000005'),
   ('d0000000-0000-4000-a000-000000000003', 'e0000000-0000-4000-a000-000000000003',
    '2025-07-01', '11111111-1111-1111-1111-111111111111', 'draft',
-   'a0000000-0000-4000-a000-000000000003'),
+   'a0000000-0000-4000-a000-000000000005'),
   -- AMDK stops at 'submitted': it must NOT enter consolidation, so Jul 2025
   -- is incomplete and the dashboard has to show the banner.
   ('d0000000-0000-4000-a000-000000000004', 'e0000000-0000-4000-a000-000000000002',
    '2025-07-01', '11111111-1111-1111-1111-111111111111', 'draft',
-   'a0000000-0000-4000-a000-000000000003');
+   'a0000000-0000-4000-a000-000000000005');
   -- GARAM has no period at all — the other half of "belum lapor".
 
 -- Amounts are full Rupiah. Never "in millions" (invariant 3).
@@ -214,14 +201,14 @@ insert into report_lines (period_id, line_code, amount) values
 
 
 -- --- 4. Workflow transitions ---------------------------------------------
---  Submit as the entity staff, approve as the finance manager. Approving as
+--  Submit as the admin operasional, approve as the finance manager. Approving as
 --  the submitter would trip the segregation-of-duties trigger (invariant 6),
 --  which is the point: the seed passes through the same gate the UI does.
---  The claim is still the staff account from step 3.
+--  The claim is still the admin operasional account from step 3.
 
 update periods
    set status = 'submitted',
-       submitted_by = 'a0000000-0000-4000-a000-000000000003',
+       submitted_by = 'a0000000-0000-4000-a000-000000000005',
        submitted_at = now()
  where id in ('d0000000-0000-4000-a000-000000000001',
               'd0000000-0000-4000-a000-000000000002',

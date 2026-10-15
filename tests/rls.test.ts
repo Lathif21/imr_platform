@@ -20,8 +20,8 @@ import {
   type SeedRole
 } from './helpers';
 
+/** Admin operasional ILJ: the entity-scoped account that fills the P&L. */
 let staff: SupabaseClient;
-let auditor: SupabaseClient;
 let manager: SupabaseClient;
 
 let iljId: string;
@@ -36,8 +36,8 @@ beforeAll(async () => {
   tambangId = await entityId('TAMBANG');
   tambangPeriod = await periodId('TAMBANG', '2025-07-01');
 
-  // A draft period, so "the auditor cannot write" is tested against a row
-  // that is otherwise writable rather than one the workflow already froze.
+  // A draft period, so "a deactivated account cannot write" is tested
+  // against a row that is otherwise writable.
   iljDraft = await seedPeriod({
     entityCode: 'ILJ',
     period: '2025-08-01',
@@ -45,14 +45,13 @@ beforeAll(async () => {
     lines: [{ line_code: 'REV_TAGIHAN', amount: 1_000_000 }]
   });
 
-  staff = await signIn('staf.ilj');
-  auditor = await signIn('auditor');
+  staff = await signIn('admin.ilj');
   manager = await signIn('manajer');
 });
 
 afterAll(closeDb);
 
-describe('staf entitas', () => {
+describe('admin operasional satu entitas', () => {
   it('hanya melihat entitasnya sendiri', async () => {
     const { data } = await staff.from('entities').select('code');
     expect(data?.map((row) => row.code)).toEqual(['ILJ']);
@@ -106,71 +105,28 @@ describe('staf entitas', () => {
   });
 });
 
-describe('auditor', () => {
-  it('membaca seluruh entitas', async () => {
-    const { data } = await auditor.from('entities').select('code');
-    expect(data?.map((row) => row.code).sort()).toEqual(['AMDK', 'GARAM', 'ILJ', 'TAMBANG']);
-  });
-
-  it('membaca seluruh periode, termasuk yang belum disetujui', async () => {
-    const { data } = await auditor.from('v_period_pnl').select('entity_code, status');
-    expect(data?.some((row) => row.entity_code === 'AMDK' && row.status === 'submitted')).toBe(true);
-  });
-
-  it('tidak dapat menulis baris laporan', async () => {
-    const { error } = await auditor
-      .from('report_lines')
-      .insert({ period_id: iljDraft, line_code: 'OPEX_GAJI', amount: 1 });
-
-    expect(error).not.toBeNull();
-
-    const rows = await sql(
-      "select 1 from report_lines where period_id = $1 and line_code = 'OPEX_GAJI'",
-      [iljDraft]
+/**
+ * 20250130000000_hapus_peran_staf_auditor.sql. The enum keeps both values for
+ * audit_log's history; a profile can no longer carry them.
+ */
+describe('peran yang dihapus', () => {
+  it.each(['staf_entitas', 'auditor'])('%s tidak bisa diberikan lagi', async (role) => {
+    const uid = await userId('admin.ilj');
+    await expect(sql('update profiles set role = $2 where id = $1', [uid, role])).rejects.toThrow(
+      /profiles_peran_berlaku/
     );
-    expect(rows).toEqual([]);
-  });
-
-  it('tidak dapat mengubah status periode', async () => {
-    /**
-     * An UPDATE the USING clause filters out matches zero rows, and zero rows
-     * updated is not an error. The refusal shows up as nothing happening —
-     * which is why the row is read back rather than the error inspected.
-     */
-    const { data, error } = await auditor
-      .from('periods')
-      .update({ status: 'submitted' })
-      .eq('id', iljDraft)
-      .select();
-
-    expect(error).toBeNull();
-    expect(data).toEqual([]);
-
-    const [row] = await sql<{ status: string }>('select status from periods where id = $1', [
-      iljDraft
-    ]);
-    expect(row.status).toBe('draft');
-  });
-
-  it('tidak dapat membuat entitas', async () => {
-    const { error } = await auditor
-      .from('entities')
-      .insert({ code: 'PALSU', legal_name: 'PT Tidak Ada', business_line: 'trucking' });
-
-    expect(error).not.toBeNull();
-    expect(await sql("select 1 from entities where code = 'PALSU'")).toEqual([]);
   });
 });
 
 describe('profil nonaktif', () => {
   it('tidak mendapat apa pun, karena current_user_role() mengembalikan NULL', async () => {
-    const staffId = await userId('staf.ilj');
+    const staffId = await userId('admin.ilj');
     await sql('update profiles set is_active = false where id = $1', [staffId]);
 
     try {
       // A fresh sign-in: the account still authenticates. Authentication and
       // authorization are different things, and only the second one is gone.
-      const revoked = await signIn('staf.ilj');
+      const revoked = await signIn('admin.ilj');
 
       const [{ data: entities }, { data: periods }, { data: lines }] = await Promise.all([
         revoked.from('entities').select('code'),
@@ -217,7 +173,7 @@ describe('profil nonaktif', () => {
  * Only direksi may write `user_entity_access`, and the point under test is the
  * read scope, not who may grant.
  */
-describe('cakupan entitas manajer dan auditor', () => {
+describe('cakupan entitas manajer', () => {
   /** Restores the assignment however the assertion ends. */
   async function withoutAccess(role: SeedRole, entity: string, body: () => Promise<void>) {
     const uid = await userId(role);
@@ -281,20 +237,11 @@ describe('cakupan entitas manajer dan auditor', () => {
     });
   });
 
-  it('auditor kehilangan entitas yang penugasannya dicabut', async () => {
-    await withoutAccess('auditor', 'AMDK', async () => {
-      const scoped = await signIn('auditor');
-
-      const { data } = await scoped.from('entities').select('code');
-      expect(data?.map((row) => row.code).sort()).toEqual(['GARAM', 'ILJ', 'TAMBANG']);
-    });
-  });
-
   /**
    * The other half of the migration. These tables have no `entity_id` to
    * narrow, so they moved to `can_read_group_data()`; narrowing them along
    * with the entity scope would have taken the approval queue's submitter
-   * names from the manajer and the audit trail from the auditor.
+   * names from the manajer.
    */
   it('tetap membaca data tingkat grup meski tanpa satu pun entitas', async () => {
     const uid = await userId('manajer');
@@ -326,7 +273,7 @@ describe('cakupan entitas manajer dan auditor', () => {
     }
   });
 
-  it('staf entitas tidak ikut terbawa: data grup tetap tertutup untuknya', async () => {
+  it('admin operasional tidak ikut terbawa: data grup tetap tertutup untuknya', async () => {
     const { data: profiles } = await staff.from('profiles').select('id');
     expect(profiles?.length).toBe(1);
 

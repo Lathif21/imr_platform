@@ -6,10 +6,9 @@
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { closeDb, entityId, resetFixture, signIn, sql } from './helpers';
+import { closeDb, entityId, resetFixture, signIn, sql, userId } from './helpers';
 
 let admin: SupabaseClient;
-let staff: SupabaseClient;
 let iljId: string;
 let karyawanId: number;
 let pemilikId: number;
@@ -51,10 +50,20 @@ beforeAll(async () => {
   );
 
   admin = await signIn('admin.ilj');
-  staff = await signIn('staf.ilj');
 });
 
 afterAll(closeDb);
+
+/** Runs `body` with the manager's ILJ assignment revoked, then restores it. */
+async function tanpaAksesIlj(body: (client: SupabaseClient) => Promise<void>) {
+  const uid = await userId('manajer');
+  await sql('delete from user_entity_access where user_id = $1 and entity_id = $2', [uid, iljId]);
+  try {
+    await body(await signIn('manajer'));
+  } finally {
+    await sql('insert into user_entity_access (user_id, entity_id) values ($1, $2) on conflict do nothing', [uid, iljId]);
+  }
+}
 
 describe('v_pemilik_ringkasan', () => {
   it('menghitung kendaraan dan menjumlahkan pembayaran rekanan lewat kendaraannya', async () => {
@@ -120,11 +129,13 @@ describe('v_karyawan_ringkasan.status_kinerja', () => {
 });
 
 describe('RLS lewat view', () => {
-  it('peran tanpa hak baca operasional tidak melihat apa pun', async () => {
-    for (const view of ['v_pemilik_ringkasan', 'v_kendaraan_ringkasan', 'v_karyawan_ringkasan']) {
-      const { data, error } = await staff.from(view).select('id');
-      expect(error, view).toBeNull();
-      expect(data, view).toEqual([]);
-    }
+  it('pengguna yang tidak ditugaskan ke entitas itu tidak melihat apa pun', async () => {
+    await tanpaAksesIlj(async (tanpaIlj) => {
+      for (const view of ['v_pemilik_ringkasan', 'v_kendaraan_ringkasan', 'v_karyawan_ringkasan']) {
+        const { data, error } = await tanpaIlj.from(view).select('id');
+        expect(error, view).toBeNull();
+        expect(data, view).toEqual([]);
+      }
+    });
   });
 });

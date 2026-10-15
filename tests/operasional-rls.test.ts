@@ -50,9 +50,7 @@ const OPERATIONAL_TABLES = [
 
 let admin: SupabaseClient;
 let direksi: SupabaseClient;
-let staff: SupabaseClient;
 let manager: SupabaseClient;
-let auditor: SupabaseClient;
 
 let iljId: string;
 let amdkId: string;
@@ -79,9 +77,7 @@ beforeAll(async () => {
 
   admin = await signIn('admin.ilj');
   direksi = await signIn('direksi');
-  staff = await signIn('staf.ilj');
   manager = await signIn('manajer');
-  auditor = await signIn('auditor');
 });
 
 afterAll(closeDb);
@@ -221,31 +217,37 @@ describe('admin operasional', () => {
     expect([...new Set(pnl?.map((r) => r.entity_code))]).toEqual(['ILJ']);
   });
 
-  it('tidak dapat mengubah baris laporan, bahkan pada periode draft', async () => {
-    const [draft] = await sql<{ id: string }>(
-      "select id from periods where entity_id = $1 and status = 'draft' limit 1",
-      [iljId]
+  /**
+   * 20250130: admin operasional took over the P&L from staf_entitas — it
+   * writes the lines of a draft period of its own entity, and nothing else.
+   */
+  it('menulis baris laporan pada periode draft entitasnya', async () => {
+    const [{ id: period }] = await sql<{ id: string }>(
+      "insert into periods (entity_id, period, template_id) values ($1, '2026-07-01', $2) returning id",
+      [iljId, await templateId()]
     );
-    const period =
-      draft?.id ??
-      (
-        await sql<{ id: string }>(
-          "insert into periods (entity_id, period, template_id) values ($1, '2026-07-01', $2) returning id",
-          [iljId, await templateId()]
-        )
-      )[0].id;
 
     const { error } = await admin
       .from('report_lines')
       .insert({ period_id: period, line_code: 'REV_TAGIHAN', amount: 1 });
-    expect(error?.code).toBe('42501');
+    expect(error).toBeNull();
   });
 
-  it('tidak dapat membuat periode laporan meski ditugaskan ke entitasnya', async () => {
-    const { error } = await admin
+  it('tidak dapat menulis laporan entitas yang bukan miliknya', async () => {
+    const [{ id: period }] = await sql<{ id: string }>(
+      "insert into periods (entity_id, period, template_id) values ($1, '2026-07-01', $2) returning id",
+      [amdkId, await templateId()]
+    );
+
+    const { error: lineError } = await admin
+      .from('report_lines')
+      .insert({ period_id: period, line_code: 'REV_TAGIHAN', amount: 1 });
+    expect(lineError?.code).toBe('42501');
+
+    const { error: periodError } = await admin
       .from('periods')
-      .insert({ entity_id: iljId, period: '2026-09-01', template_id: await templateId() });
-    expect(error?.code).toBe('42501');
+      .insert({ entity_id: amdkId, period: '2026-09-01', template_id: await templateId() });
+    expect(periodError?.code).toBe('42501');
   });
 
   it('kehilangan akses begitu profilnya dinonaktifkan', async () => {
@@ -310,28 +312,20 @@ describe('direksi', () => {
 });
 
 describe('peran laporan', () => {
-  it('staf entitas tidak melihat data operasional', async () => {
-    const { data } = await staff.from('kapal').select('id');
-    expect(data).toEqual([]);
-  });
-
-  it.each([
-    ['manajer keuangan', () => manager],
-    ['auditor', () => auditor]
-  ])('%s membaca data operasional tetapi tidak menulisnya', async (_, client) => {
-    const { data } = await client().from('kapal').select('id').order('id');
+  it('manajer keuangan membaca data operasional tetapi tidak menulisnya', async () => {
+    const { data } = await manager.from('kapal').select('id').order('id');
     expect(data?.map((r) => r.id)).toEqual([iljKapal, amdkKapal]);
 
-    const { error } = await client()
+    const { error } = await manager
       .from('pemilik')
       .insert({ entity_id: iljId, nama_pemilik: 'Ditulis Peran Laporan' });
     expect(error?.code).toBe('42501');
   });
 
-  it('staf entitas tetap dapat membuat periode laporan', async () => {
-    // Regression guard for the policy rewrite: can_write_reports() must keep
-    // what `not is_readonly_role()` allowed for the four original roles.
-    const { error } = await staff
+  it('admin operasional mengisi laporan P&L entitasnya', async () => {
+    // 20250130: the P&L is filled and submitted by admin operasional now
+    // that staf_entitas is gone.
+    const { error } = await admin
       .from('periods')
       .insert({ entity_id: iljId, period: '2026-10-01', template_id: await templateId() });
     expect(error).toBeNull();

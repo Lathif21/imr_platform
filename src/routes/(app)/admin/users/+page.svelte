@@ -14,16 +14,14 @@
   const ROLES: UserRole[] = [
     'direksi',
     'manajer_keuangan',
-    'staf_entitas',
-    'auditor',
     'admin_operasional'
   ];
 
   const editing = $derived(data.users.find((u) => u.id === data.editingId) ?? null);
 
   /** Every role but direksi is scoped to the entities assigned to it. */
-  let newRole = $state<UserRole>('staf_entitas');
-  let editRole = $state<UserRole>('staf_entitas');
+  let newRole = $state<UserRole>('admin_operasional');
+  let editRole = $state<UserRole>('admin_operasional');
 
   let seededFor = $state('');
   $effect(() => {
@@ -54,16 +52,12 @@
   function confirmRoleChange(event: SubmitEvent) {
     if (!editing || editRole === editing.role) return;
     const consequence: Record<UserRole, string> = {
-      staf_entitas:
-        'Hanya dapat mengisi laporan entitas yang ditautkan di bawah. Kehilangan akses ke entitas lain.',
       direksi:
         'Melihat SELURUH entitas dan angka konsolidasi grup, dapat membuka periode yang sudah dikunci, dan mengelola seluruh administrasi — entitas, template, dan pengguna. Penautan entitas tidak lagi berlaku.',
       manajer_keuangan:
         'Menyetujui dan mengunci laporan, serta mengelola transaksi antar-perusahaan — tetapi hanya untuk entitas yang ditautkan di bawah. Tidak melihat dasbor konsolidasi grup.',
-      auditor:
-        'Membaca entitas yang ditautkan di bawah beserta jejak audit, tidak dapat menulis apa pun. Tidak melihat dasbor konsolidasi grup.',
       admin_operasional:
-        'Menginput data operasional (kapal, transaksi, rekap, pendapatan) untuk entitas yang ditautkan di bawah. Tidak membaca maupun mengisi laporan laba rugi.'
+        'Menginput data operasional (kapal, transaksi, rekap, pendapatan) serta mengisi dan mengajukan laporan laba rugi, untuk entitas yang ditautkan di bawah. Tidak dapat menyetujui.'
     };
     const ok = confirm(
       `Ubah peran ${editing.full_name} dari ${ROLE_LABEL[editing.role]} menjadi ` +
@@ -82,7 +76,7 @@
     </div>
   {/if}
 
-  <!-- Since manajer and auditor became entity-scoped, an unassigned account
+  <!-- Since manajer became entity-scoped, an unassigned account
        is no longer only an empty entry form: for them it is an empty
        application. -->
   {#if data.users.some((u) => isEntityScopedRole(u.role) && u.is_active && u.entityIds.length === 0)}

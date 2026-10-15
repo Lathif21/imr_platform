@@ -19,7 +19,7 @@ import {
   type RangeCompleteness,
   type RangeConsolidated
 } from '$lib/period-range';
-import { canEnterReports, canReadAllEntities, canWriteOperational } from '$lib/roles';
+import { canReadAllEntities, canWriteOperational } from '$lib/roles';
 import type { PageServerLoad } from './$types';
 
 interface EntityRow {
@@ -83,7 +83,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   if (!canReadAllEntities(locals.role)) {
     redirect(
       303,
-      canEnterReports(locals.role) ? '/entry' : canWriteOperational(locals.role) ? '/operasional' : '/entities'
+      canWriteOperational(locals.role) ? '/operasional' : '/entities'
     );
   }
 

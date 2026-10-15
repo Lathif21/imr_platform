@@ -20,6 +20,7 @@ import {
   userId
 } from './helpers';
 
+/** Admin operasional ILJ: fills and submits the P&L since 20250130. */
 let staff: SupabaseClient;
 let manager: SupabaseClient;
 let director: SupabaseClient;
@@ -47,11 +48,11 @@ beforeAll(async () => {
 
   ilj = await entityId('ILJ');
   template = await templateId();
-  staffId = await userId('staf.ilj');
+  staffId = await userId('admin.ilj');
   managerId = await userId('manajer');
   directorId = await userId('direksi');
 
-  staff = await signIn('staf.ilj');
+  staff = await signIn('admin.ilj');
   manager = await signIn('manajer');
   director = await signIn('direksi');
 });
@@ -176,7 +177,7 @@ describe('pemisahan tugas', () => {
     expect(await statusOf(id)).toBe('submitted');
   });
 
-  it('staf entitas tidak dapat menyetujui', async () => {
+  it('admin operasional (pengisi laporan) tidak dapat menyetujui', async () => {
     /**
      * Submitted by the manager on purpose. With the staff account on both
      * sides, segregation of duties refuses it first and the role check never

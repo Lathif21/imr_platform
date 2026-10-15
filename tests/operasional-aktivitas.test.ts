@@ -3,16 +3,15 @@
  *
  * It reads audit_log on behalf of roles that may not read audit_log, so what
  * it must NOT return matters as much as what it does: the caller's own
- * actions, other entities, and anything for a role without operational read.
+ * actions, other entities, and anything for an account not assigned to the entity.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { closeDb, entityId, resetFixture, signIn, sql } from './helpers';
+import { closeDb, entityId, resetFixture, signIn, sql, userId } from './helpers';
 
 let admin: SupabaseClient;
 let manager: SupabaseClient;
-let staf: SupabaseClient;
 let iljId: string;
 
 interface Aktivitas {
@@ -29,10 +28,20 @@ beforeAll(async () => {
   iljId = await entityId('ILJ');
   admin = await signIn('admin.ilj');
   manager = await signIn('manajer');
-  staf = await signIn('staf.ilj');
 });
 
 afterAll(closeDb);
+
+/** Runs `body` with the manager's ILJ assignment revoked, then restores it. */
+async function tanpaAksesIlj(body: (client: SupabaseClient) => Promise<void>) {
+  const uid = await userId('manajer');
+  await sql('delete from user_entity_access where user_id = $1 and entity_id = $2', [uid, iljId]);
+  try {
+    await body(await signIn('manajer'));
+  } finally {
+    await sql('insert into user_entity_access (user_id, entity_id) values ($1, $2) on conflict do nothing', [uid, iljId]);
+  }
+}
 
 describe('aktivitas_operasional', () => {
   it('satu simpanan menjadi satu baris, dinamai menurut tabel yang paling mewakili', async () => {
@@ -63,14 +72,16 @@ describe('aktivitas_operasional', () => {
     expect(data).toEqual([]);
   });
 
-  it('kosong untuk peran tanpa hak baca operasional, dan tidak membocorkan nilai data', async () => {
+  it('kosong untuk pengguna yang tidak ditugaskan ke entitas itu, dan tidak membocorkan nilai data', async () => {
     const { data: awal } = await manager.rpc('kursor_aktivitas');
     await admin.rpc('tambah_kegiatan', {
       p_entity_id: iljId, p_nama_kapal: 'KM Rahasia', p_bulan: 10, p_tahun: 2026,
       p_tanggal_input: null, p_tanggal_kegiatan: null, p_tanggal_selesai: null, p_keterangan: null
     });
-    const { data } = await staf.rpc('aktivitas_operasional', { p_entity_id: iljId, p_setelah: awal });
-    expect(data ?? []).toEqual([]);
+    await tanpaAksesIlj(async (tanpaIlj) => {
+      const { data } = await tanpaIlj.rpc('aktivitas_operasional', { p_entity_id: iljId, p_setelah: awal });
+      expect(data ?? []).toEqual([]);
+    });
 
     const { data: dariManajer } = await manager.rpc('aktivitas_operasional', { p_entity_id: iljId, p_setelah: awal });
     expect(Object.keys((dariManajer as Aktivitas[])[0]).sort()).toEqual(['aksi', 'id', 'jumlah', 'label', 'pelaku', 'tabel', 'waktu']);

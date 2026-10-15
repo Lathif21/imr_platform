@@ -7,12 +7,12 @@
  * so a regenerated file never silently changes a union the views depend on.
  */
 
-export type UserRole =
-  | 'direksi'
-  | 'manajer_keuangan'
-  | 'staf_entitas'
-  | 'auditor'
-  | 'admin_operasional';
+/**
+ * staf_entitas and auditor were removed on 15 Oktober 2026 (20250130): admin
+ * operasional fills the P&L too. The database enum still holds both values
+ * for audit_log's history; no profile can carry them.
+ */
+export type UserRole = 'direksi' | 'manajer_keuangan' | 'admin_operasional';
 
 export type PeriodStatus = 'draft' | 'submitted' | 'approved' | 'locked';
 
@@ -82,8 +82,6 @@ export const LINE_SECTION_SIGN: Record<LineSection, 1 | -1> = {
 export const ROLE_LABEL: Record<UserRole, string> = {
   direksi: 'Direksi',
   manajer_keuangan: 'Manajer Keuangan',
-  staf_entitas: 'Staf Entitas',
-  auditor: 'Auditor',
   admin_operasional: 'Admin Operasional'
 };
 

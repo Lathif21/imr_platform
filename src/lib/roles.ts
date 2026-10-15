@@ -16,9 +16,8 @@ import type { UserRole } from './domain';
 /**
  * SQL: can_read_all_entities()
  *
- * Direksi only. Every other role — manajer_keuangan and auditor included —
- * sees the entities it was assigned in `user_entity_access`, exactly as entity
- * staff do. This is about the SCOPE OF ROWS, nothing else: it is not the test
+ * Direksi only. Every other role sees the entities it was assigned in
+ * `user_entity_access`. This is about the SCOPE OF ROWS, nothing else: it is not the test
  * for reading group-level tables (`canReadGroupData`), for reviewing a queue
  * (`canReviewSubmissions`), or for administering master data (`isDirector`).
  */
@@ -33,23 +32,19 @@ export function canReadAllEntities(role: UserRole | null): boolean {
  * audit_log. Entity scope cannot narrow a table that has no entity column, so
  * these need their own predicate; folding them back into
  * `canReadAllEntities()` would take the approval queue's submitter names away
- * from a manajer and the audit trail away from the auditor whose job it is.
+ * from a manajer.
  */
 export function canReadGroupData(role: UserRole | null): boolean {
-  return role === 'direksi' || role === 'manajer_keuangan' || role === 'auditor';
+  return role === 'direksi' || role === 'manajer_keuangan';
 }
 
 /**
- * Who the Persetujuan screen is for. Reviewing is reading, so an auditor
- * belongs here and sees the queue with no action buttons — `canApprove()`
- * gates those, and RLS enforces the same via `is_readonly_role()`.
- *
- * Same three roles as `canReadGroupData()` today, and deliberately a separate
- * function: one is about which tables you may read, the other about which
- * screen you have business on. They will not always move together.
+ * Who the Persetujuan screen is for. Same roles as `canReadGroupData()`
+ * today, and deliberately a separate function: one is about which tables you
+ * may read, the other about which screen you have business on.
  */
 export function canReviewSubmissions(role: UserRole | null): boolean {
-  return role === 'direksi' || role === 'manajer_keuangan' || role === 'auditor';
+  return role === 'direksi' || role === 'manajer_keuangan';
 }
 
 /**
@@ -67,32 +62,23 @@ export function canApprove(role: UserRole | null): boolean {
   return role === 'direksi' || role === 'manajer_keuangan';
 }
 
-/** SQL: is_readonly_role() */
-export function isReadonlyRole(role: UserRole | null): boolean {
-  return role === 'auditor';
-}
-
-/** Only entity staff fill in a report; everyone else reads it. */
+/**
+ * Who fills in and submits the P&L: admin operasional, whose input already
+ * becomes the report (20250121). Approving stays with `canApprove()` — and
+ * the trigger refuses a submitter approving their own period.
+ */
 export function canEnterReports(role: UserRole | null): boolean {
-  return role === 'staf_entitas';
+  return role === 'admin_operasional';
 }
 
 /**
  * SQL: can_read_reports()
  *
- * Periods and report lines, read only. An explicit list since
- * admin_operasional joined the enum; it reads the P&L of its assigned
- * entities (decided 7 Oktober 2026) but never writes one — see
- * `canEnterReports()`.
+ * Periods and report lines. Every remaining role; scope still comes from
+ * entity assignment.
  */
 export function canReadReports(role: UserRole | null): boolean {
-  return (
-    role === 'direksi' ||
-    role === 'manajer_keuangan' ||
-    role === 'staf_entitas' ||
-    role === 'auditor' ||
-    role === 'admin_operasional'
-  );
+  return role === 'direksi' || role === 'manajer_keuangan' || role === 'admin_operasional';
 }
 
 /**
@@ -101,20 +87,15 @@ export function canReadReports(role: UserRole | null): boolean {
  * may attach the signed statement that comes with the approval.
  */
 export function canWriteReports(role: UserRole | null): boolean {
-  return role === 'direksi' || role === 'manajer_keuangan' || role === 'staf_entitas';
+  return role === 'direksi' || role === 'manajer_keuangan' || role === 'admin_operasional';
 }
 
 /**
  * SQL: can_read_operational() — scope still comes from entity assignment.
- * Manajer and auditor read too, to trace a P&L figure back to its source.
+ * Manajer reads too, to trace a P&L figure back to its source.
  */
 export function canReadOperational(role: UserRole | null): boolean {
-  return (
-    role === 'direksi' ||
-    role === 'admin_operasional' ||
-    role === 'manajer_keuangan' ||
-    role === 'auditor'
-  );
+  return role === 'direksi' || role === 'admin_operasional' || role === 'manajer_keuangan';
 }
 
 /**

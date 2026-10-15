@@ -16,8 +16,6 @@ export interface AdminProfile {
 const ROLES: UserRole[] = [
   'direksi',
   'manajer_keuangan',
-  'staf_entitas',
-  'auditor',
   'admin_operasional'
 ];
 

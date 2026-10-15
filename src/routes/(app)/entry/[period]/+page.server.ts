@@ -57,7 +57,7 @@ function failLoad(context: string, cause: PostgrestError): never {
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
   if (!canEnterReports(locals.role)) {
-    error(403, 'Laporan diisi oleh staf entitas.');
+    error(403, 'Laporan diisi oleh Admin Operasional.');
   }
 
   // The URL carries YYYY-MM; the column stores the first of the month.
@@ -336,7 +336,7 @@ export const actions: Actions = {
    */
   tarikOperasional: async ({ locals, params, request }) => {
     if (!canEnterReports(locals.role)) {
-      return fail(403, { message: 'Laporan diisi oleh staf entitas.' });
+      return fail(403, { message: 'Laporan diisi oleh Admin Operasional.' });
     }
 
     const form = await request.formData();
@@ -372,7 +372,7 @@ export const actions: Actions = {
    */
   importExcel: async ({ locals, params, request }) => {
     if (!canEnterReports(locals.role)) {
-      return fail(403, { message: 'Laporan diisi oleh staf entitas.' });
+      return fail(403, { message: 'Laporan diisi oleh Admin Operasional.' });
     }
 
     const form = await request.formData();

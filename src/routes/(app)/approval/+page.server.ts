@@ -66,8 +66,8 @@ const STATUS_RANK: Record<PeriodStatus | 'missing', number> = {
 
 export const load: PageServerLoad = async ({ locals, url }) => {
   /**
-   * Reviewing is reading, so an auditor belongs here. The action buttons are
-   * gated separately on `canApprove()`, so an auditor sees the queue and no
+   * The action buttons are gated separately on `canApprove()`, so a role
+   * that may review but not approve would see the queue and no
    * controls — which is also what RLS enforces: `periods_update` excludes
    * `is_readonly_role()`.
    *
@@ -249,7 +249,7 @@ export interface QueueRow {
  *
  * The read-back matters: an UPDATE the RLS USING clause refuses returns an
  * empty result and no error (TESTING.md, "How to read a refusal"). Without it
- * an auditor pressing a button they should not have would be told it worked.
+ * an account pressing a button it should not have would be told it worked.
  */
 type Transition = { ok: true } | { ok: false; status: number; message: string };
 

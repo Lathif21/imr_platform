@@ -23,6 +23,7 @@ import {
   userId
 } from './helpers';
 
+/** Admin operasional ILJ — fills the P&L since 20250130. */
 let staff: SupabaseClient;
 let service: SupabaseClient;
 let director: SupabaseClient;
@@ -38,7 +39,7 @@ beforeAll(async () => {
 
   ilj = await entityId('ILJ');
   template = await templateId();
-  staffId = await userId('staf.ilj');
+  staffId = await userId('admin.ilj');
 
   draft = await seedPeriod({
     entityCode: 'ILJ',
@@ -47,7 +48,7 @@ beforeAll(async () => {
     lines: [{ line_code: 'REV_TAGIHAN', amount: 4_000_000 }]
   });
 
-  staff = await signIn('staf.ilj');
+  staff = await signIn('admin.ilj');
   director = await signIn('direksi');
   manager = await signIn('manajer');
   service = serviceClient();
@@ -494,7 +495,7 @@ describe('audit untuk tabel yang punya layar admin', () => {
     // Without this trigger, promoting someone to direksi left no trace at all.
     const { error } = await director
       .from('profiles')
-      .update({ role: 'auditor' })
+      .update({ role: 'manajer_keuangan' })
       .eq('id', staffId);
     expect(error).toBeNull();
 
@@ -508,8 +509,8 @@ describe('audit untuk tabel yang punya layar admin', () => {
     );
 
     expect(rows).toHaveLength(1);
-    expect(rows[0].old_role).toBe('staf_entitas');
-    expect(rows[0].new_role).toBe('auditor');
+    expect(rows[0].old_role).toBe('admin_operasional');
+    expect(rows[0].new_role).toBe('manajer_keuangan');
     expect(rows[0].actor_id).toBe(await userId('direksi'));
   });
 
