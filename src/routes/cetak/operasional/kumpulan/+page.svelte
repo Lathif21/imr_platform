@@ -43,7 +43,7 @@
 
     <table class="lr">
       <thead>
-        <tr><th colspan="3">Laporan Laba Rugi</th></tr>
+        <tr><th colspan="3">Laporan Laba Rugi (invoice lunas)</th></tr>
         <tr><th colspan="3">{data.entity.legal_name}</th></tr>
         <tr><th colspan="3" class="normal">Per {hariTerakhir} {NAMA_BULAN[data.periode.bulan - 1]} {data.periode.tahun}</th></tr>
       </thead>

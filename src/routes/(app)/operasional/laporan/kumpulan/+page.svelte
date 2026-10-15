@@ -149,7 +149,7 @@
     </section>
 
     <section class="bg-card border border-border rounded-lg p-4 text-[13px] space-y-1.5">
-      <h2 class="text-[14px] font-semibold text-foreground text-center">Laporan Laba Rugi</h2>
+      <h2 class="text-[14px] font-semibold text-foreground text-center">Laporan Laba Rugi (invoice lunas)</h2>
       <p class="text-center text-muted-foreground">{data.opEntity?.legal_name} · {namaBulan}</p>
       <div class="pt-2 font-semibold text-foreground">PENDAPATAN</div>
       {#each [['Tagihan Wilmar', lr.tagihan_wilmar], ['Pajak (0,5%)', lr.pajak], ['Rekanan', lr.rekanan], ['PBM', lr.pbm], ['Terpal (50%)', lr.terpal_50], ['Operasional Telly', lr.operasional_telly]] as [label, v] (label)}
@@ -172,7 +172,7 @@
         <textarea bind:value={isi.notes} class={TEXTAREA}></textarea>
       </label>
       <p class="text-[12px] text-muted-foreground leading-relaxed pt-1">
-        Laporan operasional internal. Laba rugi resmi entitas dihitung di Laporan P&amp;L portal keuangan.
+        Laporan operasional internal, dari invoice yang sudah lunas saja. Laba bersih semua invoice bulan ini ada di Dasbor Operasional dan Ringkasan Eksekutif.
       </p>
     </section>
   </fieldset>

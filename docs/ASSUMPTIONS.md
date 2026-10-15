@@ -108,4 +108,28 @@ not an accounting policy, so nothing is added to `accounting_policies`.
 **Changed:** what was updated in code/data
 -->
 
-*(none yet)*
+### A-4 · Accounting basis — untuk laba bersih dari data operasional
+**Decided:** akrual — semua invoice bulan kegiatan, dibayar atau belum · **By:** pemilik proyek (Lathif) · **On:** 2026-10-16
+**Rationale:** Direksi butuh gambaran kinerja bulanan dari input operasional
+admin, tidak bergantung jadwal bayar klien. Uang yang belum masuk tampil
+terpisah sebagai piutang. Pajak mengikuti tarif yang diisi admin per invoice,
+sehingga PPh tercatat di bulan invoicenya — artefak basis kas seperti PPh
+Jan–Mar yang mendarat di Juli 2025 tidak terjadi pada angka ini.
+**Changed:** `src/lib/server/ringkasan-operasional.ts` (dipakai Dasbor
+Operasional dan Ringkasan Eksekutif): laba bersih = tagihan bruto − pajak −
+pengeluaran kotor. Kumpulan Laporan sengaja tetap "invoice lunas" (laporan
+lapangan) dan labelnya menyebut itu. Laporan P&L (periods) tidak diubah dan
+`accounting_policies` belum diisi — baris itu butuh profil pemutus di
+database; isi lewat `set_entity_reporting_basis()` bila P&L dipakai lagi.
+
+### A-2 · Uang saku — untuk data operasional
+**Decided:** beban (expense) · **By:** pemilik proyek (Lathif) · **On:** 2026-10-16
+**Rationale:** Admin menginputnya sebagai "Saku supir" di setiap kegiatan,
+dan pengeluaran itu sudah dikurangkan dari laba bersih operasional.
+**Changed:** tidak ada kode yang berubah — keputusan ini mengesahkan yang
+sudah dihitung. Bila ternyata uang muka, laba bersih terlalu rendah sebesar
+saku supir dan perlu modul penyelesaian uang muka (lihat A-2 di atas).
+
+*A-3 (bagi hasil 65/35) tetap terbuka: data operasional tidak mencatatnya,
+jadi setiap laba bersih di aplikasi adalah sebelum bagi hasil, dan layarnya
+menyebut itu.*

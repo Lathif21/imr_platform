@@ -81,12 +81,13 @@
 
     <section class="{KARTU} flex items-center justify-between gap-3 flex-wrap">
       <div>
-        <div class="text-[12px] text-muted-foreground">Selisih perkiraan: tagihan bruto − pajak − pengeluaran kotor</div>
-        <div class="text-[22px] font-semibold num mt-0.5 {d.selisih < 0 ? 'text-destructive' : 'text-positive'}">{rupiah(d.selisih)}</div>
+        <div class="text-[12px] text-muted-foreground">Laba bersih: tagihan bruto − pajak − pengeluaran kotor</div>
+        <div class="text-[22px] font-semibold num mt-0.5 {d.labaBersih < 0 ? 'text-destructive' : 'text-positive'}">{rupiah(d.labaBersih)}</div>
       </div>
       <p class="text-[12px] text-muted-foreground max-w-[460px] leading-relaxed">
-        Angka cepat untuk memantau bulan berjalan. Laba rugi resmi entitas ada di Laporan P&amp;L; laba rugi operasional
-        versi lapangan ada di <a href="/operasional/laporan/kumpulan?{q}" class="text-primary hover:underline">Kumpulan Laporan</a>.
+        Semua invoice bulan ini, sudah dibayar atau belum, sebelum bagi hasil 65/35. Angka yang sama tampil di Ringkasan
+        Eksekutif direksi. <a href="/operasional/laporan/kumpulan?{q}" class="text-primary hover:underline">Kumpulan Laporan</a>
+        menghitung invoice lunas saja.
       </p>
     </section>
 

@@ -137,7 +137,14 @@
           description: 'Laporan akhir per entitas',
           icon: FileChartColumn,
           groups: canReadOperational(role)
-            ? [{ items: [{ label: 'Laporan', icon: FileChartColumn, href: '/operasional/laporan' }] }]
+            ? [
+                {
+                  items: [
+                    { label: 'Ringkasan Eksekutif', icon: LayoutDashboard, href: '/', exact: true },
+                    { label: 'Laporan', icon: FileChartColumn, href: '/operasional/laporan' }
+                  ]
+                }
+              ]
             : []
         },
     {

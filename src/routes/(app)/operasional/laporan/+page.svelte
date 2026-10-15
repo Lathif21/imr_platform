@@ -31,7 +31,7 @@
     { href: 'laporan/gaji', excel: 'gaji', icon: Banknote, title: 'Laporan Gaji Karyawan', desc: 'Honor telly per kegiatan dan gaji admin bulanan, lengkap dengan PPh, gaji bersih, dan slip gaji.' },
     { href: 'laporan/paguyuban', excel: 'paguyuban', icon: HandHeart, title: 'Laporan Paguyuban', desc: 'Iuran paguyuban per kelompok kapal, diisi manual per truk.' },
     { href: 'laporan/operasional', cetak: 'kegiatan', excel: 'operasional', icon: ChartColumn, title: 'Laporan Operasional', desc: 'Rekap per kapal dan rincian biaya setiap kegiatan.' },
-    { href: 'laporan/keuangan', excel: 'keuangan', icon: ClipboardList, title: 'Laporan Keuangan', desc: 'Rincian truk dan pengeluaran bulanan. Laba rugi resmi dihitung di Laporan P&L, bukan di sini.' },
+    { href: 'laporan/keuangan', excel: 'keuangan', icon: ClipboardList, title: 'Laporan Keuangan', desc: 'Rincian truk dan pengeluaran bulanan. Laba bersih ada di Dasbor Operasional.' },
     { href: 'pengeluaran', cetak: 'pengeluaran', excel: 'pengeluaran', icon: Receipt, title: 'Laporan Pengeluaran', desc: 'Daftar dan cetak pengeluaran bulanan.' },
     { href: 'laporan/karyawan', cetak: 'karyawan', icon: Users, title: 'Laporan Catatan Karyawan', desc: 'Rekam jejak keaktifan, riwayat SP1–SP3, dan catatan karyawan.' }
   ];
