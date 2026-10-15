@@ -42,7 +42,7 @@
   }
 
   const KARTU = 'bg-card border border-border rounded-lg';
-  const TH = 'px-3 py-2 text-[12px] font-medium text-muted-foreground text-right whitespace-nowrap';
+  const TH = 'px-3 py-2 text-[12px] font-medium text-muted-foreground whitespace-nowrap';
   const TD = 'px-3 py-2.5 text-right align-top whitespace-nowrap';
 </script>
 
@@ -108,12 +108,12 @@
           <thead class="border-b border-border">
             <tr>
               <th class="{TH} text-left">Entitas</th>
-              <th class={TH}>Pendapatan</th>
-              <th class={TH}>Pengeluaran</th>
-              <th class={TH}>Laba bersih</th>
-              <th class={TH}>Piutang</th>
-              <th class={TH} title="Beban rekanan dibagi pendapatan">Rekanan</th>
-              <th class={TH}>Volume</th>
+              <th class="{TH} text-right">Pendapatan</th>
+              <th class="{TH} text-right">Pengeluaran</th>
+              <th class="{TH} text-right">Laba bersih</th>
+              <th class="{TH} text-right">Piutang</th>
+              <th class="{TH} text-right" title="Beban rekanan dibagi pendapatan">Rekanan</th>
+              <th class="{TH} text-right">Volume</th>
               <th class="{TH} text-left">6 bulan</th>
             </tr>
           </thead>

@@ -15,7 +15,6 @@
   import LayoutDashboard from 'lucide-svelte/icons/layout-dashboard';
   import LogOut from 'lucide-svelte/icons/log-out';
   import Receipt from 'lucide-svelte/icons/receipt';
-  import Settings from 'lucide-svelte/icons/settings';
   import Ship from 'lucide-svelte/icons/ship';
   import Split from 'lucide-svelte/icons/split';
   import Truck from 'lucide-svelte/icons/truck';
@@ -78,10 +77,9 @@
   };
 
   /**
-   * One sidebar, one module at a time. The module switcher sits on the logo at
-   * the top — the place every admin tool keeps it — and the screens of the
-   * chosen module are listed right below, so no screen is ever more than one
-   * click away and there is no second row of tabs to look for.
+   * Every role gets exactly one list of screens, grouped under headings. The
+   * module switcher on the logo still exists for a role with more than one
+   * module, but none has one today: every screen is one click away.
    *
    * `visible` is UX only. Hiding a nav item is not access control — RLS is.
    */
@@ -132,39 +130,40 @@
           ]
         }
       : {
+          // Direksi and manajer: one list, grouped under headings, with no
+          // module switcher to open first (16 Oktober 2026). Administrasi is
+          // a group of the same list, and only direksi has it.
           key: 'operasional',
           label: 'Laporan',
           description: 'Laporan akhir per entitas',
           icon: FileChartColumn,
-          groups: canReadOperational(role)
-            ? [
-                {
-                  items: [
-                    { label: 'Ringkasan Eksekutif', icon: LayoutDashboard, href: '/', exact: true },
-                    { label: 'Laporan', icon: FileChartColumn, href: '/operasional/laporan' }
-                  ]
-                }
-              ]
-            : []
-        },
-    {
-      key: 'admin',
-      label: 'Administrasi',
-      description: 'Entitas, template & pengguna',
-      icon: Settings,
-      groups: isDirector(role)
-        ? [
-            {
-              items: [
-                { label: 'Entitas', icon: Building2, href: '/admin/entities' },
-                { label: 'Template', icon: FileSpreadsheet, href: '/admin/templates' },
-                { label: 'Pengguna', icon: Users, href: '/admin/users' },
-                { label: 'Pemetaan Biaya', icon: Split, href: '/admin/pemetaan-biaya' }
-              ]
-            }
+          groups: [
+            ...(canReadOperational(role)
+              ? [
+                  {
+                    heading: 'Laporan',
+                    items: [
+                      { label: 'Ringkasan Eksekutif', icon: LayoutDashboard, href: '/', exact: true },
+                      { label: 'Laporan', icon: FileChartColumn, href: '/operasional/laporan' }
+                    ]
+                  }
+                ]
+              : []),
+            ...(isDirector(role)
+              ? [
+                  {
+                    heading: 'Administrasi',
+                    items: [
+                      { label: 'Entitas', icon: Building2, href: '/admin/entities' },
+                      { label: 'Template', icon: FileSpreadsheet, href: '/admin/templates' },
+                      { label: 'Pengguna', icon: Users, href: '/admin/users' },
+                      { label: 'Pemetaan Biaya', icon: Split, href: '/admin/pemetaan-biaya' }
+                    ]
+                  }
+                ]
+              : [])
           ]
-        : []
-    }
+        }
   ]);
 
   const visibleItems = (m: Module) => m.groups.flatMap((g) => g.items).filter((i) => i.visible !== false);
