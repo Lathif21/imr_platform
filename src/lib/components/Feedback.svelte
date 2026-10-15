@@ -56,16 +56,16 @@
       class="pointer-events-auto flex items-start gap-3 rounded-lg border bg-popover shadow-lg px-3.5 py-3 {TOAST_STYLE[t.kind]}"
     >
       {#if t.kind === 'success'}
-        <CircleCheck size={16} class="shrink-0 mt-0.5" />
+        <CircleCheck size={18} class="shrink-0 mt-0.5" />
       {:else if t.kind === 'error'}
-        <CircleAlert size={16} class="shrink-0 mt-0.5" />
+        <CircleAlert size={18} class="shrink-0 mt-0.5" />
       {:else}
-        <Info size={16} class="shrink-0 mt-0.5" />
+        <Info size={18} class="shrink-0 mt-0.5" />
       {/if}
       <div class="flex-1 min-w-0">
-        <p class="text-[14px] font-semibold">{t.title}</p>
+        <p class="text-[16px] font-semibold">{t.title}</p>
         {#if t.message}
-          <p class="text-[13px] text-muted-foreground mt-0.5 leading-relaxed">{t.message}</p>
+          <p class="text-[15px] text-muted-foreground mt-0.5 leading-relaxed">{t.message}</p>
         {/if}
       </div>
       <button
@@ -75,7 +75,7 @@
         class="shrink-0 p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted
                transition-colors cursor-pointer"
       >
-        <X size={14} />
+        <X size={17} />
       </button>
     </div>
   {/each}
@@ -116,9 +116,9 @@
         {/if}
       </div>
 
-      <h2 id="notice-title" class="text-[17px] font-semibold text-foreground">{n.title}</h2>
+      <h2 id="notice-title" class="text-[19px] font-semibold text-foreground">{n.title}</h2>
       {#if n.message}
-        <p id="notice-message" class="text-[14px] text-muted-foreground mt-2 leading-relaxed">
+        <p id="notice-message" class="text-[16px] text-muted-foreground mt-2 leading-relaxed">
           {n.message}
         </p>
       {/if}
@@ -132,7 +132,7 @@
         >
           {#each n.details as detail, i (i)}
             <li
-              class="text-[13px] leading-relaxed flex gap-2
+              class="text-[15px] leading-relaxed flex gap-2
                      {success ? 'text-foreground' : 'text-destructive font-medium'}"
             >
               <span aria-hidden="true" class="shrink-0">•</span>
@@ -146,7 +146,7 @@
         type="button"
         bind:this={noticeButton}
         onclick={closeNotice}
-        class="mt-5 w-full sm:w-auto sm:min-w-[140px] px-5 py-2 rounded-lg text-[14px] font-medium
+        class="mt-5 w-full sm:w-auto sm:min-w-[140px] px-5 py-2 rounded-lg text-[16px] font-medium
                text-primary-foreground active:scale-[0.98] transition-all cursor-pointer
                focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
                focus-visible:ring-offset-popover
@@ -177,8 +177,8 @@
       transition:scale={{ start: 0.96, duration: 140 }}
       class="w-full max-w-[420px] rounded-xl border border-border bg-popover shadow-2xl p-5"
     >
-      <h2 id="confirm-title" class="text-[17px] font-semibold text-foreground">{o.title}</h2>
-      <p id="confirm-message" class="text-[14px] text-muted-foreground mt-2 leading-relaxed">
+      <h2 id="confirm-title" class="text-[19px] font-semibold text-foreground">{o.title}</h2>
+      <p id="confirm-message" class="text-[16px] text-muted-foreground mt-2 leading-relaxed">
         {o.message}
       </p>
       {#if o.consequence}
@@ -189,14 +189,14 @@
             : 'border-warning/30 bg-warning/10 text-warning'}"
         >
           <TriangleAlert size={15} class="shrink-0 mt-0.5" />
-          <p class="text-[13px] font-medium leading-relaxed">{o.consequence}</p>
+          <p class="text-[15px] font-medium leading-relaxed">{o.consequence}</p>
         </div>
       {/if}
       <div class="flex justify-end gap-2 mt-5">
         <button
           type="button"
           onclick={() => settleConfirm(false)}
-          class="px-4 py-2 rounded-lg border border-border bg-card text-[14px] font-medium
+          class="px-4 py-2 rounded-lg border border-border bg-card text-[16px] font-medium
                  text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border-strong
                  active:scale-[0.98] transition-all cursor-pointer"
         >
@@ -206,7 +206,7 @@
           type="button"
           bind:this={confirmButton}
           onclick={() => settleConfirm(true)}
-          class="px-4 py-2 rounded-lg text-[14px] font-medium text-primary-foreground
+          class="px-4 py-2 rounded-lg text-[16px] font-medium text-primary-foreground
                  active:scale-[0.98] transition-all cursor-pointer focus:outline-none focus-visible:ring-2
                  focus-visible:ring-offset-2 focus-visible:ring-offset-popover
                  {o.tone === 'danger'

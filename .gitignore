@@ -22,3 +22,9 @@ Thumbs.db
 tests/e2e/hasil/
 .vercel
 .env.local
+
+# Backup database dan lampiran di VPS (deploy/backup.sh)
+deploy/backups/
+
+# Lampiran saat dev (STORAGE_DIR)
+.berkas/

@@ -122,6 +122,40 @@ describe('katalog', () => {
     );
     expect(rows.map((r) => r.table_name).sort()).toEqual([...OPERATIONAL_TABLES].sort());
   });
+
+  /**
+   * `can_read_operational(entity_id)` in a policy runs once per row — 9,3 s
+   * for 20.000 rows — because a SECURITY DEFINER function cannot be inlined
+   * (20250128000000_rls_sekali_per_query.sql). The set form runs once.
+   */
+  it('policy operasional menghitung akses sekali per query', async () => {
+    const rows = await sql<{ name: string; expr: string }>(
+      `select tablename || '.' || policyname as name,
+              coalesce(qual, '') || ' ' || coalesce(with_check, '') as expr
+         from pg_policies
+        where schemaname = 'public' and tablename = any($1)`,
+      [OPERATIONAL_TABLES]
+    );
+    for (const row of rows) {
+      expect(row.expr, row.name).not.toMatch(/can_(read|write)_operational\(entity_id\)/);
+      expect(row.expr, row.name).toMatch(/entitas_(baca|tulis)_operasional\(\)/);
+    }
+  });
+
+  it('pembatasan akses tetap sama untuk baris yang dibaca dalam jumlah besar', async () => {
+    await sql(
+      `insert into pemilik (entity_id, nama_pemilik)
+       select case when g % 2 = 0 then $1::uuid else $2::uuid end, 'Massal ' || g
+         from generate_series(1, 2000) g`,
+      [iljId, amdkId]
+    );
+    const { count, error } = await admin
+      .from('pemilik')
+      .select('id', { count: 'exact', head: true })
+      .like('nama_pemilik', 'Massal %');
+    expect(error).toBeNull();
+    expect(count).toBe(1000);
+  });
 });
 
 describe('admin operasional', () => {

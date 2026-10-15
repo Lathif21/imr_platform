@@ -287,3 +287,58 @@ describe('tarik_pencairan', () => {
     expect(lagi.data.dibuat).toBe(0);
   });
 });
+
+/**
+ * Two people saving at the same moment (20250129000000_kunci_nomor_pendapatan).
+ * Two real transactions: A inserts and stays open, B starts while A holds the
+ * lock. Without the lock B reads the same max(no_urut) as A and both rows get
+ * the same number — and the same invoice number.
+ */
+describe('penomoran bersamaan', () => {
+  it('dua transaksi bersamaan tidak mendapat nomor urut yang sama', async () => {
+    const DB_URL = process.env.SUPABASE_DB_URL ?? 'postgresql://postgres:postgres@127.0.0.1:55322/postgres';
+    const [{ id: adminId }] = await sql<{ id: string }>(
+      "select id from auth.users where email = 'admin.ilj@example.test'"
+    );
+    const pg = (await import('pg')).default;
+    const a = new pg.Client({ connectionString: DB_URL });
+    const b = new pg.Client({ connectionString: DB_URL });
+    await a.connect();
+    await b.connect();
+
+    const asAdmin = async (client: InstanceType<typeof pg.Client>) => {
+      await client.query('begin');
+      await client.query('set local role authenticated');
+      await client.query(`select set_config('request.jwt.claims', $1, true)`, [
+        JSON.stringify({ sub: adminId, role: 'authenticated' })
+      ]);
+    };
+    const tambah = (client: InstanceType<typeof pg.Client>, nama: string) =>
+      client.query<{ id: string }>(
+        `select tambah_pendapatan($1, 3, 2027, $2::jsonb) as id`,
+        [iljId, JSON.stringify({ kegiatan: nama, party_kg: '1000', harga: '1000' })]
+      );
+
+    try {
+      await asAdmin(a);
+      await asAdmin(b);
+      await tambah(a, 'Bersamaan A');
+      const pending = tambah(b, 'Bersamaan B');
+      // Give B time to reach the lock while A is still open.
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      await a.query('commit');
+      await pending;
+      await b.query('commit');
+    } finally {
+      await a.end();
+      await b.end();
+    }
+
+    const rows = await sql<{ no_urut: number; no_invoice: string }>(
+      "select no_urut, no_invoice from laporan_pendapatan where kegiatan like 'Bersamaan %' order by no_urut"
+    );
+    expect(rows).toHaveLength(2);
+    expect(new Set(rows.map((r) => r.no_urut)).size).toBe(2);
+    expect(new Set(rows.map((r) => r.no_invoice)).size).toBe(2);
+  });
+});

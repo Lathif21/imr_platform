@@ -1,0 +1,22 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+
+	reverse_proxy app:3000 {
+		# Satu hop: adapter-node membaca X-Forwarded-For dengan XFF_DEPTH=1.
+		header_up X-Forwarded-For {remote_host}
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

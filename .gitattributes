@@ -1,0 +1,3 @@
+# Dijalankan di VPS Linux: harus LF walau di-checkout di Windows.
+*.sh text eol=lf
+deploy/Caddyfile text eol=lf

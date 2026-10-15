@@ -31,30 +31,34 @@ Read these before writing code:
 
 ## Stack
 
-SvelteKit (SSR) + TypeScript · Neon (Postgres, Neon Auth, Data API, RLS) ·
-Tailwind v4. `supabase-js` is called directly against the Neon Data API, which
-speaks PostgREST — no ORM, no repository layer. Only its query half is used;
-login and account administration go through `src/lib/server/neon-auth.ts`.
+SvelteKit (SSR, adapter-node) + TypeScript · Postgres 18 · PostgREST · RLS ·
+Tailwind v4, all on one VPS — see **[deploy/README.md](deploy/README.md)** for
+installing, updating, backups, and moving the data over from Neon.
 
-Production runs on the `imr_keu` database of the Neon project `IMR`. Neon Auth
-keeps users in `neon_auth."user"`, and `auth.uid()` reads the JWT's `sub`
-exactly as on Supabase, so the migrations and every RLS policy are shared by
-both. Apply them to Neon with:
+Every query goes through PostgREST with the caller's JWT, so RLS decides what
+comes back (`src/hooks.server.ts`). It is called with `@supabase/postgrest-js`
+— the query half of `supabase-js` — no ORM, no repository layer. Login,
+sessions and account administration live in `src/lib/server/auth.ts`, on the
+`auth` schema of the same database (`deploy/sql/platform.sql`).
+
+`deploy/sql/platform.sql` provides what the migrations expect from Supabase —
+the `authenticated` role, `auth.uid()` reading the JWT's `sub`, and
+`auth.users` — so they apply unchanged:
 
 ```sh
-NEON_DATABASE_URL=postgres://... npx tsx scripts/neon-migrate.ts --bootstrap
+cd deploy && docker compose run --rm migrate --bootstrap
 ```
 
-The script rewrites the one Supabase-only reference (`auth.users`) on the fly
-and records what it applied; `--bootstrap` adds the four entities and the
-operational sync link from `supabase/neon-bootstrap.sql`.
+`--bootstrap` adds the four entities and the operational sync link from
+`supabase/neon-bootstrap.sql`; leave it out when the data comes from Neon.
 
 ## Running it locally
 
-`npm run dev` talks to Neon, using `NEON_AUTH_BASE_URL` and
-`NEON_DATA_API_URL` from `.env` (Neon Auth accepts `localhost` origins).
+`npm run dev` talks to Postgres and PostgREST from the compose stack — the
+steps are at the top of `deploy/docker-compose.dev.yml`, the variables in
+`.env.example`.
 
-The test suite and the seeded accounts below still use a local Supabase stack,
+The test suite and the seeded accounts below use a local Supabase stack,
 which needs Node 20+, Docker Desktop, and the Supabase CLI.
 
 ```sh
@@ -62,7 +66,7 @@ npm install
 cp .env.example .env      # fill in the keys `supabase start` prints
 supabase start            # Postgres, Auth, Studio on 127.0.0.1
 npm run db:reset          # apply migrations, then supabase/seed.sql
-npm run dev
+npm test
 ```
 
 `supabase/seed.sql` creates four local accounts, one per role, all with the
@@ -82,13 +86,11 @@ These exist only in a local database. They are not printed anywhere in the UI.
 Deliberate limitations, not oversights. Each is a decision that can be revisited
 when the group is bigger than ten people.
 
-**Accounts are created by a director, password and all.** There is no SMTP
-configured, so `/admin/users` calls `createUser` with `email_confirm: true` —
-without it the account could never log in. The consequences, in full:
+**Accounts are created by a director, password and all.** The consequences:
 
 - There is **no email verification**. An address is whatever the director typed.
-- There is **no self-service password reset**. A forgotten password means asking
-  a director to set a new one.
+- "Lupa kata sandi" mails a 15-minute link through Brevo — when Brevo is
+  configured. The page answers the same whether or not the address exists.
 - The director **knows every initial password**. The screen offers a random
   generator and shows the result once, so nobody has to invent one, but the
   password still passes through a human.
@@ -97,8 +99,7 @@ Passwords are never written to a log, never stored in `audit_log`, never put in
 an error message, and never sent back to the browser after being set. Minimum
 length is checked on the server, not only in the form.
 
-**Email cannot be changed** once an account exists. `auth.admin.updateUserById`
-could do it, but changing someone's address without verification is how an
+**Email cannot be changed** once an account exists. Changing someone's address without verification is how an
 account gets taken over. Deactivate and create a new one instead.
 
 **Nobody is ever deleted.** `audit_log.actor_id` points at profiles, and a
@@ -106,17 +107,16 @@ history whose actors have vanished is not a history. Deactivating is the way
 out, and `current_user_role()` filters `is_active`, so a deactivated account
 loses everything immediately — even with a session still in flight.
 
-**There is no service key.** `/admin/users` calls Neon Auth's admin API with
-the director's own session, and Neon Auth accepts it only from users whose auth
-role is `admin`. That role is kept in step with `profiles.role`: only directors
-hold it, a role change updates it, and deactivating an account bans it in Neon
-Auth, which also ends its sessions. Without that, a demoted or deactivated
-director could still reset other people's passwords by calling the auth API
-directly — RLS never sees that call.
+**There is no service key.** `/admin/users` acts on the director's own
+authority: `src/lib/server/auth.ts` re-reads the caller's profile in the same
+transaction as every account change and refuses anyone who is not an active
+director at that moment. Deactivating an account bans it, which also ends its
+sessions; a password reset — by a director or through "Lupa kata sandi" — ends
+every session of that account too.
 
-Public sign-up is disabled in Neon Auth (`disable_sign_up`), and the portal's
-domain must be a trusted domain there, or every auth call fails with
-`INVALID_ORIGIN`.
+Sessions are a random token in an httpOnly cookie; the database stores only
+its sha256. Failed logins are limited to 5 per email and 30 per IP per
+15 minutes. There is no public sign-up.
 
 ## Scripts
 

@@ -14,12 +14,11 @@
     "db:types": "supabase gen types typescript --local > src/lib/server/database.types.ts"
   },
   "devDependencies": {
-    "@sveltejs/adapter-auto": "^7.0.1",
+    "@sveltejs/adapter-node": "^5.5.7",
     "@sveltejs/kit": "^2.70.3",
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/pg": "^8.23.1",
-    "pg": "^8.23.0",
     "svelte": "^5.56.10",
     "svelte-check": "^4.7.6",
     "tailwindcss": "^4.3.3",
@@ -30,9 +29,11 @@
     "xlsx": "^0.18.5"
   },
   "dependencies": {
+    "@supabase/postgrest-js": "^2.112.3",
     "@supabase/supabase-js": "^2.112.3",
     "aws4fetch": "^1.0.20",
     "exceljs": "^4.4.0",
-    "lucide-svelte": "^1.0.1"
+    "lucide-svelte": "^1.0.1",
+    "pg": "^8.23.1"
   }
 }

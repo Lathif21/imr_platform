@@ -253,22 +253,56 @@ export interface QueueRow {
  */
 type Transition = { ok: true } | { ok: false; status: number; message: string };
 
+/**
+ * The version of the period the reviewer was looking at: `submitted_at` for
+ * an approval, `approved_at` for a lock. The UPDATE only lands while it is
+ * still that version.
+ *
+ * Without it there is a race nobody would notice: reviewer A opens the queue,
+ * the period is rejected, corrected and resubmitted with different figures,
+ * and A — still on the old screen — approves numbers they never saw. The
+ * trigger cannot catch this; to the database it is a valid transition.
+ */
+interface Seen {
+  /** The status the transition starts from. A second click finds it moved on. */
+  from: PeriodStatus;
+  column: 'submitted_at' | 'approved_at';
+  value: string | null;
+}
+
+const STALE_MESSAGE =
+  'Laporan ini sudah berubah sejak halaman dibuka — diajukan ulang dengan angka baru, atau sudah diproses orang lain. Muat ulang halaman dan periksa angkanya lagi.';
+
 async function transition(
   locals: App.Locals,
   periodId: string,
   patch: Record<string, unknown>,
   context: string,
-  fallback: string
+  fallback: string,
+  seen?: Seen
 ): Promise<Transition> {
-  const { data, error: updateError } = await locals.supabase
-    .from('periods')
-    .update(patch)
-    .eq('id', periodId)
+  if (seen && !seen.value) return { ok: false, status: 409, message: STALE_MESSAGE };
+
+  let query = locals.supabase.from('periods').update(patch).eq('id', periodId);
+  if (seen?.value) query = query.eq('status', seen.from).eq(seen.column, seen.value);
+  const { data, error: updateError } = await query
     .select('status')
     .maybeSingle<{ status: PeriodStatus }>();
 
   if (updateError) {
     return { ok: false, status: 400, message: explain(context, updateError, fallback) };
+  }
+  if (!data && seen) {
+    // Nothing matched: either the version moved on, or RLS refused. Only
+    // the first deserves the stale message.
+    const { data: current } = await locals.supabase
+      .from('periods')
+      .select(`status, ${seen.column}`)
+      .eq('id', periodId)
+      .maybeSingle<Record<string, string | null>>();
+    if (current && (current.status !== seen.from || current[seen.column] !== seen.value)) {
+      return { ok: false, status: 409, message: STALE_MESSAGE };
+    }
   }
   if (!data) {
     return {
@@ -308,7 +342,8 @@ export const actions: Actions = {
         approved_at: new Date().toISOString()
       },
       'approve',
-      'Gagal menyetujui periode.'
+      'Gagal menyetujui periode.',
+      { from: 'submitted', column: 'submitted_at', value: String(form.get('seenAt') ?? '') || null }
     );
     if (!result.ok) return fail(result.status, { message: result.message });
     return { done: 'approve' as const };
@@ -352,7 +387,8 @@ export const actions: Actions = {
         locked_at: new Date().toISOString()
       },
       'lock',
-      'Gagal mengunci periode.'
+      'Gagal mengunci periode.',
+      { from: 'approved', column: 'approved_at', value: String(form.get('seenAt') ?? '') || null }
     );
     if (!result.ok) return fail(result.status, { message: result.message });
     return { done: 'lock' as const };

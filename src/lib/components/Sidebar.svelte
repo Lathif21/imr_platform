@@ -299,11 +299,11 @@
   sidebar for every desktop user.
 -->
 <aside
-  class="fixed inset-y-0 left-0 z-50 w-[260px] shrink-0 flex flex-col h-screen
+  class="fixed inset-y-0 left-0 z-50 w-[272px] shrink-0 flex flex-col h-screen
          border-r border-border bg-background transition-[transform,width] duration-200
          md:relative md:z-30 md:translate-x-0 md:visible
          {open ? 'translate-x-0 visible' : '-translate-x-full invisible'}
-         {collapsed ? 'md:w-[60px]' : 'md:w-[232px]'}"
+         {collapsed ? 'md:w-[64px]' : 'md:w-[256px]'}"
 >
   <!-- Module switcher: the logo and the module name are one button. -->
   <div
@@ -324,19 +324,19 @@
     >
       <div class="w-7 h-7 rounded-md bg-primary flex items-center justify-center shrink-0">
         {#if current}
-          <current.icon size={14} class="text-primary-foreground" />
+          <current.icon size={17} class="text-primary-foreground" />
         {:else}
-          <ChartColumn size={14} class="text-primary-foreground" />
+          <ChartColumn size={17} class="text-primary-foreground" />
         {/if}
       </div>
       <div class="min-w-0 flex-1 {collapsed ? 'md:hidden' : ''}">
-        <p class="text-[11px] text-muted-foreground leading-tight truncate">IMR Platform</p>
-        <p class="text-[14px] font-semibold text-foreground leading-tight truncate">
+        <p class="text-[13px] text-muted-foreground leading-tight truncate">IMR Platform</p>
+        <p class="text-[16px] font-semibold text-foreground leading-tight truncate">
           {current?.label ?? 'IMR Platform'}
         </p>
       </div>
       {#if canSwitch}
-        <ChevronsUpDown size={14} class="shrink-0 text-muted-foreground {collapsed ? 'md:hidden' : ''}" />
+        <ChevronsUpDown size={17} class="shrink-0 text-muted-foreground {collapsed ? 'md:hidden' : ''}" />
       {/if}
     </button>
 
@@ -347,7 +347,7 @@
       aria-label="Tutup menu"
       onclick={() => onclose?.()}
     >
-      <X size={16} />
+      <X size={18} />
     </button>
 
     {#if switcherOpen}
@@ -357,7 +357,7 @@
                top-[calc(100%-4px)] left-2
                {collapsed ? 'md:top-1.5 md:left-[calc(100%+6px)]' : ''}"
       >
-        <p class="px-2.5 pt-1.5 pb-1 text-[11px] font-medium uppercase tracking-wide text-subtle">Modul</p>
+        <p class="px-2.5 pt-1.5 pb-1 text-[13px] font-medium uppercase tracking-wide text-subtle">Modul</p>
         {#each available as m (m.key)}
           {@const first = visibleItems(m)[0]}
           <a
@@ -372,15 +372,15 @@
               class="w-7 h-7 rounded-md flex items-center justify-center shrink-0
                      {m.key === current?.key ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}"
             >
-              <m.icon size={14} />
+              <m.icon size={17} />
             </div>
             <div class="min-w-0 flex-1">
-              <p class="text-[14px] font-medium truncate {m.key === current?.key ? 'text-primary' : 'text-foreground'}">
+              <p class="text-[16px] font-medium truncate {m.key === current?.key ? 'text-primary' : 'text-foreground'}">
                 {m.label}
               </p>
-              <p class="text-[12px] text-muted-foreground truncate">{m.description}</p>
+              <p class="text-[14px] text-muted-foreground truncate">{m.description}</p>
             </div>
-            {#if m.key === current?.key}<Check size={14} class="shrink-0 text-primary" />{/if}
+            {#if m.key === current?.key}<Check size={17} class="shrink-0 text-primary" />{/if}
           </a>
         {/each}
       </div>
@@ -393,7 +393,7 @@
       {#if opEntities.length > 1}
         <label
           for="op-entity"
-          class="block text-[11px] font-medium uppercase tracking-wide text-subtle mb-1 {collapsed ? 'md:sr-only' : ''}"
+          class="block text-[13px] font-medium uppercase tracking-wide text-subtle mb-1 {collapsed ? 'md:sr-only' : ''}"
         >
           Entitas
         </label>
@@ -402,8 +402,8 @@
           value={opEntity.code}
           onchange={chooseEntity}
           title={opEntity.legal_name}
-          class="w-full h-[30px] px-2 bg-background border border-border rounded-md text-[13px] text-foreground
-                 focus:outline-none focus:border-primary {collapsed ? 'md:px-0.5 md:text-[12px]' : ''}"
+          class="w-full h-10 px-2 bg-background border border-border rounded-md text-[15px] text-foreground
+                 focus:outline-none focus:border-primary {collapsed ? 'md:px-0.5 md:text-[14px]' : ''}"
         >
           {#each opEntities as entity (entity.id)}
             <option value={entity.code}>{entity.code}</option>
@@ -414,20 +414,20 @@
           class="flex items-center gap-2 px-2 py-1.5 rounded-md bg-card border border-border {collapsed ? 'md:justify-center md:px-0' : ''}"
           title={opEntity.legal_name}
         >
-          <Building2 size={13} class="shrink-0 text-muted-foreground" />
-          <span class="text-[13px] font-medium text-foreground shrink-0">{opEntity.code}</span>
-          <span class="text-[12px] text-muted-foreground truncate {collapsed ? 'md:hidden' : ''}">
+          <Building2 size={16} class="shrink-0 text-muted-foreground" />
+          <span class="text-[15px] font-medium text-foreground shrink-0">{opEntity.code}</span>
+          <span class="text-[14px] text-muted-foreground truncate {collapsed ? 'md:hidden' : ''}">
             {opEntity.legal_name}
           </span>
         </div>
       {/if}
       {#if opReadOnly}
         <p
-          class="mt-1.5 flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted text-[12px] text-muted-foreground
+          class="mt-1.5 flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted text-[14px] text-muted-foreground
                  {collapsed ? 'md:justify-center md:px-0' : ''}"
           title="Peran Anda membaca data operasional tanpa mengubahnya."
         >
-          <Eye size={12} class="shrink-0" />
+          <Eye size={15} class="shrink-0" />
           <span class={collapsed ? 'md:hidden' : ''}>Mode baca</span>
         </p>
       {/if}
@@ -440,7 +440,7 @@
       {#if items.length}
         {#if group.heading}
           <p
-            class="px-3 pt-3 pb-1 text-[11px] font-medium uppercase tracking-wide text-subtle truncate
+            class="px-3 pt-3 pb-1 text-[13px] font-medium uppercase tracking-wide text-subtle truncate
                    {collapsed ? 'md:hidden' : ''}"
           >
             {group.heading}
@@ -455,13 +455,13 @@
               aria-current={active ? 'page' : undefined}
               title={collapsed ? item.label : undefined}
               onclick={() => onclose?.()}
-              class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[14px] font-medium transition-colors
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[16px] font-medium transition-colors
                      {collapsed ? 'md:justify-center md:px-0' : ''}
                      {active
                 ? 'bg-primary/10 text-primary font-semibold'
                 : 'text-muted-foreground hover:bg-card hover:text-foreground'}"
             >
-              <item.icon size={16} class="shrink-0" />
+              <item.icon size={18} class="shrink-0" />
               <span class="truncate {collapsed ? 'md:hidden' : ''}">{item.label}</span>
             </a>
           {/each}
@@ -484,15 +484,15 @@
       onclick={toggleCollapsed}
       aria-expanded={!collapsed}
       title={collapsed ? 'Lebarkan menu' : 'Ciutkan menu'}
-      class="w-full flex items-center gap-2.5 px-3 py-[7px] rounded-md text-[14px]
+      class="w-full flex items-center gap-2.5 px-3 py-[7px] rounded-md text-[16px]
              text-muted-foreground hover:bg-card hover:text-foreground transition-colors
              {collapsed ? 'justify-center px-0' : ''}"
     >
       {#if collapsed}
-        <ChevronRight size={14} class="shrink-0" />
+        <ChevronRight size={17} class="shrink-0" />
       {:else}
-        <ChevronLeft size={14} class="shrink-0" />
-        <span class="truncate">Ciutkan</span>
+        <ChevronLeft size={17} class="shrink-0" />
+        <span class="truncate">Ciutkan menu</span>
       {/if}
     </button>
   </div>
@@ -500,26 +500,28 @@
   <div class="border-t border-border shrink-0 {collapsed ? 'md:px-2 px-4 py-3' : 'px-4 py-3'}">
     <div class="flex items-center gap-2 {collapsed ? 'md:justify-center' : ''}">
       <div
-        class="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-[12px]
+        class="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-[14px]
                font-semibold text-foreground shrink-0"
         title={collapsed ? `${fullName ?? 'Tanpa nama'} · ${role ? ROLE_LABEL[role] : 'Tanpa peran'}` : undefined}
       >
         {initials}
       </div>
       <div class="min-w-0 flex-1 {collapsed ? 'md:hidden' : ''}">
-        <p class="text-[13px] font-medium text-foreground truncate">{fullName ?? 'Tanpa nama'}</p>
-        <p class="text-[12px] text-muted-foreground truncate">
+        <p class="text-[15px] font-medium text-foreground truncate">{fullName ?? 'Tanpa nama'}</p>
+        <p class="text-[14px] text-muted-foreground truncate">
           {role ? ROLE_LABEL[role] : 'Tanpa peran'}
         </p>
       </div>
       <form method="POST" action="/logout" class={collapsed ? 'md:hidden' : ''}>
+        <!-- Labelled: a bare door-arrow icon is not one people recognise. -->
         <button
           type="submit"
-          class="text-muted-foreground hover:text-foreground transition-colors p-1"
-          title="Keluar"
-          aria-label="Keluar"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-border
+                 text-[14px] font-medium text-foreground hover:bg-card transition-colors"
+          title="Keluar dari aplikasi"
         >
-          <LogOut size={14} />
+          <LogOut size={16} />
+          Keluar
         </button>
       </form>
     </div>

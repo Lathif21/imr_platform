@@ -166,9 +166,9 @@
 {#snippet isi()}
   <div class="space-y-3">
     {#if daftar === null}
-      <p class="text-[13px] text-muted-foreground">Memuat lampiran…</p>
+      <p class="text-[15px] text-muted-foreground">Memuat lampiran…</p>
     {:else if daftar.length === 0 && unggahan.length === 0}
-      <p class="text-[13px] text-muted-foreground">
+      <p class="text-[15px] text-muted-foreground">
         Belum ada dokumen.{canWrite ? ' Unggah foto atau scan dokumen asli sebagai bukti.' : ''}
       </p>
     {:else}
@@ -176,15 +176,15 @@
         {#each daftar as l (l.id)}
           <li class="flex items-center gap-3 px-3 py-2">
             {#if l.tipe.startsWith('image/')}
-              <ImageIcon size={16} class="shrink-0 text-muted-foreground" />
+              <ImageIcon size={18} class="shrink-0 text-muted-foreground" />
             {:else}
-              <FileText size={16} class="shrink-0 text-muted-foreground" />
+              <FileText size={18} class="shrink-0 text-muted-foreground" />
             {/if}
             <div class="min-w-0 flex-1">
-              <a href={href(l)} target="_blank" rel="noopener" class="block text-[13px] font-medium text-foreground hover:text-primary truncate" title={l.nama_file}>
+              <a href={href(l)} target="_blank" rel="noopener" class="block text-[15px] font-medium text-foreground hover:text-primary truncate" title={l.nama_file}>
                 {l.nama_file}
               </a>
-              <p class="text-[12px] text-muted-foreground">
+              <p class="text-[14px] text-muted-foreground">
                 {ukuranTeks(l.ukuran)} · {tanggal(l.created_at)}{l.pengunggah ? ` · ${l.pengunggah}` : ''}
               </p>
             </div>
@@ -198,7 +198,7 @@
         {/each}
         {#each unggahan as u, i (i)}
           <li class="px-3 py-2">
-            <div class="flex items-center justify-between gap-3 text-[13px]">
+            <div class="flex items-center justify-between gap-3 text-[15px]">
               <span class="truncate {u.galat ? 'text-destructive' : 'text-foreground'}">{u.galat ?? u.nama}</span>
               {#if !u.galat}<span class="num text-muted-foreground shrink-0">{u.persen}%</span>{/if}
             </div>
@@ -223,11 +223,11 @@
         ondragleave={() => (seret = false)}
         ondrop={jatuh}
       >
-        <Upload size={18} class="text-muted-foreground" />
-        <span class="text-[14px] font-medium text-foreground">
+        <Upload size={20} class="text-muted-foreground" />
+        <span class="text-[16px] font-medium text-foreground">
           {sibuk ? 'Mengunggah…' : 'Seret berkas ke sini, atau klik untuk memilih'}
         </span>
-        <span class="text-[12px] text-muted-foreground">PDF, foto (JPG/PNG/HEIC), Excel, Word, CSV · maks. 20 MB per berkas</span>
+        <span class="text-[14px] text-muted-foreground">PDF, foto (JPG/PNG/HEIC), Excel, Word, CSV · maks. 20 MB per berkas</span>
         <input
           bind:this={input}
           type="file"
@@ -246,9 +246,9 @@
 {#if mode === 'bagian'}
   <section class="bg-card border border-border rounded-lg overflow-hidden">
     <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-border">
-      <h2 class="text-[14px] font-semibold text-foreground inline-flex items-center gap-2">
-        <Paperclip size={14} class="text-muted-foreground" /> Dokumen Bukti
-        {#if hitung > 0}<span class="text-[12px] font-normal text-muted-foreground">· {hitung} berkas</span>{/if}
+      <h2 class="text-[16px] font-semibold text-foreground inline-flex items-center gap-2">
+        <Paperclip size={17} class="text-muted-foreground" /> Dokumen Bukti
+        {#if hitung > 0}<span class="text-[14px] font-normal text-muted-foreground">· {hitung} berkas</span>{/if}
       </h2>
     </div>
     <div class="p-4">{@render isi()}</div>
@@ -257,11 +257,11 @@
   <button
     type="button"
     onclick={() => (terbuka = true)}
-    class="{hitung > 0 ? BTN_SOFT : BTN_ICON} {hitung > 0 ? 'h-[28px] px-2 text-[12px] gap-1' : ''}"
+    class="{hitung > 0 ? BTN_SOFT : BTN_ICON} {hitung > 0 ? 'h-[28px] px-2 text-[14px] gap-1' : ''}"
     title={hitung > 0 ? `${hitung} dokumen bukti` : canWrite ? 'Lampirkan dokumen bukti' : 'Belum ada dokumen bukti'}
     aria-label="Lampiran {judul}"
   >
-    <Paperclip size={14} />
+    <Paperclip size={17} />
     {#if hitung > 0}<span class="num">{hitung}</span>{/if}
   </button>
   <FormModal bind:open={terbuka} title="Dokumen Bukti · {judul}" wide>

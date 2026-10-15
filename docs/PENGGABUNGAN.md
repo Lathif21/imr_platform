@@ -566,7 +566,7 @@ datanya, hasil fungsi = hasil endpoint Laravel, **sampai ke sen**.
 ## Migrasi data produksi
 
 Skrip `scripts/migrasi-data.ts` (belum ditulis), mengikuti pola
-`scripts/neon-migrate.ts`:
+`scripts/pindah-dari-neon.ts` (yang memindahkan data IMR_keu dari Neon ke VPS):
 
 1. Baca dari database Laravel (`neondb`), tulis ke database platform baru.
    Hanya membaca dari sumber — tidak ada satu pun tulis ke sistem lama.

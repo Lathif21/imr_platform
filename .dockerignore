@@ -1,0 +1,14 @@
+node_modules
+.svelte-kit
+build
+.git
+.vercel
+.env
+.env.*
+!.env.example
+*.pdf
+design
+docs
+tests
+deploy/.env
+deploy/backups

@@ -40,16 +40,16 @@
   onclick={toggle}
   title={label}
   aria-label={label}
-  class="flex items-center gap-2.5 rounded-md text-[14px]
+  class="flex items-center gap-2.5 rounded-md text-[16px]
          text-muted-foreground hover:bg-card hover:text-foreground transition-colors
          {variant === 'icon'
     ? 'h-8 w-8 justify-center shrink-0'
     : `w-full px-3 py-[7px] ${collapsed ? 'md:justify-center md:px-0' : ''}`}"
 >
   {#if current === 'dark'}
-    <Sun size={14} class="shrink-0" />
+    <Sun size={17} class="shrink-0" />
   {:else}
-    <Moon size={14} class="shrink-0" />
+    <Moon size={17} class="shrink-0" />
   {/if}
   {#if variant === 'nav'}
     <span class="truncate {collapsed ? 'md:hidden' : ''}">{label}</span>

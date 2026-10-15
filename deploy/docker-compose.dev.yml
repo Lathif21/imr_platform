@@ -1,0 +1,12 @@
+# Pengembangan lokal: Postgres + PostgREST dari compose, app lewat `npm run dev`.
+#
+#   cd deploy && cp .env.example .env     # isi rahasia; DOMAIN=localhost cukup
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db rest
+#   docker compose run --rm migrate --bootstrap
+#   docker compose run --rm akun --email saya@contoh.test --nama "Saya"
+#
+# Lalu .env di root repo (lihat .env.example) menunjuk ke port di bawah.
+services:
+  rest:
+    ports:
+      - "127.0.0.1:3001:3000"

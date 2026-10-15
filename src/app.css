@@ -21,10 +21,10 @@
   --p-card: #18181b;
   --p-popover: #18181b;
   --p-muted: #27272a;
-  --p-muted-foreground: #b8b8c0;
-  --p-subtle: #71717a;      /* captions, "belum lapor", disabled */
-  --p-border: #27272a;
-  --p-border-strong: #3f3f46; /* totals row top border only */
+  --p-muted-foreground: #d4d4d8;
+  --p-subtle: #a1a1aa;      /* captions, "belum lapor", disabled */
+  --p-border: #3f3f46;
+  --p-border-strong: #52525b; /* totals row top border only */
 
   /* brand */
   --p-primary: #3b82f6;
@@ -32,9 +32,9 @@
   --p-accent: #1d4ed8;
 
   /* semantic — see usage rules below */
-  --p-positive: #22c55e;
-  --p-warning: #f59e0b;
-  --p-destructive: #ef4444;
+  --p-positive: #4ade80;
+  --p-warning: #fbbf24;
+  --p-destructive: #f87171;
 
   /* entity/business-line series */
   --p-line-1: #3b82f6;  /* logistik  */
@@ -47,6 +47,9 @@
    Not a mechanical inversion. Two things do not survive one: the greys, which
    have to stay lighter than the text rather than darker than it, and the
    saturated hues, which read as glare on white and are stepped down a shade.
+   Text colours are held to at least 4.5:1 against the page: the people
+   reading these screens are directors in their fifties, and the original
+   grey captions and amber warnings (≈3:1) were hard for them to read.
    `card` stays a hair off `background` so the sidebar's hover state — which
    uses it — is still visible on a white page. */
 [data-theme='light'] {
@@ -57,18 +60,18 @@
   --p-card: #f4f4f5;
   --p-popover: #ffffff;
   --p-muted: #f4f4f5;
-  --p-muted-foreground: #3f3f46;
-  --p-subtle: #8a8a93;
-  --p-border: #e4e4e7;
-  --p-border-strong: #d4d4d8;
+  --p-muted-foreground: #2e2e33;
+  --p-subtle: #52525b;
+  --p-border: #d4d4d8;
+  --p-border-strong: #a1a1aa;
 
-  --p-primary: #2563eb;
+  --p-primary: #1d4ed8;
   --p-primary-foreground: #ffffff;
-  --p-accent: #1d4ed8;
+  --p-accent: #1e40af;
 
-  --p-positive: #16a34a;
-  --p-warning: #d97706;
-  --p-destructive: #dc2626;
+  --p-positive: #15803d;
+  --p-warning: #b45309;
+  --p-destructive: #b91c1c;
 
   --p-line-1: #2563eb;
   --p-line-2: #7c3aed;

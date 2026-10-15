@@ -1,0 +1,186 @@
+# IMR Platform di satu VPS. Panduan lengkap: deploy/README.md.
+#
+#   caddy  :80/:443 → app      HTTPS otomatis (Let's Encrypt), kompresi, HSTS
+#   app    SvelteKit (Node)    satu-satunya yang bicara dengan rest dan db
+#   rest   PostgREST           hanya di jaringan internal; RLS memakai JWT dari app
+#   db     Postgres 18         hanya di jaringan internal + 127.0.0.1 (tunnel SSH)
+#
+#   docker compose up -d --build           jalankan / perbarui
+#   docker compose run --rm migrate        terapkan migrasi (setiap rilis)
+#
+# Semua rahasia dari deploy/.env (salin dari .env.example).
+
+name: imr
+
+# Disk VPS 40 GB: log container dibatasi 3 × 10 MB per layanan. Tanpa ini
+# log json-file Docker tumbuh tanpa batas sampai disk penuh — dan Postgres
+# berhenti menulis.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  db:
+    # Versi mayor sama dengan Neon (18), tempat data produksi berasal.
+    image: postgres:18-alpine
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      POSTGRES_DB: imr
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?isi POSTGRES_PASSWORD di deploy/.env}
+      TZ: Asia/Jakarta
+    command:
+      - postgres
+      - -c
+      - shared_buffers=${PG_SHARED_BUFFERS:-128MB}
+      - -c
+      - effective_cache_size=${PG_EFFECTIVE_CACHE_SIZE:-512MB}
+      - -c
+      - work_mem=8MB
+      - -c
+      - maintenance_work_mem=64MB
+      - -c
+      # PostgREST 10 + imr_auth 5 + migrasi, backup, DBeaver.
+      - max_connections=30
+      - -c
+      - log_min_duration_statement=500
+      - -c
+      - timezone=Asia/Jakarta
+    volumes:
+      # Image 18+ menyimpan data di /var/lib/postgresql/18/docker.
+      - pgdata:/var/lib/postgresql
+    # Hanya localhost VPS — untuk DBeaver lewat tunnel SSH, tidak pernah ke internet.
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d imr"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [internal]
+
+  rest:
+    image: public.ecr.aws/supabase/postgrest:v14.16
+    restart: unless-stopped
+    logging: *logging
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${AUTHENTICATOR_PASSWORD:?isi AUTHENTICATOR_PASSWORD}@db:5432/imr
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET:?isi JWT_SECRET}
+      PGRST_JWT_AUD: authenticated
+      PGRST_DB_POOL: 10
+      # Tidak ada yang perlu membaca peta skema; jangan diumumkan.
+      PGRST_OPENAPI_MODE: disabled
+      PGRST_DB_CHANNEL_ENABLED: "true"
+      PGRST_SERVER_PORT: 3000
+    networks: [internal]
+
+  app:
+    build:
+      context: ..
+      target: runtime
+    image: imr-app:latest
+    restart: unless-stopped
+    logging: *logging
+    depends_on:
+      db:
+        condition: service_healthy
+      rest:
+        condition: service_started
+    environment:
+      # adapter-node: origin tetap untuk CSRF dan tautan email — bukan Host header.
+      ORIGIN: https://${DOMAIN:?isi DOMAIN}
+      ADDRESS_HEADER: X-Forwarded-For
+      XFF_DEPTH: 1
+      # Impor Excel dan lampiran (≤ 20 MB) melewati app.
+      BODY_SIZE_LIMIT: 25M
+      AUTH_DATABASE_URL: postgres://imr_auth:${IMR_AUTH_PASSWORD:?isi IMR_AUTH_PASSWORD}@db:5432/imr
+      DATA_API_URL: http://rest:3000
+      JWT_SECRET: ${JWT_SECRET}
+      STORAGE_DIR: /data/berkas
+      OPERATIONAL_SYNC_TOKEN: ${OPERATIONAL_SYNC_TOKEN:-}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      BREVO_SENDER_EMAIL: ${BREVO_SENDER_EMAIL:-}
+      BREVO_SENDER_NAME: ${BREVO_SENDER_NAME:-Portal Keuangan}
+      TZ: Asia/Jakarta
+      # Batas heap Node, supaya app tidak berebut RAM dengan Postgres di VPS 2 GB.
+      NODE_OPTIONS: --max-old-space-size=384
+    volumes:
+      - berkas:/data/berkas
+    networks: [internal]
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    logging: *logging
+    depends_on: [app]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?isi ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [internal]
+
+  # Sekali jalan: `docker compose run --rm migrate [--bootstrap]`
+  migrate:
+    build:
+      context: ..
+      target: tools
+    image: imr-tools:latest
+    profiles: [tools]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/imr
+      AUTHENTICATOR_PASSWORD: ${AUTHENTICATOR_PASSWORD}
+      IMR_AUTH_PASSWORD: ${IMR_AUTH_PASSWORD}
+    entrypoint: ["npx", "tsx", "scripts/migrate.ts"]
+    networks: [internal]
+
+  # Sekali jalan saat cutover (README bagian 4b):
+  #   docker compose run --rm -e NEON_DATABASE_URL='postgresql://…' pindah
+  pindah:
+    image: imr-tools:latest
+    profiles: [tools]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/imr
+    entrypoint: ["npx", "tsx", "scripts/pindah-dari-neon.ts"]
+    networks: [internal]
+
+  # Sekali jalan: `docker compose run --rm akun --email ... --nama ...`
+  akun:
+    image: imr-tools:latest
+    profiles: [tools]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/imr
+    entrypoint: ["npx", "tsx", "scripts/buat-direksi.ts"]
+    networks: [internal]
+
+volumes:
+  pgdata:
+  berkas:
+  caddy_data:
+  caddy_config:
+
+networks:
+  internal:

@@ -1,20 +1,19 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { UserRole } from '$lib/domain';
-import type { AuthUser } from '$lib/server/neon-auth';
+import type { AuthUser } from '$lib/server/auth';
 
 declare global {
   namespace App {
     interface Locals {
       /**
-       * Request-scoped Data API client. Every query runs under the caller's
-       * RLS. Only its query half is used; auth goes through
-       * `$lib/server/neon-auth`.
+       * Request-scoped PostgREST client. Every query runs under the caller's
+       * RLS. Only `.from()` and `.rpc()` exist on it — see hooks.server.ts;
+       * auth goes through `$lib/server/auth`.
        */
       supabase: SupabaseClient;
       /**
-       * The Neon Auth session token, already verified against the auth server
-       * in `hooks.server.ts`. Null when there is no valid session. Passed back
-       * to Neon Auth by /admin/users, which acts on the director's authority.
+       * The session token, already verified in `hooks.server.ts`. Null when
+       * there is no valid session.
        */
       session: string | null;
       user: AuthUser | null;

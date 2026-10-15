@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { SESSION_COOKIE, signIn } from '$lib/server/neon-auth';
+import { setSessionCookie, signIn } from '$lib/server/auth';
 import type { Actions } from './$types';
 
 /**
@@ -28,12 +28,21 @@ function safeRedirect(requested: string | null, origin: string): string {
   }
 }
 
+/** For rate limiting. Throws behind a proxy whose ADDRESS_HEADER is not set. */
+function clientAddress(get: () => string): string | null {
+  try {
+    return get();
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Credentials are never in source and never displayed. The prototype printed
  * working logins on its login screen (see CLAUDE.md anti-patterns).
  */
 export const actions: Actions = {
-  default: async ({ request, url, cookies }) => {
+  default: async ({ request, url, cookies, getClientAddress }) => {
     const form = await request.formData();
     const email = String(form.get('email') ?? '').trim();
     const password = String(form.get('password') ?? '');
@@ -42,29 +51,33 @@ export const actions: Actions = {
       return fail(400, { email, message: 'Email dan kata sandi wajib diisi.' });
     }
 
-    let session: string | null;
+    let result: Awaited<ReturnType<typeof signIn>>;
     try {
-      session = await signIn(url.origin, email, password);
+      result = await signIn(email, password, {
+        ip: clientAddress(getClientAddress),
+        userAgent: request.headers.get('user-agent')
+      });
     } catch (cause) {
-      console.error('[login] Neon Auth:', (cause as Error).message);
-      return fail(502, { email, message: 'Layanan login sedang tidak dapat dihubungi. Coba lagi.' });
+      console.error('[login]', (cause as Error).message);
+      return fail(503, { email, message: 'Layanan login sedang bermasalah. Coba lagi sebentar.' });
     }
 
-    if (!session) {
+    if (!result.ok && result.reason === 'throttled') {
+      // The same answer for every address, so it reveals nothing about which exist.
+      return fail(429, {
+        email,
+        message: 'Terlalu banyak percobaan masuk yang gagal. Tunggu 15 menit, lalu coba lagi.'
+      });
+    }
+
+    if (!result.ok) {
       // Deliberately not distinguishing "unknown email" from "wrong password"
       // (or a banned account): that difference tells an attacker which
       // addresses exist.
       return fail(400, { email, message: 'Email atau kata sandi tidak sesuai.' });
     }
 
-    cookies.set(SESSION_COOKIE, session, {
-      path: '/',
-      httpOnly: true,
-      secure: url.protocol === 'https:',
-      sameSite: 'lax',
-      // Neon Auth sessions last seven days; the cookie does not outlive them.
-      maxAge: 60 * 60 * 24 * 7
-    });
+    setSessionCookie(cookies, result.token, url.protocol === 'https:');
 
     redirect(303, safeRedirect(url.searchParams.get('redirectTo'), url.origin));
   }

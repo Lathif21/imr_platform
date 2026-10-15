@@ -36,10 +36,27 @@ If a task starts to look like "build the ledger", stop and ask.
 
 ## Stack
 
-- SvelteKit (SSR) + TypeScript
-- Supabase: Postgres, Auth, RLS
+- SvelteKit (SSR, adapter-node) + TypeScript
+- Production: one VPS — Postgres 18, PostgREST, RLS, Caddy (`deploy/README.md`).
+  Auth is our own, in `src/lib/server/auth.ts` on the `auth` schema.
+  Tests still run on the local Supabase stack; `deploy/sql/platform.sql`
+  gives the VPS the `authenticated` role, `auth.uid()` and `auth.users` the
+  migrations expect, so one set of migrations serves both.
 - Tailwind + shadcn-svelte
-- `supabase-js` directly — no ORM
+- `locals.supabase` is a PostgREST client typed as `SupabaseClient` — only
+  `.from()` and `.rpc()` exist on it. No ORM.
+
+**RLS policies must evaluate access once per query, not once per row.** A
+SECURITY DEFINER function with a row argument — `can_read_operational(entity_id)`
+— cannot be inlined and runs for every row: 9,3 s for 20.000 rows. Write
+`entity_id in (select entitas_baca_operasional())` (or `entitas_tulis_…`,
+`entitas_terakses()`), and wrap argument-less helpers as
+`(select can_read_reports())`. See `20250128000000_rls_sekali_per_query.sql`;
+`tests/operasional-rls.test.ts` rejects the old form on operational tables.
+
+**Numbering read from `max(...) + 1` takes a lock first** —
+`kunci_nomor_pendapatan()` for Laporan Pendapatan (20250129). Without it two
+simultaneous saves get the same invoice number.
 
 ## Non-negotiable invariants
 
