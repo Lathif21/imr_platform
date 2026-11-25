@@ -14,6 +14,7 @@
  *                 is waiting on it.
  */
 
+import { untrack } from 'svelte';
 import { notify } from '$lib/feedback.svelte';
 
 const AKTIVITAS = '/operasional/aktivitas';
@@ -26,14 +27,22 @@ export const sibuk = {
   }
 };
 
-/** Mark one process as running; call the returned function exactly once when it ends. */
+/**
+ * Mark one process as running; call the returned function exactly once when it ends.
+ *
+ * `untrack`: `jalan++` reads the counter as well as writing it. Called from
+ * inside an `$effect` — Lampiran loads its list with fetch() in one — the
+ * read would make that effect depend on the counter it just changed, so it
+ * re-ran, fetched again, and looped until Svelte aborted with
+ * effect_update_depth_exceeded, leaving every button on the page dead.
+ */
 export function mulai(): () => void {
-  jalan++;
+  untrack(() => jalan++);
   let selesai = false;
   return () => {
     if (selesai) return;
     selesai = true;
-    jalan--;
+    untrack(() => jalan--);
   };
 }
 
